@@ -2094,7 +2094,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
         </tr>
     </table>
 
-    <table style="position: absolute; left: 500pt; top: 90pt; width: 85pt; font-size: 10pt; z-index: 1;">
+    <table style="position: absolute; left: 500pt; top: 93pt; width: 85pt; font-size: 10pt; z-index: 1;">
         <tr>
             <td align="right">
                 <#if (check.usertotal?has_content)>${check.usertotal?string['#,###,##0.00']}<#else>${check.total?string['#,###,##0.00']}</#if>
