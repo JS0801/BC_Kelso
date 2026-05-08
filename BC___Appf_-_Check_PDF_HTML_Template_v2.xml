@@ -2063,6 +2063,113 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
         </div>
         <!-- End of LLR subsidiary -->
         <!-- ALL OTHER SUBSIDIARIES -->
+  <#elseif check.account.id == "1871" || check.subsidiary.id == "41">
+
+<#assign jpmCheckBgUrl = "https://6962009-sb2.app.netsuite.com/core/media/media.nl?id=589101&amp;c=6962009_SB2&amp;h=TdgCP8ODNg2nEtLb1KbzfO4SVjM9bzfQjjZK32H9ZIou-I_d">
+<#assign jpmTotalAmt = 0>
+<#assign jpmTotalDisc = 0>
+<#assign combinedLength = check.apply?size + check.credit?size>
+
+<#list check.apply as apply>
+    <#assign jpmTotalAmt = jpmTotalAmt + nsformat_number(apply.amount)>
+    <#assign jpmTotalDisc = jpmTotalDisc + nsformat_number(apply.disc)>
+</#list>
+<#list check.credit as credit>
+    <#assign jpmTotalAmt = jpmTotalAmt + nsformat_number(credit.amount)>
+    <#assign jpmTotalDisc = jpmTotalDisc + nsformat_number(credit.discamt)>
+</#list>
+
+<div style="position: relative; font-family: Helvetica,sans-serif; width: 612pt; height: 792pt; page-break-after: always; font-size: 8pt;">
+
+    <img src="${jpmCheckBgUrl}"
+         style="position: absolute; left: -20.3pt; top: -20.2pt; width: 652.6pt; height: 832.5pt; z-index: 0;" />
+
+    <table style="position: absolute; left: 500pt; top: 62pt; width: 80pt; z-index: 1;">
+        <tr><td>${check.trandate}</td></tr>
+    </table>
+
+    <table style="position: absolute; left: 545pt; top: 20pt; width: 55pt; font-size: 14pt; z-index: 1;">
+        <tr><td align="right">${check.checknumber}</td></tr>
+    </table>
+
+    <table style="position: absolute; left: 105pt; top: 103pt; width: 350pt; font-size: 10pt; z-index: 1;">
+        <tr>
+            <td><#if (check.entity.companyname?has_content)>${check.entity.companyname}<#else>${check.entity}</#if></td>
+        </tr>
+    </table>
+
+    <table style="position: absolute; left: 500pt; top: 105pt; width: 85pt; font-size: 10pt; z-index: 1;">
+        <tr>
+            <td align="right">
+                <#if (check.usertotal?has_content)>${check.usertotal?string['#,###,##0.00']}<#else>${check.total?string['#,###,##0.00']}</#if>
+            </td>
+        </tr>
+    </table>
+
+    <table style="position: absolute; left: 75pt; top: 132pt; width: 490pt; font-size: 9pt; z-index: 1;">
+        <tr><td>${check.totalwords}**************************************</td></tr>
+    </table>
+
+    <table style="position: absolute; left: 75pt; top: 155pt; width: 390pt; font-size: 9pt; z-index: 1;">
+        <tr>
+            <td><#if check.address?contains("United States")>${check.address?replace("United States","")}<#else>${check.address}</#if></td>
+        </tr>
+    </table>
+
+    <#assign ctr = 1>
+    <#if check.apply?has_content || check.credit?has_content>
+    <table class="itemtable" style="position: absolute; left: 30pt; top: 285pt; width: 555pt; font-size: 8pt; z-index: 1;">
+        <thead>
+            <tr>
+                <th align="left" style="width: 15%">Date</th>
+                <th align="left" style="width: 10%">Type</th>
+                <th align="left" style="width: 18%">Ref No.</th>
+                <th align="right" style="width: 14%">Orig. Amount</th>
+                <th align="right" style="width: 14%">Due</th>
+                <th align="right" style="width: 14%">Discount</th>
+                <th align="right" style="width: 15%">Payment</th>
+            </tr>
+        </thead>
+
+        <#list check.apply as apply>
+            <#if ctr lt 24>
+            <tr>
+                <td>${apply.applydate}</td>
+                <td>${apply.type}</td>
+                <td>${apply.refnum}</td>
+                <td align="right">${apply.total}</td>
+                <td align="right">${apply.due}</td>
+                <td align="right">${apply.disc}</td>
+                <td align="right">${apply.amount}</td>
+            </tr>
+            </#if>
+            <#assign ctr = ctr + 1>
+        </#list>
+
+        <#list check.credit as credit>
+            <#if ctr lt 24>
+            <tr>
+                <td>${credit.creditdate}</td>
+                <td>${credit.type}</td>
+                <td>${credit.refnum}</td>
+                <td align="right">${credit.description}</td>
+                <td align="right">(${credit.amount})</td>
+                <td align="right">${credit.discamt}</td>
+                <td align="right">(${credit.amount})</td>
+            </tr>
+            </#if>
+            <#assign ctr = ctr + 1>
+        </#list>
+
+        <tr>
+            <td colspan="5"><strong>CHECK TOTAL:</strong></td>
+            <td align="right"><strong>${jpmTotalDisc?string.currency}</strong></td>
+            <td align="right"><strong>${jpmTotalAmt?string.currency}</strong></td>
+        </tr>
+    </table>
+    </#if>
+</div>
+
 <#else>
 <div style="font-family: Helvetica,sans-serif;height: 240pt;width: 612pt;page-break-inside: avoid;font-size: 8pt;">
 <#if check.account.id == "984" || check.account.id == "985">
