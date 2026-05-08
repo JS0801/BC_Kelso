@@ -2084,7 +2084,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
     <img src="${jpmCheckBgUrl}"
          style="position: absolute; left: -20.3pt; top: -20.2pt; width: 652.6pt; height: 832.5pt; z-index: 0;" />
 
-    <table style="position: absolute; left: 500pt; top: 62pt; width: 80pt; z-index: 1;">
+    <table style="position: absolute; left: 400pt; top: 55pt; width: 80pt; z-index: 1;">
         <tr><td>${check.trandate}</td></tr>
     </table>
 
