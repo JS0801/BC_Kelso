@@ -2079,7 +2079,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
     <#assign jpmTotalDisc = jpmTotalDisc + nsformat_number(credit.discamt)>
 </#list>
 
-<div style="position: relative; font-family: Helvetica,sans-serif; width: 612pt; height: 792pt; page-break-after: always; font-size: 7pt;">
+<div style="position: relative; font-family: Helvetica,sans-serif; width: 612pt; height: 792pt; page-break-after: always; font-size: 8pt;">
 
     <img src="${jpmCheckBgUrl}"
          style="position: absolute; left: -20.3pt; top: -20.2pt; width: 652.6pt; height: 832.5pt; z-index: 0;" />
