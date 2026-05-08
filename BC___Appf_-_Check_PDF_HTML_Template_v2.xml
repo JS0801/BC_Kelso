@@ -2120,55 +2120,62 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 
     <#assign ctr = 1>
     <#if check.apply?has_content || check.credit?has_content>
-    <table class="itemtable" style="position: absolute; left: 30pt; top: 285pt; width: 555pt; font-size: 8pt; z-index: 1;">
-        <thead>
-            <tr>
-                <th align="left" style="width: 15%">Date</th>
-                <th align="left" style="width: 10%">Type</th>
-                <th align="left" style="width: 18%">Ref No.</th>
-                <th align="right" style="width: 14%">Orig. Amount</th>
-                <th align="right" style="width: 14%">Due</th>
-                <th align="right" style="width: 14%">Discount</th>
-                <th align="right" style="width: 15%">Payment</th>
-            </tr>
-        </thead>
+    <table class="itemtable"
+       style="position: absolute; left: 30pt; top: 285pt; width: 555pt; font-size: 8pt; z-index: 1; border-collapse: collapse; border: 0.5pt solid black;">
 
-        <#list check.apply as apply>
-            <#if ctr lt 24>
-            <tr>
-                <td>${apply.applydate}</td>
-                <td>${apply.type}</td>
-                <td>${apply.refnum}</td>
-                <td align="right">${apply.total}</td>
-                <td align="right">${apply.due}</td>
-                <td align="right">${apply.disc}</td>
-                <td align="right">${apply.amount}</td>
-            </tr>
-            </#if>
-            <#assign ctr = ctr + 1>
-        </#list>
-
-        <#list check.credit as credit>
-            <#if ctr lt 24>
-            <tr>
-                <td>${credit.creditdate}</td>
-                <td>${credit.type}</td>
-                <td>${credit.refnum}</td>
-                <td align="right">${credit.description}</td>
-                <td align="right">(${credit.amount})</td>
-                <td align="right">${credit.discamt}</td>
-                <td align="right">(${credit.amount})</td>
-            </tr>
-            </#if>
-            <#assign ctr = ctr + 1>
-        </#list>
-
+    <thead>
         <tr>
-            <td colspan="5"><strong>CHECK TOTAL:</strong></td>
-            <td align="right"><strong>${jpmTotalDisc?string.currency}</strong></td>
-            <td align="right"><strong>${jpmTotalAmt?string.currency}</strong></td>
+            <th align="left" style="width: 15%; border: 0.5pt solid black; padding: 3pt; font-weight: bold;">Date</th>
+            <th align="left" style="width: 10%; border: 0.5pt solid black; padding: 3pt; font-weight: bold;">Type</th>
+            <th align="left" style="width: 18%; border: 0.5pt solid black; padding: 3pt; font-weight: bold;">Ref No.</th>
+            <th align="right" style="width: 14%; border: 0.5pt solid black; padding: 3pt; font-weight: bold;">Orig. Amount</th>
+            <th align="right" style="width: 14%; border: 0.5pt solid black; padding: 3pt; font-weight: bold;">Due</th>
+            <th align="right" style="width: 14%; border: 0.5pt solid black; padding: 3pt; font-weight: bold;">Discount</th>
+            <th align="right" style="width: 15%; border: 0.5pt solid black; padding: 3pt; font-weight: bold;">Payment</th>
         </tr>
-    </table>
+    </thead>
+
+    <#list check.apply as apply>
+        <#if ctr lt 24>
+        <tr>
+            <td style="border: 0.5pt solid black; padding: 3pt;">${apply.applydate}</td>
+            <td style="border: 0.5pt solid black; padding: 3pt;">${apply.type}</td>
+            <td style="border: 0.5pt solid black; padding: 3pt;">${apply.refnum}</td>
+            <td align="right" style="border: 0.5pt solid black; padding: 3pt;">${apply.total}</td>
+            <td align="right" style="border: 0.5pt solid black; padding: 3pt;">${apply.due}</td>
+            <td align="right" style="border: 0.5pt solid black; padding: 3pt;">${apply.disc}</td>
+            <td align="right" style="border: 0.5pt solid black; padding: 3pt;">${apply.amount}</td>
+        </tr>
+        </#if>
+        <#assign ctr = ctr + 1>
+    </#list>
+
+    <#list check.credit as credit>
+        <#if ctr lt 24>
+        <tr>
+            <td style="border: 0.5pt solid black; padding: 3pt;">${credit.creditdate}</td>
+            <td style="border: 0.5pt solid black; padding: 3pt;">${credit.type}</td>
+            <td style="border: 0.5pt solid black; padding: 3pt;">${credit.refnum}</td>
+            <td align="right" style="border: 0.5pt solid black; padding: 3pt;">${credit.description}</td>
+            <td align="right" style="border: 0.5pt solid black; padding: 3pt;">(${credit.amount})</td>
+            <td align="right" style="border: 0.5pt solid black; padding: 3pt;">${credit.discamt}</td>
+            <td align="right" style="border: 0.5pt solid black; padding: 3pt;">(${credit.amount})</td>
+        </tr>
+        </#if>
+        <#assign ctr = ctr + 1>
+    </#list>
+
+    <tr>
+        <td colspan="5" style="border: 0.5pt solid black; padding: 3pt;">
+            <strong>CHECK TOTAL:</strong>
+        </td>
+        <td align="right" style="border: 0.5pt solid black; padding: 3pt;">
+            <strong>${jpmTotalDisc?string.currency}</strong>
+        </td>
+        <td align="right" style="border: 0.5pt solid black; padding: 3pt;">
+            <strong>${jpmTotalAmt?string.currency}</strong>
+        </td>
+    </tr>
     </#if>
 </div>
 
