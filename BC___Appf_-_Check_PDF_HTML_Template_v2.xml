@@ -2088,7 +2088,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
         <tr><td>${check.trandate}</td></tr>
     </table>
 
-    <table style="position: absolute; left: 105pt; top: 78pt; width: 350pt; font-size: 10pt; z-index: 1;">
+    <table style="position: absolute; left: 75pt; top: 78pt; width: 350pt; font-size: 10pt; z-index: 1;">
         <tr>
             <td><#if (check.entity.companyname?has_content)>${check.entity.companyname}<#else>${check.entity}</#if></td>
         </tr>
