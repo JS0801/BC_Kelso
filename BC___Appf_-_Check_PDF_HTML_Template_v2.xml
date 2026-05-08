@@ -2106,7 +2106,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
         <tr><td>${check.totalwords}**************************************</td></tr>
     </table>
 
-    <table style="position: absolute; left: 75pt; top: 155pt; width: 390pt; font-size: 8pt; z-index: 1;">
+    <table style="position: absolute; left: 75pt; top: 110pt; width: 390pt; font-size: 8pt; z-index: 1;">
         <tr>
             <td><#if check.address?contains("United States")>${check.address?replace("United States","")}<#else>${check.address}</#if></td>
         </tr>
