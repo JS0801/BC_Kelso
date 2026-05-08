@@ -2112,7 +2112,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
         </tr>
     </table>
 
-    <table style="position: absolute; left: 75pt; top: 150pt; width: 390pt; font-size: 8pt; z-index: 1;">
+    <table style="position: absolute; left: 75pt; top: 180pt; width: 390pt; font-size: 8pt; z-index: 1;">
         <tr>
             <td>${check.memo}</td>
         </tr>
