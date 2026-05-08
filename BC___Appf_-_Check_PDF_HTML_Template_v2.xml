@@ -2079,7 +2079,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
     <#assign jpmTotalDisc = jpmTotalDisc + nsformat_number(credit.discamt)>
 </#list>
 
-<div style="position: relative; font-family: Helvetica,sans-serif; width: 612pt; height: 792pt; page-break-after: always; font-size: 8pt;">
+<div style="position: relative; font-family: Helvetica,sans-serif; width: 612pt; height: 792pt; page-break-after: always; font-size: 7pt;">
 
     <img src="${jpmCheckBgUrl}"
          style="position: absolute; left: -20.3pt; top: -20.2pt; width: 652.6pt; height: 832.5pt; z-index: 0;" />
@@ -2088,17 +2088,13 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
         <tr><td>${check.trandate}</td></tr>
     </table>
 
-    <table style="position: absolute; left: 545pt; top: 20pt; width: 55pt; font-size: 14pt; z-index: 1;">
-        <tr><td align="right"></td></tr>
-    </table>
-
-    <table style="position: absolute; left: 105pt; top: 80pt; width: 350pt; font-size: 10pt; z-index: 1;">
+    <table style="position: absolute; left: 105pt; top: 75pt; width: 350pt; font-size: 10pt; z-index: 1;">
         <tr>
             <td><#if (check.entity.companyname?has_content)>${check.entity.companyname}<#else>${check.entity}</#if></td>
         </tr>
     </table>
 
-    <table style="position: absolute; left: 500pt; top: 105pt; width: 85pt; font-size: 10pt; z-index: 1;">
+    <table style="position: absolute; left: 500pt; top: 90pt; width: 85pt; font-size: 10pt; z-index: 1;">
         <tr>
             <td align="right">
                 <#if (check.usertotal?has_content)>${check.usertotal?string['#,###,##0.00']}<#else>${check.total?string['#,###,##0.00']}</#if>
