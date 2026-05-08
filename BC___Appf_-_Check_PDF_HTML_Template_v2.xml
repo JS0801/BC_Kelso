@@ -2102,7 +2102,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
         </tr>
     </table>
 
-    <table style="position: absolute; left: 75pt; top: 90pt; width: 490pt; font-size: 9pt; z-index: 1;">
+    <table style="position: absolute; left: 75pt; top: 95pt; width: 490pt; font-size: 9pt; z-index: 1;">
         <tr><td>${check.totalwords}**************************************</td></tr>
     </table>
 
