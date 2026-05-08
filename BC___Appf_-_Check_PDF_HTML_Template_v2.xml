@@ -2139,13 +2139,13 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
     <#list check.apply as apply>
         <#if ctr lt 24>
         <tr>
-            <td style="border: 0.5pt solid black; padding: 3pt;">${apply.applydate}</td>
-            <td style="border: 0.5pt solid black; padding: 3pt;">${apply.type}</td>
-            <td style="border: 0.5pt solid black; padding: 3pt;">${apply.refnum}</td>
-            <td align="right" style="border: 0.5pt solid black; padding: 3pt;">${apply.total}</td>
-            <td align="right" style="border: 0.5pt solid black; padding: 3pt;">${apply.due}</td>
-            <td align="right" style="border: 0.5pt solid black; padding: 3pt;">${apply.disc}</td>
-            <td align="right" style="border: 0.5pt solid black; padding: 3pt;">${apply.amount}</td>
+            <td style="border: 0.5pt solid black; border-top: 0pt; border-bottom: 0pt; padding: 3pt;">${apply.applydate}</td>
+            <td style="border: 0.5pt solid black; border-top: 0pt; border-bottom: 0pt; padding: 3pt;">${apply.type}</td>
+            <td style="border: 0.5pt solid black; border-top: 0pt; border-bottom: 0pt; padding: 3pt;">${apply.refnum}</td>
+            <td align="right" style="border: 0.5pt solid black; border-top: 0pt; border-bottom: 0pt; padding: 3pt;">${apply.total}</td>
+            <td align="right" style="border: 0.5pt solid black; border-top: 0pt; border-bottom: 0pt; padding: 3pt;">${apply.due}</td>
+            <td align="right" style="border: 0.5pt solid black; border-top: 0pt; border-bottom: 0pt; padding: 3pt;">${apply.disc}</td>
+            <td align="right" style="border: 0.5pt solid black; border-top: 0pt; border-bottom: 0pt; padding: 3pt;">${apply.amount}</td>
         </tr>
         </#if>
         <#assign ctr = ctr + 1>
@@ -2154,13 +2154,13 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
     <#list check.credit as credit>
         <#if ctr lt 24>
         <tr>
-            <td style="border: 0.5pt solid black; padding: 3pt;">${credit.creditdate}</td>
-            <td style="border: 0.5pt solid black; padding: 3pt;">${credit.type}</td>
-            <td style="border: 0.5pt solid black; padding: 3pt;">${credit.refnum}</td>
-            <td align="right" style="border: 0.5pt solid black; padding: 3pt;">${credit.description}</td>
-            <td align="right" style="border: 0.5pt solid black; padding: 3pt;">(${credit.amount})</td>
-            <td align="right" style="border: 0.5pt solid black; padding: 3pt;">${credit.discamt}</td>
-            <td align="right" style="border: 0.5pt solid black; padding: 3pt;">(${credit.amount})</td>
+            <td style="border: 0.5pt solid black; border-top: 0pt; border-bottom: 0pt; padding: 3pt;">${credit.creditdate}</td>
+            <td style="border: 0.5pt solid black; border-top: 0pt; border-bottom: 0pt; padding: 3pt;">${credit.type}</td>
+            <td style="border: 0.5pt solid black; border-top: 0pt; border-bottom: 0pt; padding: 3pt;">${credit.refnum}</td>
+            <td align="right" style="border: 0.5pt solid black; border-top: 0pt; border-bottom: 0pt; padding: 3pt;">${credit.description}</td>
+            <td align="right" style="border: 0.5pt solid black; border-top: 0pt; border-bottom: 0pt; padding: 3pt;">(${credit.amount})</td>
+            <td align="right" style="border: 0.5pt solid black; border-top: 0pt; border-bottom: 0pt; padding: 3pt;">${credit.discamt}</td>
+            <td align="right" style="border: 0.5pt solid black; border-top: 0pt; border-bottom: 0pt; padding: 3pt;">(${credit.amount})</td>
         </tr>
         </#if>
         <#assign ctr = ctr + 1>
