@@ -2064,7 +2064,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
         <!-- End of LLR subsidiary -->
         <!-- ALL OTHER SUBSIDIARIES -->
 
-   <#elseif check.account.id == "1871" || check.subsidiary.id == "41">
+   <#elseif check.account.id != "1871" || check.subsidiary.id != "41">
 
 <#assign jpmCheckBgUrl = "https://6962009-sb2.app.netsuite.com/core/media/media.nl?id=589101&amp;c=6962009_SB2&amp;h=TdgCP8ODNg2nEtLb1KbzfO4SVjM9bzfQjjZK32H9ZIou-I_d">
 <#assign jpmTotalAmt = 0>
@@ -2233,7 +2233,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 
 </div>
  
-  <#elseif check.account.id == "1872" || check.subsidiary.id == "41">
+  <#elseif check.account.id == "1871" || check.subsidiary.id == "41">
 
 <#assign jpmCheckBgUrl = "https://6962009-sb2.app.netsuite.com/core/media/media.nl?id=589102&amp;c=6962009_SB2&amp;h=1pbPuuXuABc2_eXHDJ0HgTEJzYEmxw7YeC2IokhkRFT2nErj">
 <#assign jpmTotalAmt = 0>
