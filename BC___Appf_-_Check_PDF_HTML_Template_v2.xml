@@ -2252,7 +2252,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 <div style="position: relative; font-family: Helvetica,sans-serif; width: 612pt; height: 792pt; page-break-after: always; font-size: 8pt;">
 
     <img src="${jpmCheckBgUrl}"
-         style="position: absolute; left: -20.3pt; top: -20.2pt; width: 612pt; height: 792pt; z-index: 0;" />
+         style="position: absolute; width: 612pt; height: 792pt; z-index: 0;" />
 
     <table style="position: absolute; left: 530pt; top: 55pt; width: 80pt; z-index: 1;">
         <tr><td>${check.trandate}</td></tr>
