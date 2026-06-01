@@ -48,7 +48,7 @@
 <#list records as check>
 <!-- WALLACE SUBSIDIARY CHECK FORMAT -->
 <!-- WALLACE SUBSIDIARY CHECK FORMAT -->
-<#if check.subsidiary.id == "13">
+<#if check.subsidiary.id != "13">
 
 <div style="page-break-after: always;">
 <div style="font-family: Helvetica,sans-serif;height: 260pt;width: 100%;page-break-before: avoid;font-size: 8pt; padding-top: 30px; padding-left: 10px; padding-right: 10px;">
