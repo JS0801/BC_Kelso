@@ -2064,6 +2064,8 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
         <!-- End of LLR subsidiary -->
         <!-- ALL OTHER SUBSIDIARIES -->
 
+  
+
    <#elseif check.account.id != "1871" || check.subsidiary.id != "41">
 
 <#assign jpmCheckBgUrl = "https://6962009-sb2.app.netsuite.com/core/media/media.nl?id=589101&amp;c=6962009_SB2&amp;h=TdgCP8ODNg2nEtLb1KbzfO4SVjM9bzfQjjZK32H9ZIou-I_d">
@@ -2127,7 +2129,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 
 <thead>
     <tr>
-        <th align="left" style="width: 15%; border: 0.5pt solid black; padding: 3pt; font-weight: bold;">Date</th>
+        <th align="left" style="width: 15%; border: 0.5pt solid black; padding: 3pt; font-weight: bold;">DateT</th>
         <th align="left" style="width: 10%; border: 0.5pt solid black; padding: 3pt; font-weight: bold;">Type</th>
         <th align="left" style="width: 18%; border: 0.5pt solid black; padding: 3pt; font-weight: bold;">Ref No.</th>
         <th align="right" style="width: 14%; border: 0.5pt solid black; padding: 3pt; font-weight: bold;">Orig. Amount</th>
