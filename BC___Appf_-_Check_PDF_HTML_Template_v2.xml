@@ -2064,6 +2064,176 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
         <!-- End of LLR subsidiary -->
         <!-- ALL OTHER SUBSIDIARIES -->
 
+
+   <#elseif check.account.id = "975" && check.subsidiary.id = "13">
+
+<#assign jpmCheckBgUrl = "https://6962009-sb2.app.netsuite.com/core/media/media.nl?id=590920&amp;c=6962009_SB2&amp;h=jdptp-C3J16N2F8gHtVpOhKTbVYcSJDBGjXyDceF4b5Nx6nU">
+<#assign jpmTotalAmt = 0>
+<#assign jpmTotalDisc = 0>
+<#assign combinedLength = check.apply?size + check.credit?size>
+
+<#list check.apply as apply>
+    <#assign jpmTotalAmt = jpmTotalAmt + nsformat_number(apply.amount)>
+    <#assign jpmTotalDisc = jpmTotalDisc + nsformat_number(apply.disc)>
+</#list>
+<#list check.credit as credit>
+    <#assign jpmTotalAmt = jpmTotalAmt + nsformat_number(credit.amount)>
+    <#assign jpmTotalDisc = jpmTotalDisc + nsformat_number(credit.discamt)>
+</#list>
+
+<div style="position: relative; font-family: Helvetica,sans-serif; width: 612pt; height: 792pt; page-break-after: always; font-size: 8pt;">
+
+    <img src="${jpmCheckBgUrl}"
+         style="position: absolute;  width: 612pt; height: 792pt; z-index: 0;" />
+
+    <table style="position: absolute; left: 530pt; top: 55pt; width: 80pt; z-index: 1;">
+        <tr><td>${check.trandate}</td></tr>
+    </table>
+
+    <table style="position: absolute; left: 75pt; top: 78pt; width: 350pt; font-size: 8pt; z-index: 1;">
+        <tr>
+            <td><#if (check.entity.companyname?has_content)>${check.entity.companyname}<#else>${check.entity}</#if></td>
+        </tr>
+    </table>
+
+    <table style="position: absolute; left: 495pt; top: 93pt; width: 85pt; font-size: 8pt; z-index: 1;">
+        <tr>
+            <td align="right">
+                <#if (check.usertotal?has_content)>${check.usertotal?string['#,###,##0.00']}<#else>${check.total?string['#,###,##0.00']}</#if>
+            </td>
+        </tr>
+    </table>
+
+    <table style="position: absolute; left: 75pt; top: 95pt; width: 490pt; font-size: 8pt; z-index: 1;">
+        <tr><td>${check.totalwords}**************************************</td></tr>
+    </table>
+
+    <table style="position: absolute; left: 75pt; top: 120pt; width: 390pt; font-size: 8pt; z-index: 1;">
+        <tr>
+            <td><#if check.address?contains("United States")>${check.address?replace("United States","")}<#else>${check.address}</#if></td>
+        </tr>
+    </table>
+
+    <table style="position: absolute; left: 75pt; top: 192pt; width: 390pt; font-size: 8pt; z-index: 1;">
+        <tr>
+            <td>${check.memo}</td>
+        </tr>
+    </table>
+
+   <#-- First voucher stub -->
+<#assign ctr = 1>
+<#if check.apply?has_content || check.credit?has_content>
+<table class="itemtable"
+   style="position: absolute; left: 30pt; top: 285pt; width: 555pt; font-size: 8pt; z-index: 1; border-collapse: collapse; border: 0.5pt solid black;">
+
+<thead>
+    <tr>
+        <th align="left" style="width: 15%; border: 0.5pt solid black; padding: 3pt; font-weight: bold;">Date</th>
+        <th align="left" style="width: 10%; border: 0.5pt solid black; padding: 3pt; font-weight: bold;">Type</th>
+        <th align="left" style="width: 18%; border: 0.5pt solid black; padding: 3pt; font-weight: bold;">Ref No.</th>
+        <th align="right" style="width: 14%; border: 0.5pt solid black; padding: 3pt; font-weight: bold;">Orig. Amount</th>
+        <th align="right" style="width: 14%; border: 0.5pt solid black; padding: 3pt; font-weight: bold;">Due</th>
+        <th align="right" style="width: 14%; border: 0.5pt solid black; padding: 3pt; font-weight: bold;">Discount</th>
+        <th align="right" style="width: 15%; border: 0.5pt solid black; padding: 3pt; font-weight: bold;">Payment</th>
+    </tr>
+</thead>
+
+<#list check.apply as apply>
+    <#if ctr lt 11>
+    <tr>
+        <td style="border: 0.5pt solid black; border-top: 0pt; border-bottom: 0pt; padding: 3pt;">${apply.applydate}</td>
+        <td style="border: 0.5pt solid black; border-top: 0pt; border-bottom: 0pt; padding: 3pt;">${apply.type}</td>
+        <td style="border: 0.5pt solid black; border-top: 0pt; border-bottom: 0pt; padding: 3pt;">${apply.refnum}</td>
+        <td align="right" style="border: 0.5pt solid black; border-top: 0pt; border-bottom: 0pt; padding: 3pt;">${apply.total}</td>
+        <td align="right" style="border: 0.5pt solid black; border-top: 0pt; border-bottom: 0pt; padding: 3pt;">${apply.due}</td>
+        <td align="right" style="border: 0.5pt solid black; border-top: 0pt; border-bottom: 0pt; padding: 3pt;">${apply.disc}</td>
+        <td align="right" style="border: 0.5pt solid black; border-top: 0pt; border-bottom: 0pt; padding: 3pt;">${apply.amount}</td>
+    </tr>
+    </#if>
+    <#assign ctr = ctr + 1>
+</#list>
+
+<#list check.credit as credit>
+    <#if ctr lt 11>
+    <tr>
+        <td style="border: 0.5pt solid black; border-top: 0pt; border-bottom: 0pt; padding: 3pt;">${credit.creditdate}</td>
+        <td style="border: 0.5pt solid black; border-top: 0pt; border-bottom: 0pt; padding: 3pt;">${credit.type}</td>
+        <td style="border: 0.5pt solid black; border-top: 0pt; border-bottom: 0pt; padding: 3pt;">${credit.refnum}</td>
+        <td align="right" style="border: 0.5pt solid black; border-top: 0pt; border-bottom: 0pt; padding: 3pt;">${credit.description}</td>
+        <td align="right" style="border: 0.5pt solid black; border-top: 0pt; border-bottom: 0pt; padding: 3pt;">(${credit.amount})</td>
+        <td align="right" style="border: 0.5pt solid black; border-top: 0pt; border-bottom: 0pt; padding: 3pt;">${credit.discamt}</td>
+        <td align="right" style="border: 0.5pt solid black; border-top: 0pt; border-bottom: 0pt; padding: 3pt;">(${credit.amount})</td>
+    </tr>
+    </#if>
+    <#assign ctr = ctr + 1>
+</#list>
+
+<tr>
+    <td colspan="5" style="border: 0.5pt solid black; padding: 3pt;"><strong>CHECK TOTAL:</strong></td>
+    <td align="right" style="border: 0.5pt solid black; padding: 3pt;"><strong>${jpmTotalDisc?string.currency}</strong></td>
+    <td align="right" style="border: 0.5pt solid black; padding: 3pt;"><strong>${jpmTotalAmt?string.currency}</strong></td>
+</tr>
+</table>
+</#if>
+
+<#-- Second voucher stub, same structure/formatting -->
+<#assign ctr = 1>
+<#if check.apply?has_content || check.credit?has_content>
+<table class="itemtable"
+   style="position: absolute; left: 30pt; top: 535pt; width: 555pt; font-size: 8pt; z-index: 1; border-collapse: collapse; border: 0.5pt solid black;">
+
+<thead>
+    <tr>
+        <th align="left" style="width: 15%; border: 0.5pt solid black; padding: 3pt; font-weight: bold;">Date</th>
+        <th align="left" style="width: 10%; border: 0.5pt solid black; padding: 3pt; font-weight: bold;">Type</th>
+        <th align="left" style="width: 18%; border: 0.5pt solid black; padding: 3pt; font-weight: bold;">Ref No.</th>
+        <th align="right" style="width: 14%; border: 0.5pt solid black; padding: 3pt; font-weight: bold;">Orig. Amount</th>
+        <th align="right" style="width: 14%; border: 0.5pt solid black; padding: 3pt; font-weight: bold;">Due</th>
+        <th align="right" style="width: 14%; border: 0.5pt solid black; padding: 3pt; font-weight: bold;">Discount</th>
+        <th align="right" style="width: 15%; border: 0.5pt solid black; padding: 3pt; font-weight: bold;">Payment</th>
+    </tr>
+</thead>
+
+<#list check.apply as apply>
+    <#if ctr lt 11>
+    <tr>
+        <td style="border: 0.5pt solid black; border-top: 0pt; border-bottom: 0pt; padding: 3pt;">${apply.applydate}</td>
+        <td style="border: 0.5pt solid black; border-top: 0pt; border-bottom: 0pt; padding: 3pt;">${apply.type}</td>
+        <td style="border: 0.5pt solid black; border-top: 0pt; border-bottom: 0pt; padding: 3pt;">${apply.refnum}</td>
+        <td align="right" style="border: 0.5pt solid black; border-top: 0pt; border-bottom: 0pt; padding: 3pt;">${apply.total}</td>
+        <td align="right" style="border: 0.5pt solid black; border-top: 0pt; border-bottom: 0pt; padding: 3pt;">${apply.due}</td>
+        <td align="right" style="border: 0.5pt solid black; border-top: 0pt; border-bottom: 0pt; padding: 3pt;">${apply.disc}</td>
+        <td align="right" style="border: 0.5pt solid black; border-top: 0pt; border-bottom: 0pt; padding: 3pt;">${apply.amount}</td>
+    </tr>
+    </#if>
+    <#assign ctr = ctr + 1>
+</#list>
+
+<#list check.credit as credit>
+    <#if ctr lt 11>
+    <tr>
+        <td style="border: 0.5pt solid black; border-top: 0pt; border-bottom: 0pt; padding: 3pt;">${credit.creditdate}</td>
+        <td style="border: 0.5pt solid black; border-top: 0pt; border-bottom: 0pt; padding: 3pt;">${credit.type}</td>
+        <td style="border: 0.5pt solid black; border-top: 0pt; border-bottom: 0pt; padding: 3pt;">${credit.refnum}</td>
+        <td align="right" style="border: 0.5pt solid black; border-top: 0pt; border-bottom: 0pt; padding: 3pt;">${credit.description}</td>
+        <td align="right" style="border: 0.5pt solid black; border-top: 0pt; border-bottom: 0pt; padding: 3pt;">(${credit.amount})</td>
+        <td align="right" style="border: 0.5pt solid black; border-top: 0pt; border-bottom: 0pt; padding: 3pt;">${credit.discamt}</td>
+        <td align="right" style="border: 0.5pt solid black; border-top: 0pt; border-bottom: 0pt; padding: 3pt;">(${credit.amount})</td>
+    </tr>
+    </#if>
+    <#assign ctr = ctr + 1>
+</#list>
+
+<tr>
+    <td colspan="5" style="border: 0.5pt solid black; padding: 3pt;"><strong>CHECK TOTAL:</strong></td>
+    <td align="right" style="border: 0.5pt solid black; padding: 3pt;"><strong>${jpmTotalDisc?string.currency}</strong></td>
+    <td align="right" style="border: 0.5pt solid black; padding: 3pt;"><strong>${jpmTotalAmt?string.currency}</strong></td>
+</tr>
+</table>
+</#if>
+
+</div>
+
   
 
    <#elseif check.account.id != "1871" || check.subsidiary.id != "41">
@@ -2129,7 +2299,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 
 <thead>
     <tr>
-        <th align="left" style="width: 15%; border: 0.5pt solid black; padding: 3pt; font-weight: bold;">DateT</th>
+        <th align="left" style="width: 15%; border: 0.5pt solid black; padding: 3pt; font-weight: bold;">Date</th>
         <th align="left" style="width: 10%; border: 0.5pt solid black; padding: 3pt; font-weight: bold;">Type</th>
         <th align="left" style="width: 18%; border: 0.5pt solid black; padding: 3pt; font-weight: bold;">Ref No.</th>
         <th align="right" style="width: 14%; border: 0.5pt solid black; padding: 3pt; font-weight: bold;">Orig. Amount</th>
