@@ -2090,7 +2090,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
         <tr><td>${check.trandate}</td></tr>
     </table>
 
-    <table style="position: absolute; left: 75pt; top: 78pt; width: 350pt; font-size: 8pt; z-index: 1;">
+    <table style="position: absolute; left: 75pt; top: 87pt; width: 350pt; font-size: 8pt; z-index: 1;">
         <tr>
             <td><#if (check.entity.companyname?has_content)>${check.entity.companyname}<#else>${check.entity}</#if></td>
         </tr>
@@ -2104,7 +2104,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
         </tr>
     </table>
 
-    <table style="position: absolute; left: 75pt; top: 95pt; width: 490pt; font-size: 8pt; z-index: 1;">
+    <table style="position: absolute; left: 75pt; top: 100pt; width: 490pt; font-size: 8pt; z-index: 1;">
         <tr><td>${check.totalwords}**************************************</td></tr>
     </table>
 
@@ -2114,7 +2114,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
         </tr>
     </table>
 
-    <table style="position: absolute; left: 75pt; top: 192pt; width: 390pt; font-size: 8pt; z-index: 1;">
+    <table style="position: absolute; left: 75pt; top: 190pt; width: 390pt; font-size: 8pt; z-index: 1;">
         <tr>
             <td>${check.memo}</td>
         </tr>
