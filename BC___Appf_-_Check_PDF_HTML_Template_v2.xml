@@ -2065,7 +2065,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
         <!-- ALL OTHER SUBSIDIARIES -->
 
 
-   <#elseif check.account.id = "975" && check.subsidiary.id = "13">
+   <#elseif check.account.id == "975" && check.subsidiary.id == "13">
 
 <#assign jpmCheckBgUrl = "https://6962009-sb2.app.netsuite.com/core/media/media.nl?id=590920&amp;c=6962009_SB2&amp;h=jdptp-C3J16N2F8gHtVpOhKTbVYcSJDBGjXyDceF4b5Nx6nU">
 <#assign jpmTotalAmt = 0>
