@@ -157,13 +157,13 @@ define(['N/record', 'N/search', 'N/log', 'N/format'], (record, search, log, form
 
       if (amt > 0) {
         // Normal: relieve cost out of WIP into COGS.
-        addJeLine(je, c.cogsAccount, amt, 0, c, memo);          // Dr COGS
-        addJeLine(je, CONFIG.WIP_ACCOUNT, 0, amt, c, memo);     // Cr WIP
+        addJeLine(je, c.cogsAccount, amt, 0, c, memo, jobId);          // Dr COGS
+        addJeLine(je, CONFIG.WIP_ACCOUNT, 0, amt, c, memo, jobId);     // Cr WIP
       } else {
         // Net credit on the source line — mirror the direction.
         const a = Math.abs(amt);
-        addJeLine(je, c.cogsAccount, 0, a, c, memo);            // Cr COGS
-        addJeLine(je, CONFIG.WIP_ACCOUNT, a, 0, c, memo);       // Dr WIP
+        addJeLine(je, c.cogsAccount, 0, a, c, memo, jobId);            // Cr COGS
+        addJeLine(je, CONFIG.WIP_ACCOUNT, a, 0, c, memo, jobId);       // Dr WIP
       }
       linesAdded++;
     });
@@ -193,12 +193,13 @@ define(['N/record', 'N/search', 'N/log', 'N/format'], (record, search, log, form
   };
 
   // Adds one JE line carrying dimensions + source references.
-  const addJeLine = (je, account, debit, credit, c, memo) => {
+  const addJeLine = (je, account, debit, credit, c, memo, pid) => {
     je.selectNewLine({ sublistId: 'line' });
     je.setCurrentSublistValue({ sublistId: 'line', fieldId: 'account', value: account });
     if (debit)  je.setCurrentSublistValue({ sublistId: 'line', fieldId: 'debit',  value: debit });
     if (credit) je.setCurrentSublistValue({ sublistId: 'line', fieldId: 'credit', value: credit });
     je.setCurrentSublistValue({ sublistId: 'line', fieldId: 'memo', value: memo });
+    je.setCurrentSublistValue({ sublistId: 'line', fieldId: 'entity', value: pid });
 
     setLineIfPresent(je, 'department', c.department);
     setLineIfPresent(je, 'class',      c.classId);
