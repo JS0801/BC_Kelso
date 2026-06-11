@@ -71,7 +71,7 @@ define(['N/record', 'N/search', 'N/log', 'N/format'], (record, search, log, form
       }
 
       if (context.type === T.CREATE || context.type === T.EDIT) {
-      //  if (!isBecomingApproved(context)) return;
+        if (!isBecomingApproved(context)) return;
         createReliefForInvoice(context.newRecord);
       }
     } catch (e) {
