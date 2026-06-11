@@ -180,6 +180,10 @@ define(['N/record', 'N/search', 'N/log', 'N/format'], (record, search, log, form
       details: `JE ${jeId} for invoice ${invoiceId} (job ${jobId}); ${linesAdded} cost line(s).`
     });
 
+    if (jeId) {
+      record.submitFields({type: 'invoice', id: invoiceId, values: {custbody_bc_related_transaction: jeId}})
+    }
+
     if (skipped.length) {
       log.error({
         title: 'WIP relief: some lines skipped (no COGS mapping)',
