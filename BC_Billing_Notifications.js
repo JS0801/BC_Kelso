@@ -142,7 +142,6 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
     // ---------------------------------------------------------------
     const map = (context) => {
         try {
-          log.debug('v', v)
             const r = JSON.parse(context.value);
             const v = r.values;
             log.debug('v', v)
