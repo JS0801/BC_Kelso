@@ -2343,26 +2343,14 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 <#if ctr lt 11>
 <#if apply_index==0>
 <thead>
-    <#if check.subsidiary.id == '15'>
     <tr>
-        <th align="center" style="width: 18%">${apply.applydate@label}</th>
-        <th style="width: 13%">${apply.type@label}</th>
-        <th align="right" style="width: 18%">${apply.refnum@label}</th>
-        <th align="right" style="width: 17%">${apply.total@label}</th>
-        <th align="right" style="width: 17%">${apply.disc@label}</th>
-        <th align="right" style="width: 17%">${apply.amount@label}</th>
-    </tr>
-    <#else>
-    <tr>
-        <th align="center" style="width: 15%">${apply.applydate@label}</th>
+        <th align="center" style="width: 15%">Date</th>
         <th style="width: 10%">${apply.type@label}</th>
-        <th align="right" style="width: 15%">${apply.refnum@label}</th>
-        <th align="right" style="width: 15%">${apply.total@label}</th>
-        <th align="right" style="width: 15%">${apply.due@label}</th>
-        <th align="right" style="width: 15%">${apply.disc@label}</th>
-        <th align="right" style="width: 15%">${apply.amount@label}</th>
+        <th align="right" style="width: 15%">Reference</th>
+        <th align="right" style="width: 15%">Original Amount</th>
+        <th align="right" style="width: 15%">Balance Due</th>
+        <th align="right" style="width: 15%">Payment</th>
     </tr>
-    </#if>
 </thead>
 </#if>
 <tr>
@@ -2376,7 +2364,6 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
   ${(apply.total - apply.disc)?string.currency} </#if>
 </td>
 </#if>
-<td align="right" style="width: 15%">${apply.disc}</td>
 <td align="right" style="width: 15%">${(apply.total - apply.disc)?string.currency}</td>
 </tr>
         </#if>
@@ -2424,7 +2411,6 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
         <td align="right" style="width: 15%">${billRef}</td>
         <#if check.subsidiary.id != '15'><td align="right" style="width: 15%">${nsformat_currency(missingBillAgg[billRef])}</td></#if>
         <td align="right" style="width: 15%">${nsformat_currency(missingBillAgg[billRef])}</td>
-        <td align="right" style="width: 15%"></td>
         <td align="right" style="width: 15%">${nsformat_currency(missingBillAgg[billRef])}</td>
     </tr>
 
@@ -2441,7 +2427,6 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 <td align="right" style="width: 15%">${credit.refnum}</td>
 <td align="right" style="width: 15%">${credit.description}</td>
 <#if check.subsidiary.id != '15'><td align="right" style="width: 15%">(${credit.amount})</td></#if>
-<td align="right" style="width: 15%">${credit.discamt}</td>
 <td align="right" style="width: 15%">(${credit.amount})</td>
 </tr>
         </#if>
@@ -2457,7 +2442,6 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 <td align="right" style="width: 15%">${credit.refnum}</td>
 <td align="right" style="width: 15%">${credit.description}</td>
 <td align="right" style="width: 15%">(${credit.amount})</td>
-<td align="right" style="width: 15%">${credit.discamt}</td>
 <td align="right" style="width: 15%">(${credit.amount})</td>
 </tr>
         </#if>
@@ -2466,9 +2450,9 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
         <!-- end credit -->
         <!-- Add Check Total line -->
 <tr>
-<td colspan="<#if check.subsidiary.id == '15'>4<#else>5</#if>">
+<td colspan="4"">
 
-    <strong>CHECK TOTAL:</strong>
+    <strong>CHECK Amount:</strong>
 </td>
 <td align="right">
     <strong>${otherTotalDisc?string.currency}</strong>
