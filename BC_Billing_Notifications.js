@@ -132,6 +132,7 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
                 CONFIG.FIELD_NO_BILL_DATE
             ]
         });
+        log.debug('test', test)
         test.run().each(function(result){
            return true;
         });
