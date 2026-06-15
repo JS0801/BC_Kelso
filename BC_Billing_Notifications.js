@@ -118,7 +118,7 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
             filters: [
                 ['isinactive', 'is', 'F'],
                 'AND',
-                [CONFIG.FIELD_BILL_DATE, 'isnotempty', '']
+                [CONFIG.FIELD_BILL_DATE, 'noneof', '@NONE@']
             ],
             columns: [
                 'internalid',
@@ -136,6 +136,7 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
     // ---------------------------------------------------------------
     const map = (context) => {
         try {
+          log.debug('v', v)
             const r = JSON.parse(context.value);
             const v = r.values;
             log.debug('v', v)
