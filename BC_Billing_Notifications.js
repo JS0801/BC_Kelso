@@ -30,8 +30,8 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
 
         // Project (customrecord_cseg_bc_project) header fields
         FIELD_MAIN_PM: 'custrecord_bc_proj_manager',
-        FIELD_BILL_DATE: 'custrecord_bc_no_bill', // LIST field: text = day of month ('1'..'30') or 'EOM'
-        FIELD_NO_BILL: 'custrecord_bc_bill_no',
+        FIELD_BILL_DATE: 'custrecord_bill_date', // LIST field: text = day of month ('1'..'30') or 'EOM'
+        FIELD_NO_BILL: 'custrecord_bc_no_bill',
         FIELD_NO_BILL_REASON: 'custrecord_bc_no_bill_reason',
         FIELD_NO_BILL_DATE: 'custrecord_bc_no_bill_date',
 
