@@ -1,6 +1,19 @@
 /**
  * @NApiVersion 2.1
  * @NScriptType MapReduceScript
+ *
+ * BlueCollar - Daily Billing Notifications
+ * -----------------------------------------
+ * Runs daily. For each active project with a Bill Date:
+ *   - 3 working days before Bill Date -> email Main PM + Phase PMs
+ *   - 1 working day  before Bill Date -> email Accounting (invoice due)
+ *   - On/after Bill Date with no invoice in cycle -> daily reminder to
+ *     Main PM + Accounting, UNLESS the "No Billing This Cycle" checkbox
+ *     is set (then send Accounting the reason once).
+ *
+ * Business-day math currently excludes WEEKENDS only. Holidays are
+ * pluggable: drop dates into HOLIDAYS (or swap getHolidays() to read a
+ * custom record) and the rest of the logic picks them up automatically.
  */
 define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
 (search, record, email, format, log) => {
@@ -17,7 +30,7 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
 
         // Project (customrecord_cseg_bc_project) header fields
         FIELD_MAIN_PM: 'custrecord_bc_proj_manager',
-        FIELD_BILL_DATE: 'custrecord_bill_date',
+        FIELD_BILL_DATE: 'custrecord_bill_date', // LIST field: text = day of month ('1'..'30') or 'EOM'
         FIELD_NO_BILL: 'custrecord_bc_no_bill',
         FIELD_NO_BILL_REASON: 'custrecord_bc_no_bill_reason',
         FIELD_NO_BILL_DATE: 'custrecord_bc_no_bill_date',
@@ -64,6 +77,38 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
     };
 
     // ---------------------------------------------------------------
+    // BILL DAY HELPERS
+    // custrecord_bill_date is a LIST field. Its TEXT is the day of month
+    // ('1'..'30') or 'EOM'. We compute the actual calendar date per cycle.
+    // (No '31' exists in the list -> the 31st is represented by EOM.)
+    // ---------------------------------------------------------------
+    const lastDayOfMonth = (year, month) => new Date(year, month + 1, 0).getDate();
+
+    // Build the bill date for a given year/month from the picklist text.
+    const billDateForMonth = (billText, year, month) => {
+        if (String(billText).toUpperCase() === 'EOM') {
+            return new Date(year, month, lastDayOfMonth(year, month));
+        }
+        const day = parseInt(billText, 10);
+        const capped = Math.min(day, lastDayOfMonth(year, month)); // safety, e.g. day 30 in Feb
+        return new Date(year, month, capped);
+    };
+
+    // Next occurrence on/after today (drives the "before" pre-notices).
+    const upcomingBillDate = (billText, ref) => {
+        const thisMonth = billDateForMonth(billText, ref.getFullYear(), ref.getMonth());
+        if (thisMonth >= ref) return thisMonth;
+        return billDateForMonth(billText, ref.getFullYear(), ref.getMonth() + 1);
+    };
+
+    // Most recent occurrence on/before today (drives overdue reminders + cycle window).
+    const recentBillDate = (billText, ref) => {
+        const thisMonth = billDateForMonth(billText, ref.getFullYear(), ref.getMonth());
+        if (thisMonth <= ref) return thisMonth;
+        return billDateForMonth(billText, ref.getFullYear(), ref.getMonth() - 1);
+    };
+
+    // ---------------------------------------------------------------
     // 1) INPUT: active projects that have a Bill Date
     // ---------------------------------------------------------------
     const getInputData = () => {
@@ -95,10 +140,14 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
             const v = r.values;
 
             const projectId = r.id;
-            const billDate = stripTime(format.parse({
-                value: v[CONFIG.FIELD_BILL_DATE],
-                type: format.Type.DATE
-            }));
+
+            // Bill day comes from the LIST field's TEXT ('1'..'30' or 'EOM').
+            const billField = v[CONFIG.FIELD_BILL_DATE];
+            const billText = billField && billField.text ? billField.text : null;
+            if (!billText) {
+                log.audit('No bill day set', 'project ' + projectId);
+                return;
+            }
 
             // PM field comes back as { value: id, text: name }
             const pmField = v[CONFIG.FIELD_MAIN_PM];
@@ -107,38 +156,47 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
             const holidaySet = getHolidays();
             const now = today();
 
-            const pmTriggerDate = subtractBusinessDays(billDate, CONFIG.DAYS_BEFORE_PM, holidaySet);
-            const acctTriggerDate = subtractBusinessDays(billDate, CONFIG.DAYS_BEFORE_ACCOUNTING, holidaySet);
+            // Upcoming occurrence drives the "before" notices; most-recent
+            // occurrence drives overdue reminders + the invoice cycle window.
+            const upcoming = upcomingBillDate(billText, now);
+            const recent = recentBillDate(billText, now);
 
-            const billDisplay = format.format({ value: billDate, type: format.Type.DATE });
+            const pmTriggerDate = subtractBusinessDays(upcoming, CONFIG.DAYS_BEFORE_PM, holidaySet);
+            const acctTriggerDate = subtractBusinessDays(upcoming, CONFIG.DAYS_BEFORE_ACCOUNTING, holidaySet);
+
+            const upcomingDisplay = format.format({ value: upcoming, type: format.Type.DATE });
+            const recentDisplay = format.format({ value: recent, type: format.Type.DATE });
 
             // Diagnostic snapshot for every project, every run.
             log.debug('Evaluating project ' + projectId, {
                 today: ymd(now),
-                billDate: ymd(billDate),
+                billDay: billText,
+                upcoming: ymd(upcoming),
+                recent: ymd(recent),
                 pmTriggerDate: ymd(pmTriggerDate),
                 acctTriggerDate: ymd(acctTriggerDate),
                 mainPmId: mainPmId
             });
 
-            // --- 3 working days before: notify PMs ---
+            // --- 3 working days before upcoming bill date: notify PMs ---
             if (sameDay(now, pmTriggerDate)) {
                 log.audit('PM trigger HIT', 'project ' + projectId + ' (' + ymd(now) + ')');
-                notifyMainPm(mainPmId, projectId, billDisplay);
+                notifyMainPm(mainPmId, projectId, upcomingDisplay);
                 notifyPhasePms(projectId);
             }
 
-            // --- 1 working day before: notify Accounting ---
+            // --- 1 working day before upcoming bill date: notify Accounting ---
             if (sameDay(now, acctTriggerDate)) {
                 log.audit('Accounting trigger HIT', 'project ' + projectId + ' (' + ymd(now) + ')');
                 sendAccounting(
                     `Invoice creation due tomorrow - project ${projectId}`,
-                    `An invoice is due to be created for project ${projectId} on ${billDisplay}.`
+                    `An invoice is due to be created for project ${projectId} on ${upcomingDisplay}.`
                 );
             }
 
-            // --- On/after Bill Date: reminders / no-bill handling ---
-            if (now >= billDate) {
+            // --- On/after the most recent bill date: reminders / no-bill handling ---
+            // (recent is always <= today, so this cycle's bill day has passed.)
+            {
                 const noBill = v[CONFIG.FIELD_NO_BILL] === true || v[CONFIG.FIELD_NO_BILL] === 'T';
                 const noBillDateRaw = v[CONFIG.FIELD_NO_BILL_DATE];
                 const noBillDate = noBillDateRaw
@@ -146,12 +204,12 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
                     : null;
 
                 // Checkbox set and applies to THIS cycle -> tell Accounting once, then stop.
-                if (noBill && noBillDate && sameDay(noBillDate, billDate)) {
+                if (noBill && noBillDate && sameDay(noBillDate, recent)) {
                     const reason = v[CONFIG.FIELD_NO_BILL_REASON] || '(no reason provided)';
                     log.audit('No-bill flagged', 'project ' + projectId + ' reason: ' + reason);
                     sendAccounting(
                         `No billing this cycle - project ${projectId}`,
-                        `PM marked project ${projectId} as no-billing for ${billDisplay}.\nReason: ${reason}`
+                        `PM marked project ${projectId} as no-billing for ${recentDisplay}.\nReason: ${reason}`
                     );
                     // NOTE: to truly send this only ONCE (not daily), add a
                     // "no-bill notified" flag field and check/set it here.
@@ -159,14 +217,14 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
                 }
 
                 // Otherwise, if no invoice exists in this cycle, daily reminder.
-                const hasInvoice = invoiceExistsInCycle(projectId, billDate);
+                const hasInvoice = invoiceExistsInCycle(projectId, recent);
                 log.debug('Invoice check', 'project ' + projectId + ' hasInvoice=' + hasInvoice);
                 if (!hasInvoice) {
                     log.audit('Reminder SENT', 'project ' + projectId + ' (no invoice in cycle)');
-                    notifyMainPm(mainPmId, projectId, billDisplay, true);
+                    notifyMainPm(mainPmId, projectId, recentDisplay, true);
                     sendAccounting(
                         `REMINDER: no invoice yet - project ${projectId}`,
-                        `No invoice has been created for project ${projectId} (Bill Date ${billDisplay}).`
+                        `No invoice has been created for project ${projectId} (Bill Date ${recentDisplay}).`
                     );
                 }
             }
