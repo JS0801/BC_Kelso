@@ -138,6 +138,7 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
         try {
             const r = JSON.parse(context.value);
             const v = r.values;
+            log.debug('v', v)
 
             const projectId = r.id;
 
@@ -159,6 +160,7 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
             // Upcoming occurrence drives the "before" notices; most-recent
             // occurrence drives overdue reminders + the invoice cycle window.
             const upcoming = upcomingBillDate(billText, now);
+            log.debug('Project Dates', {projectId,  billText, now, upcoming})
             const recent = recentBillDate(billText, now);
 
             const pmTriggerDate = subtractBusinessDays(upcoming, CONFIG.DAYS_BEFORE_PM, holidaySet);
