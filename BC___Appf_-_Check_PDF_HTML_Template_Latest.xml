@@ -2304,17 +2304,17 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
     </tr>
 </table>
 
-<table style="position: absolute;overflow: hidden;left: 412pt;top: 20pt;height: 13pt;width: 70pt;">
+<table style="position: absolute;overflow: hidden;left: 412pt;top: 20pt;height: 13pt;width: 150pt;">
     <tr>
-        <td>${check.trandate}</td>
+        <td>
+          <#if (check.entity.companyname?has_content)>${check.entity.companyname}<#else>${check.entity}</#if>
+        </td>
     </tr>
 </table>
 
-<table style="position: absolute;overflow: hidden;left: 20pt;top: 20pt;height: 13pt;width: 157pt;">
+<table style="position: absolute;overflow: hidden;left: 20pt;top: 20pt;height: 13pt;width: 40pt;">
     <tr>
-        <td><#if (check.entity.companyname?has_content)>${check.entity.companyname}<#else>${check.entity}
-        </#if>
-    </td>
+        <td>${check.trandate}</td>
 </tr>
 </table>
 
