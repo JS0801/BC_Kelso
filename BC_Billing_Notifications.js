@@ -105,6 +105,8 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
         return search.create({
             type: 'customrecord_cseg_bc_project',
             filters: [
+                ['internalid', 'anyof', '67126'],
+                'AND',
                 ['isinactive', 'is', 'F'],
                 'AND',
                 [CONFIG.FIELD_BILL_DATE, 'noneof', '@NONE@']
