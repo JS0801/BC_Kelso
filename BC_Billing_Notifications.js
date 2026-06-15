@@ -1,19 +1,6 @@
 /**
  * @NApiVersion 2.1
  * @NScriptType MapReduceScript
- *
- * BlueCollar - Daily Billing Notifications
- * -----------------------------------------
- * Runs daily. For each active project with a Bill Date:
- *   - 3 working days before Bill Date -> email Main PM + Phase PMs
- *   - 1 working day  before Bill Date -> email Accounting (invoice due)
- *   - On/after Bill Date with no invoice in cycle -> daily reminder to
- *     Main PM + Accounting, UNLESS the "No Billing This Cycle" checkbox
- *     is set (then send Accounting the reason once).
- *
- * Business-day math currently excludes WEEKENDS only. Holidays are
- * pluggable: drop dates into HOLIDAYS (or swap getHolidays() to read a
- * custom record) and the rest of the logic picks them up automatically.
  */
 define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
 (search, record, email, format, log) => {
@@ -144,7 +131,6 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
         try {
             const r = JSON.parse(context.value);
             const v = r.values;
-            log.debug('v', v)
 
             const projectId = r.id;
 
