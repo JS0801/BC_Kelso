@@ -113,6 +113,8 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
     // ---------------------------------------------------------------
     const getInputData = () => {
         log.audit('Billing notifications run START', 'today=' + ymd(today()));
+
+      log.debug('config', CONFIG)
       try {
         var test = search.create({
             type: 'customrecord_cseg_bc_project',
