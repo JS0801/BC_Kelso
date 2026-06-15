@@ -113,7 +113,8 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
     // ---------------------------------------------------------------
     const getInputData = () => {
         log.audit('Billing notifications run START', 'today=' + ymd(today()));
-        return search.create({
+      try {
+        var test = search.create({
             type: 'customrecord_cseg_bc_project',
             filters: [
                 ['isinactive', 'is', 'F'],
@@ -129,6 +130,13 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
                 CONFIG.FIELD_NO_BILL_DATE
             ]
         });
+        test.run().each(function(result){
+           return true;
+        });
+      } catch (error) {
+        log.error('GET - Error', error)
+      }
+        
     };
 
     // ---------------------------------------------------------------
