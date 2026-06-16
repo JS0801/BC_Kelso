@@ -2306,7 +2306,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
     </tr>
 </table>
 
-<table style="position: absolute;overflow: hidden;left: 25pt;top: 20pt;height: 13pt;width: 40pt;">
+<table style="position: absolute;overflow: hidden;left: 70pt;top: 20pt;height: 13pt;width: 40pt;">
     <tr>
         <td>${check.trandate}</td>
 </tr>
@@ -2324,9 +2324,9 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 <#if apply_index==0>
 <thead>
     <tr>
-        <th style="width: 15%">Date</th>
+        <th align="center" style="width: 15%">Date</th>
         <th style="width: 10%">${apply.type@label}</th>
-        <th align="right" style="width: 18%">Reference</th>
+        <th align="center" style="width: 18%">Reference</th>
         <th align="right" style="width: 19%">Original Amount</th>
         <th align="right" style="width: 19%">Balance Due</th>
         <th align="right" style="width: 19%">Payment</th>
@@ -2337,7 +2337,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 <tr>
 <td align="center" style="width: 15%">${apply.applydate}</td>
 <td style="width: 10%">${apply.type}</td>
-<td align="right" style="width: 18%">${apply.refnum}</td>
+<td align="center" style="width: 18%">${apply.refnum}</td>
 <td align="right" style="width: 19%">${apply.total}</td>
 <td align="right" style="width: 19%">${apply.due}</td>
 <td align="right" style="width: 19%">${(apply.total - apply.disc)?string.currency}</td>
