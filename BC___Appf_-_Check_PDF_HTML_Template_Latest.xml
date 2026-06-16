@@ -2297,13 +2297,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 <#else>
 <div style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-before: avoid;font-size: 8pt;">
 </#if>
-<table
-        style="position: absolute;overflow: hidden;left: 403pt;top: 5pt;height: 7pt;width: 80pt;font-size: 8pt;">
-    <tr>
-        <td align="center">${check.checknumber}</td>
-    </tr>
-</table>
-
+  
 <table style="position: absolute;overflow: hidden;left: 412pt;top: 20pt;height: 13pt;width: 150pt;">
     <tr>
         <td>
@@ -2312,7 +2306,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
     </tr>
 </table>
 
-<table style="position: absolute;overflow: hidden;left: 20pt;top: 20pt;height: 13pt;width: 40pt;">
+<table style="position: absolute;overflow: hidden;left: 25pt;top: 20pt;height: 13pt;width: 40pt;">
     <tr>
         <td>${check.trandate}</td>
 </tr>
@@ -2330,40 +2324,37 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 <#if apply_index==0>
 <thead>
     <tr>
-        <th align="center" style="width: 15%">Date</th>
+        <th style="width: 15%">Date</th>
         <th style="width: 10%">${apply.type@label}</th>
-        <th align="right" style="width: 15%">Reference</th>
-        <th align="right" style="width: 15%">Original Amount</th>
-        <th align="right" style="width: 15%">Balance Due</th>
-        <th align="right" style="width: 15%">Payment</th>
+        <th align="right" style="width: 18%">Reference</th>
+        <th align="right" style="width: 19%">Original Amount</th>
+        <th align="right" style="width: 19%">Balance Due</th>
+        <th align="right" style="width: 19%">Payment</th>
     </tr>
 </thead>
 </#if>
+  
 <tr>
 <td align="center" style="width: 15%">${apply.applydate}</td>
 <td style="width: 10%">${apply.type}</td>
-<td align="right" style="width: 15%">${apply.refnum}</td>
-<td align="right" style="width: 15%">${apply.total}</td>
-<#if check.subsidiary.id != '15'>
-<td align="right" style="width: 15%">
-      <#if check.subsidiary.id = '8'> ${apply.due}  <#else>
-  ${(apply.total - apply.disc)?string.currency} </#if>
-</td>
-</#if>
-<td align="right" style="width: 15%">${(apply.total - apply.disc)?string.currency}</td>
+<td align="right" style="width: 18%">${apply.refnum}</td>
+<td align="right" style="width: 19%">${apply.total}</td>
+<td align="right" style="width: 19%">${apply.due}</td>
+<td align="right" style="width: 19%">${(apply.total - apply.disc)?string.currency}</td>
 </tr>
-        </#if>
+</#if>
 <#assign ctr = ctr + 1>
-        </#list>
+</#list>
+  
 <#list check.credit as credit>
 <#if ctr < 11>
 <tr>
 <td align="center" style="width: 15%">${credit.creditdate}</td>
 <td style="width: 10%">${credit.type}</td>
-<td align="right" style="width: 15%">${credit.refnum}</td>
-<td align="right" style="width: 15%">${credit.description}</td>
-<td align="right" style="width: 15%">(${credit.amount})</td>
-<td align="right" style="width: 15%">(${credit.amount})</td>
+<td align="right" style="width: 18%">${credit.refnum}</td>
+<td align="right" style="width: 19%">${credit.description}</td>
+<td align="right" style="width: 19%">(${credit.amount})</td>
+<td align="right" style="width: 19%">(${credit.amount})</td>
 </tr>
 </#if>
 <#assign ctr = ctr + 1>
