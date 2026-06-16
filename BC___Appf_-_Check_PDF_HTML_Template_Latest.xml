@@ -2144,7 +2144,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
         <th align="center" style="width: 15%">Date</th>
         <th style="width: 10%">${apply.type@label}</th>
         <th align="right" style="width: 15%">Reference</th>
-        <th align="right" style="width: 15%">Orginal Amount</th>
+        <th align="right" style="width: 15%">Original Amount</th>
         <th align="right" style="width: 15%">Balance Due</th>
         <th align="right" style="width: 15%">Payment</th>
     </tr>
@@ -2354,72 +2354,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 </tr>
         </#if>
 <#assign ctr = ctr + 1>
-        </#list><!-- end apply -->
-        <!-- start credit sublist -->
-<#if check.subsidiary.id = '15' || check.subsidiary.id = '8'>
-  <#-- Insert missing bill rows: remove "Bill #" before validating -->
-<#assign appliedRefnums = []>
-
-<#list check.apply as a>
-    <#assign applyRef = (a.refnum!"")?string?trim?replace("^Bill\\s*#\\s*", "", "ri")>
-
-    <#if applyRef?has_content>
-        <#assign appliedRefnums = appliedRefnums + [applyRef]>
-    </#if>
-</#list>
-
-<#assign missingBillAgg = {}>
-<#assign missingBillDateMap = {}>
-
-<#list check.credit as credit>
-    <#assign creditAppliedTo = (credit.appliedto!"")?string?trim?replace("^Bill\\s*#\\s*", "", "ri")>
-
-    <#if creditAppliedTo?has_content && !appliedRefnums?seq_contains(creditAppliedTo)>
-        <#assign missingBillAmt = nsformat_number(credit.amount)>
-
-        <#if missingBillAmt < 0>
-            <#assign missingBillAmt = missingBillAmt * -1>
-        </#if>
-
-        <#if missingBillAgg?keys?seq_contains(creditAppliedTo)>
-            <#assign missingBillAgg = missingBillAgg + {creditAppliedTo: missingBillAgg[creditAppliedTo] + missingBillAmt}>
-        <#else>
-            <#assign missingBillAgg = missingBillAgg + {creditAppliedTo: missingBillAmt}>
-            <#assign missingBillDateMap = missingBillDateMap + {creditAppliedTo: credit.creditdate}>
-        </#if>
-    </#if>
-</#list>
-
-<#list missingBillAgg?keys as billRef>
-    <tr>
-        <td align="center" style="width: 15%">${missingBillDateMap[billRef]}</td>
-        <td style="width: 10%">Bill</td>
-        <td align="right" style="width: 15%">${billRef}</td>
-        <#if check.subsidiary.id != '15'><td align="right" style="width: 15%">${nsformat_currency(missingBillAgg[billRef])}</td></#if>
-        <td align="right" style="width: 15%">${nsformat_currency(missingBillAgg[billRef])}</td>
-        <td align="right" style="width: 15%">${nsformat_currency(missingBillAgg[billRef])}</td>
-    </tr>
-
-    <#assign appliedRefnums = appliedRefnums + [billRef]>
-    <#assign ctr = ctr + 1>
-</#list>
-
-
-          <#list check.credit as credit>
-<#if ctr < 11>
-<tr>
-<td align="center" style="width: 15%">${credit.creditdate}</td>
-<td style="width: 10%">${credit.type}</td>
-<td align="right" style="width: 15%">${credit.refnum}</td>
-<td align="right" style="width: 15%">${credit.description}</td>
-<#if check.subsidiary.id != '15'><td align="right" style="width: 15%">(${credit.amount})</td></#if>
-<td align="right" style="width: 15%">(${credit.amount})</td>
-</tr>
-        </#if>
-<#assign ctr = ctr + 1>
         </#list>
-  
-<#else>          
 <#list check.credit as credit>
 <#if ctr < 11>
 <tr>
@@ -2430,23 +2365,16 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 <td align="right" style="width: 15%">(${credit.amount})</td>
 <td align="right" style="width: 15%">(${credit.amount})</td>
 </tr>
-        </#if>
+</#if>
 <#assign ctr = ctr + 1>
-        </#list></#if>
-        <!-- end credit -->
-        <!-- Add Check Total line -->
+</#list>
+  
 <tr>
-<td colspan="4">
-
-    <strong>CHECK Amount:</strong>
-</td>
-<td align="right">
-    <strong>${otherTotalDisc?string.currency}</strong>
-</td>
-<td align="right">
-    <strong>${(otherTotalAmt - otherTotalDisc)?string.currency}</strong>
-</td>
+<td colspan="4" align = "center"><strong>Check Amount:</strong></td>
+<td align="right"></td>
+<td align="right"><strong>${(otherTotalAmt - otherTotalDisc)?string.currency}</strong></td>
 </tr>
+  
 <#if combinedLength gt 20>
 <tr>
 <td colspan="7" align="center">Please see vendor remittance for complete list of bills</td>
