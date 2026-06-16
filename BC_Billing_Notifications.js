@@ -14,6 +14,7 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
         ACCOUNTING_EMAIL: 'sean.bartlett@apg.company',
         EMAIL_AUTHOR_ID: -5,        // internal id of the employee the email is "from". -5 = system. Set to a real employee if desired.
         PROJECT_SEGMENT_FIELD: 'cseg_bc_project', // segment field on the invoice transaction
+        PROJECT_DISPLAY_FIELD: 'name', // project name/number shown in email subjects and bodies
 
         // Project (customrecord_cseg_bc_project) header fields
         FIELD_MAIN_PM: 'custrecord_bc_proj_manager',
@@ -113,6 +114,7 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
             ],
             columns: [
                 'internalid',
+                CONFIG.PROJECT_DISPLAY_FIELD,
                 CONFIG.FIELD_BILL_DATE,
                 CONFIG.FIELD_MAIN_PM,
                 CONFIG.FIELD_NO_BILL,
@@ -135,6 +137,7 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
             const v = r.values;
 
             const projectId = r.id;
+            const projectDisplay = getProjectDisplay(v);
 
             // Bill day comes from the LIST field's TEXT ('1'..'30' or 'EOM').
             const billField = v[CONFIG.FIELD_BILL_DATE];
@@ -171,22 +174,28 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
                 recent: ymd(recent),
                 pmTriggerDate: ymd(pmTriggerDate),
                 acctTriggerDate: ymd(acctTriggerDate),
-                mainPmId: mainPmId
+                mainPmId: mainPmId,
+                projectDisplay: projectDisplay
             });
 
             // --- 3 working days before upcoming bill date: notify PMs ---
             if (sameDay(now, pmTriggerDate)) {
                 log.audit('PM trigger HIT', 'project ' + projectId + ' (' + ymd(now) + ')');
-                notifyMainPm(mainPmId, projectId, upcomingDisplay);
-                notifyPhasePms(projectId);
+                notifyMainPm(mainPmId, projectId, projectDisplay, upcomingDisplay);
+                notifyPhasePms(projectId, projectDisplay, upcomingDisplay);
             }
 
             // --- 1 working day before upcoming bill date: notify Accounting ---
             if (sameDay(now, acctTriggerDate)) {
                 log.audit('Accounting trigger HIT', 'project ' + projectId + ' (' + ymd(now) + ')');
                 sendAccounting(
-                    `Invoice creation due tomorrow - project ${projectId}`,
-                    `An invoice is due to be created for project ${projectId} on ${upcomingDisplay}.`
+                    `Invoice creation due tomorrow - ${projectDisplay}`,
+                    emailBody([
+                        `Project: ${projectDisplay}`,
+                        `Bill Date: ${upcomingDisplay}`,
+                        'Status: Billing is due tomorrow.',
+                        'Action Needed: Please review the billing details and create the invoice if billing is ready.'
+                    ])
                 );
             }
 
@@ -201,11 +210,16 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
 
                 // Checkbox set and applies to THIS cycle -> tell Accounting once, then stop.
                 if (noBill && noBillDate && sameDay(noBillDate, recent)) {
-                    const reason = v[CONFIG.FIELD_NO_BILL_REASON] || '(no reason provided)';
+                    const reason = getFieldText(v[CONFIG.FIELD_NO_BILL_REASON]) || '(no reason provided)';
                     log.audit('No-bill flagged', 'project ' + projectId + ' reason: ' + reason);
                     sendAccounting(
-                        `No billing this cycle - project ${projectId}`,
-                        `PM marked project ${projectId} as no-billing for ${recentDisplay}.\nReason: ${reason}`
+                        `No billing this cycle - ${projectDisplay}`,
+                        emailBody([
+                            `Project: ${projectDisplay}`,
+                            `Bill Date: ${recentDisplay}`,
+                            'Status: The PM marked this project as no-billing for this cycle.',
+                            `Reason: ${reason}`
+                        ])
                     );
                     // NOTE: to truly send this only ONCE (not daily), add a
                     // "no-bill notified" flag field and check/set it here.
@@ -217,10 +231,15 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
                 log.debug('Invoice check', 'project ' + projectId + ' hasInvoice=' + hasInvoice);
                 if (!hasInvoice) {
                     log.audit('Reminder SENT', 'project ' + projectId + ' (no invoice in cycle)');
-                    notifyMainPm(mainPmId, projectId, recentDisplay, true);
+                    notifyMainPm(mainPmId, projectId, projectDisplay, recentDisplay, true);
                     sendAccounting(
-                        `REMINDER: no invoice yet - project ${projectId}`,
-                        `No invoice has been created for project ${projectId} (Bill Date ${recentDisplay}).`
+                        `REMINDER: no invoice yet - ${projectDisplay}`,
+                        emailBody([
+                            `Project: ${projectDisplay}`,
+                            `Bill Date: ${recentDisplay}`,
+                            'Status: No invoice has been found for this billing cycle.',
+                            'Action Needed: Please follow up with the PM or create the invoice if billing is ready.'
+                        ])
                     );
                 }
             }
@@ -232,17 +251,45 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
     // ---------------------------------------------------------------
     // EMAIL HELPERS
     // ---------------------------------------------------------------
-    const notifyMainPm = (pmId, projectId, billDisplay, isReminder) => {
+    const getFieldText = (fieldValue) => {
+        if (!fieldValue) return '';
+        if (Array.isArray(fieldValue)) {
+            return fieldValue.map(getFieldText).filter(Boolean).join(', ');
+        }
+        if (typeof fieldValue === 'object') {
+            return fieldValue.text || fieldValue.value || '';
+        }
+        return String(fieldValue);
+    };
+
+    const getProjectDisplay = (values) => {
+        return getFieldText(values[CONFIG.PROJECT_DISPLAY_FIELD]) || 'Project name unavailable';
+    };
+
+    const emailBody = (lines) => lines.filter(Boolean).join('\n');
+
+    const notifyMainPm = (pmId, projectId, projectDisplay, billDisplay, isReminder) => {
         if (!pmId) {
             log.audit('No Main PM set', 'project ' + projectId);
             return;
         }
         const subject = isReminder
-            ? `REMINDER: billing due - project ${projectId}`
-            : `Your billing is due on ${billDisplay}`;
+            ? `REMINDER: billing due - ${projectDisplay}`
+            : `Billing due ${billDisplay} - ${projectDisplay}`;
         const body = isReminder
-            ? `Reminder: no invoice has been submitted for project ${projectId} (due ${billDisplay}).`
-            : `Your billing is due on ${billDisplay} for project ${projectId}.`;
+            ? emailBody([
+                `Project: ${projectDisplay}`,
+                `Bill Date: ${billDisplay}`,
+                'Status: No invoice has been found for this billing cycle.',
+                'Action Needed: Please submit the invoice or update the project No Bill information if billing will not occur this cycle.'
+            ])
+            : emailBody([
+                `Project: ${projectDisplay}`,
+                `Bill Date: ${billDisplay}`,
+                'Status: Billing is coming due.',
+                'Action Needed: Please prepare the billing package and submit the invoice or schedule of values before the bill date.',
+                'If this project should not be billed this cycle, mark it as No Bill and enter the no-bill reason/date.'
+            ]);
         email.send({
             author: CONFIG.EMAIL_AUTHOR_ID,
             recipients: pmId,        // employee internal id; NetSuite resolves the address
@@ -252,7 +299,7 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
         log.audit('Email -> Main PM', 'project ' + projectId + ' pmId=' + pmId + ' subject="' + subject + '"');
     };
 
-    const notifyPhasePms = (projectId) => {
+    const notifyPhasePms = (projectId, projectDisplay, billDisplay) => {
         const results = search.create({
             type: 'customrecord_bc_project_contact_list',
             filters: [
@@ -272,8 +319,12 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
             email.send({
                 author: CONFIG.EMAIL_AUTHOR_ID,
                 recipients: addr,
-                subject: 'Action needed: submit schedule of values',
-                body: `Please submit your schedule of values to the main PM for project ${projectId}.`
+                subject: `Action needed: submit schedule of values - ${projectDisplay}`,
+                body: emailBody([
+                    `Project: ${projectDisplay}`,
+                    `Bill Date: ${billDisplay}`,
+                    'Action Needed: Please submit your schedule of values to the Main PM so billing can be prepared.'
+                ])
             });
             log.audit('Email -> Phase PM', 'project ' + projectId + ' to=' + addr);
         });
