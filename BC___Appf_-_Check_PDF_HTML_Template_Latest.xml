@@ -2105,14 +2105,14 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 <table style="position: absolute;overflow: hidden;left: 412pt;top: 20pt;height: 13pt;width: 150pt;">
     <tr>
         <td>
-          <#if (check.entity.companyname?has_content)>${check.entity.companyname}<#else>${check.entity}</#if>
+          <b><#if (check.entity.companyname?has_content)>${check.entity.companyname}<#else>${check.entity}</#if></b>
             </td>
     </tr>
 </table>
 
-<table style="position: absolute;overflow: hidden;left: 20pt;top: 20pt;height: 13pt;width: 55pt;">
+<table style="position: absolute;overflow: hidden;left: 70pt;top: 20pt;height: 13pt;width: 55pt;">
     <tr>
-        <td>${check.trandate}
+        <td><b>${check.trandate}</b>
         
     </td>
 </tr>
@@ -2141,126 +2141,46 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 <#if apply_index==0>
 <thead>
     <tr>
-        <th align="center" style="width: 15%">Date</th>
-        <th style="width: 10%">${apply.type@label}</th>
-        <th align="right" style="width: 15%">Reference</th>
-        <th align="right" style="width: 15%">Original Amount</th>
-        <th align="right" style="width: 15%">Balance Due</th>
-        <th align="right" style="width: 15%">Payment</th>
+        <th align="center" style="width: 15%"><b>Date</b></th>
+        <th style="width: 10%"><b>${apply.type@label}</b></th>
+        <th align="right" style="width: 18%"><b>Reference</b></th>
+        <th align="right" style="width: 19%"><b>Original Amount</b></th>
+        <th align="right" style="width: 19%"><b>Balance Due</b></th>
+        <th align="right" style="width: 19%"><b>Payment</b></th>
     </tr>
 </thead>
 </#if>
 <tr>
 <td align="center" style="width: 15%">${apply.applydate}</td>
 <td style="width: 10%">${apply.type}</td>
-<td align="right" style="width: 15%">${apply.refnum}</td>
-<td align="right" style="width: 15%">${apply.total}</td>
-<#if check.subsidiary.id != '15'>
-<td align="right" style="width: 15%">
-    <#if check.subsidiary.id = '8'> ${apply.due}  <#else>
-  ${(apply.total - apply.disc)?string.currency} </#if>
-  </td>
-</#if>
-<td align="right" style="width: 15%">
-  ${(apply.total - apply.disc)?string.currency}</td>
+<td align="right" style="width: 18%">${apply.refnum}</td>
+<td align="right" style="width: 19%">${apply.total}</td>
+<td align="right" style="width: 19%">${apply.due}</td>
+<td align="right" style="width: 19%">${(apply.total - apply.disc)?string.currency}</td>
 </tr>
         </#if>
 <#assign ctr = ctr + 1>
         </#list>
-        <!-- end apply -->
-        <!-- start credit sublist -->
-
-  <#if check.subsidiary.id = '15' || check.subsidiary.id = '8'>
-
-<#-- Insert missing bill rows: remove "Bill #" before validating -->
-<#assign appliedRefnums = []>
-
-<#list check.apply as a>
-    <#assign applyRef = (a.refnum!"")?string?trim?replace("^Bill\\s*#\\s*", "", "ri")>
-
-    <#if applyRef?has_content>
-        <#assign appliedRefnums = appliedRefnums + [applyRef]>
-    </#if>
-</#list>
-
-<#assign missingBillAgg = {}>
-<#assign missingBillDateMap = {}>
-
-<#list check.credit as credit>
-    <#assign creditAppliedTo = (credit.appliedto!"")?string?trim?replace("^Bill\\s*#\\s*", "", "ri")>
-
-    <#if creditAppliedTo?has_content && !appliedRefnums?seq_contains(creditAppliedTo)>
-        <#assign missingBillAmt = nsformat_number(credit.amount)>
-
-        <#if missingBillAmt < 0>
-            <#assign missingBillAmt = missingBillAmt * -1>
-        </#if>
-
-        <#if missingBillAgg?keys?seq_contains(creditAppliedTo)>
-            <#assign missingBillAgg = missingBillAgg + {creditAppliedTo: missingBillAgg[creditAppliedTo] + missingBillAmt}>
-        <#else>
-            <#assign missingBillAgg = missingBillAgg + {creditAppliedTo: missingBillAmt}>
-            <#assign missingBillDateMap = missingBillDateMap + {creditAppliedTo: credit.creditdate}>
-        </#if>
-    </#if>
-</#list>
-
-<#list missingBillAgg?keys as billRef>
-    <tr>
-        <td align="center" style="width: 15%">${missingBillDateMap[billRef]}</td>
-        <td style="width: 10%">Bill</td>
-        <td align="right" style="width: 15%">${billRef}</td>
-        <#if check.subsidiary.id != '15'><td align="right" style="width: 15%">${nsformat_currency(missingBillAgg[billRef])}</td></#if>
-        <td align="right" style="width: 15%">${nsformat_currency(missingBillAgg[billRef])}</td>
-        <#assign otherTotalAmt = otherTotalAmt + missingBillAgg[billRef]>
-        <td align="right" style="width: 15%">${nsformat_currency(missingBillAgg[billRef])}</td>
-    </tr>
-
-    <#assign appliedRefnums = appliedRefnums + [billRef]>
-    <#assign ctr = ctr + 1>
-</#list>
-
-          <#list check.credit as credit>
-<#if ctr < 11>
-<tr>
-<td align="center" style="width: 15%">${credit.creditdate}</td>
-<td style="width: 10%">${credit.type}</td>
-<td align="right" style="width: 15%">${credit.refnum}</td>
-<td align="right" style="width: 15%">${credit.description}</td>
-<#if check.subsidiary.id != '15'><td align="right" style="width: 15%">(${credit.amount})</td></#if>
-<td align="right" style="width: 15%">(${credit.amount})</td>
-</tr>
-        </#if>
-<#assign ctr = ctr + 1>
-        </#list>
-<#else>
+          
 <#list check.credit as credit>
 <#if ctr lt 11>
 <tr>
 <td align="center" style="width: 15%">${credit.creditdate}</td>
 <td style="width: 10%">${credit.type}</td>
-<td align="right" style="width: 15%">${credit.refnum}</td>
-<td align="right" style="width: 15%">${credit.description}</td>
-<td align="right" style="width: 15%">(${credit.amount})</td>
-<td align="right" style="width: 15%">(${credit.amount})</td>
+<td align="center" style="width: 18%">${credit.refnum}</td>
+<td align="right" style="width: 19%">${credit.description}</td>
+<td align="right" style="width: 19%">(${credit.amount})</td>
+<td align="right" style="width: 19%">(${credit.amount})</td>
 </tr>
-        </#if>
+</#if>
 <#assign ctr = ctr + 1>
-        </#list> </#if>
-        <!-- end credit -->
-        <!-- Add Check Total line JS Test-->
+</#list>
 
     
 <tr>
-<td colspan="4">
-    <strong>CHECK TOTAL:</strong>
-</td>
-<td align="right">
-    <strong>${otherTotalDisc?string.currency}</strong>
-</td>
-<td align="right">
-    <strong>${(otherTotalAmt - otherTotalDisc)?string.currency}</strong>
-</td>
+<td colspan="4" align = "center"><strong>Check Amount:</strong></td>
+<td align="right"></td>
+<td align="right"><strong>${(otherTotalAmt - otherTotalDisc)?string.currency}</strong></td>
 </tr>
 <#if combinedLength gt 20>
 <tr>
@@ -2291,24 +2211,19 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
         </table>
         </#if>
         </div>
-<#if check.account.id == "984" || check.account.id == "985">
-<div
-style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-before: avoid;font-size: 8pt; padding-top: 50px; font-size: 13px;">
-<#else>
-<div style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-before: avoid;font-size: 8pt;">
-</#if>
-  
+
+<div style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-before: avoid;font-size: 8pt;">  
 <table style="position: absolute;overflow: hidden;left: 412pt;top: 20pt;height: 13pt;width: 150pt;">
     <tr>
         <td>
-          <#if (check.entity.companyname?has_content)>${check.entity.companyname}<#else>${check.entity}</#if>
+          <b><#if (check.entity.companyname?has_content)>${check.entity.companyname}<#else>${check.entity}</#if></b>
         </td>
     </tr>
 </table>
 
 <table style="position: absolute;overflow: hidden;left: 70pt;top: 20pt;height: 13pt;width: 40pt;">
     <tr>
-        <td>${check.trandate}</td>
+        <td><b>${check.trandate}</b></td>
 </tr>
 </table>
 
@@ -2324,12 +2239,12 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 <#if apply_index==0>
 <thead>
     <tr>
-        <th align="center" style="width: 15%">Date</th>
-        <th style="width: 10%">${apply.type@label}</th>
-        <th align="center" style="width: 18%">Reference</th>
-        <th align="right" style="width: 19%">Original Amount</th>
-        <th align="right" style="width: 19%">Balance Due</th>
-        <th align="right" style="width: 19%">Payment</th>
+        <th align="center" style="width: 15%"><b>Date</b></th>
+        <th style="width: 10%"><b>${apply.type@label}</b></th>
+        <th align="center" style="width: 18%"><b>Reference</b></th>
+        <th align="right" style="width: 19%"><b>Original Amount</b></th>
+        <th align="right" style="width: 19%"><b>Balance Due</b></th>
+        <th align="right" style="width: 19%"><b>Payment</b></th>
     </tr>
 </thead>
 </#if>
