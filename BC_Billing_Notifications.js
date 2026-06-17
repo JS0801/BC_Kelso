@@ -193,6 +193,7 @@ const noBillDate = noBillDateRaw
     : null;
 
 const skipPmEmailsThisMonth = noBill && sameMonth(noBillDate, now);
+          const noBillForUpcomingBillMonth = noBill && sameMonth(noBillDate, upcoming);
 
             // --- 3 working days before upcoming bill date: notify PMs ---
             if (sameDay(now, pmTriggerDate) && !skipPmEmailsThisMonth) {
@@ -202,7 +203,7 @@ const skipPmEmailsThisMonth = noBill && sameMonth(noBillDate, now);
             }
 
             // --- 1 working day before upcoming bill date: notify Accounting ---
-            if (sameDay(now, pmTriggerDate) && !skipPmEmailsThisMonth) {
+            if (sameDay(now, acctTriggerDate) && !noBillForUpcomingBillMonth) {
                 log.audit('Accounting trigger HIT', 'project ' + projectId + ' (' + ymd(now) + ')');
                 sendAccounting(
                     `Invoice creation due tomorrow - ${projectDisplay}`,
