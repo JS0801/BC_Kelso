@@ -23,7 +23,8 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
         FIELD_NO_BILL_REASON: 'custrecord_bc_no_bill_reason',
         FIELD_NO_BILL_DATE: 'custrecord_bc_no_bill_date',
 
-        PHASE_PM_POSITION: '3'      // custrecord_bc_position value for Phase PM
+        PHASE_PM_POSITION: '3',      // custrecord_bc_position value for Phase PM
+        ACCOUNTING_POSITION: '4'
     };
 
     // Holidays: empty for now. Add 'YYYY-MM-DD' strings here, OR replace
@@ -199,6 +200,15 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
                         'Action Needed: Please review the billing details and create the invoice if billing is ready.'
                     ])
                 );
+                notifyAccountingContacts(
+                    `Invoice creation due tomorrow - ${projectDisplay}`,
+                    emailBody([
+                        `Project: ${projectDisplay}`,
+                        `Bill Date: ${upcomingDisplay}`,
+                        'Status: Billing is due tomorrow.',
+                        'Action Needed: Please review the billing details and create the invoice if billing is ready.'
+                    ])
+                );
             }
 
             // --- On/after the most recent bill date: reminders / no-bill handling ---
@@ -223,6 +233,15 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
                             `Reason: ${reason}`
                         ])
                     );
+                    notifyAccountingContacts(
+                        `No billing this cycle - ${projectDisplay}`,
+                        emailBody([
+                            `Project: ${projectDisplay}`,
+                            `Bill Date: ${recentDisplay}`,
+                            'Status: The PM marked this project as no-billing for this cycle.',
+                            `Reason: ${reason}`
+                        ])
+                    );
                     // NOTE: to truly send this only ONCE (not daily), add a
                     // "no-bill notified" flag field and check/set it here.
                     return;
@@ -235,6 +254,15 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
                     log.audit('Reminder SENT', 'project ' + projectId + ' (no invoice in cycle)');
                     notifyMainPm(mainPmId, projectId, projectDisplay, recentDisplay, true);
                     sendAccounting(
+                        `REMINDER: no invoice yet - ${projectDisplay}`,
+                        emailBody([
+                            `Project: ${projectDisplay}`,
+                            `Bill Date: ${recentDisplay}`,
+                            'Status: No invoice has been found for this billing cycle.',
+                            'Action Needed: Please follow up with the PM or create the invoice if billing is ready.'
+                        ])
+                    );
+                    notifyAccountingContacts(
                         `REMINDER: no invoice yet - ${projectDisplay}`,
                         emailBody([
                             `Project: ${projectDisplay}`,
@@ -332,6 +360,37 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
             });
             log.audit('Email -> Phase PM', 'project ' + projectId + ' to=' + addr);
         });
+    };
+
+    const notifyAccountingContacts = (projectId, projectDisplay, subject, body) => {
+    const results = search.create({
+        type: 'customrecord_bc_project_contact_list',
+        filters: [
+            ['custrecord_bc_contact_project', 'anyof', projectId],
+            'AND',
+            ['custrecord_bc_position', 'anyof', CONFIG.ACCOUNTING_POSITION],
+            'AND',
+            ['custrecord_bc_contact_email', 'isnotempty', '']
+        ],
+        columns: ['custrecord_bc_contact_email', 'custrecord_bc_contact_name']
+    }).run().getRange({ start: 0, end: 1000 }) || [];
+
+    log.debug('Accounting contacts found', 'project ' + projectId + ' count=' + results.length);
+
+    results.forEach((res) => {
+        const addr = res.getValue('custrecord_bc_contact_email');
+        if (!addr) return;
+
+        email.send({
+            author: CONFIG.EMAIL_AUTHOR_ID,
+            recipients: addr,
+            cc: ['jainil.suthar@bluecollar.cloud'],
+            subject,
+            body
+        });
+
+        log.audit('Email -> Accounting Contact', 'project ' + projectId + ' to=' + addr + ' subject="' + subject + '"');
+    });
     };
 
     const sendAccounting = (subject, body) => {
