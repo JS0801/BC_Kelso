@@ -268,13 +268,9 @@ const skipPmEmailsThisMonth = noBill && sameMonth(noBillDate, now);
                 // Otherwise, if no invoice exists in this cycle, daily reminder.
                 const hasInvoice = invoiceExistsInCycle(projectId, recent);
                 log.debug('Invoice check', 'project ' + projectId + ' hasInvoice=' + hasInvoice);
-                if (!hasInvoice) {
+                if (!hasInvoice && !skipPmEmailsThisMonth) {
                     log.audit('Reminder SENT', 'project ' + projectId + ' (no invoice in cycle)');
-                    if (!skipPmEmailsThisMonth) {
-    notifyMainPm(mainPmId, projectId, projectDisplay, recentDisplay, true);
-} else {
-    log.audit('PM reminder skipped - no bill this month', 'project ' + projectId + ' noBillDate=' + ymd(noBillDate));
-}
+                    notifyMainPm(mainPmId, projectId, projectDisplay, recentDisplay, true);
                     sendAccounting(
                         `REMINDER: no invoice yet - ${projectDisplay}`,
                         emailBody([
