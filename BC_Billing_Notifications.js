@@ -29,10 +29,51 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
 
     // Holidays: empty for now. Add 'YYYY-MM-DD' strings here, OR replace
     // getHolidays() with a search of a holiday custom record later.
-    const HOLIDAYS = [
-        // '2026-07-03',
-    ];
-    const getHolidays = () => new Set(HOLIDAYS);
+    let holidayCache = null;
+
+const getHolidays = () => {
+    if (holidayCache) return holidayCache;
+
+    const holidays = new Set();
+
+    search.create({
+        type: 'customrecord_bc_holiday_list',
+        filters: [
+            ['custrecord_bc_date', 'within', 'thisyear'],
+            'AND',
+            ['isinactive', 'is', 'F'],
+            'AND',
+            ['custrecord_bc_half_day', 'is', 'F']
+        ],
+        columns: [
+            'custrecord_bc_date'
+        ]
+    }).run().each((result) => {
+        const holidayDateValue = result.getValue({
+            name: 'custrecord_bc_date'
+        });
+
+        if (holidayDateValue) {
+            const holidayDate = format.parse({
+                value: holidayDateValue,
+                type: format.Type.DATE
+            });
+
+            holidays.add(ymd(holidayDate));
+        }
+
+        return true;
+    });
+
+    holidayCache = holidays;
+
+    log.audit(
+        'Holiday list loaded',
+        Array.from(holidays).join(', ') || 'No holidays found'
+    );
+
+    return holidayCache;
+};
 
     // ---------------------------------------------------------------
     // DATE HELPERS
