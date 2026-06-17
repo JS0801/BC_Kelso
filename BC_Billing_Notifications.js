@@ -11,7 +11,7 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
     const CONFIG = {
         DAYS_BEFORE_PM: 3,          // working days before Bill Date -> PMs
         DAYS_BEFORE_ACCOUNTING: 1,  // working days before Bill Date -> Accounting
-        ACCOUNTING_EMAIL: 'sean.bartlett@apg.company',
+        ACCOUNTING_EMAIL: 697221, //'sean.bartlett@apg.company',
         EMAIL_AUTHOR_ID: -5,        // internal id of the employee the email is "from". -5 = system. Set to a real employee if desired.
         PROJECT_SEGMENT_FIELD: 'cseg_bc_project', // segment field on the invoice transaction
         PROJECT_DISPLAY_FIELD: 'name', // project name/number shown in email subjects and bodies
