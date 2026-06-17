@@ -46,7 +46,7 @@ const getHolidays = () => {
     search.create({
         type: 'customrecord_bc_holiday_list',
         filters: [
-            ['custrecord_bc_date', 'within', 'thisyear'],
+            ["custrecord_bc_date","within","daysfromnow0","daysfromnow60"], 
             'AND',
             ['isinactive', 'is', 'F'],
             'AND',
