@@ -46,6 +46,11 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
         return `${d.getFullYear()}-${m}-${day}`;
     };
     const sameDay = (a, b) => ymd(a) === ymd(b);
+    const sameMonth = (a, b) => {
+    return a && b &&
+        a.getFullYear() === b.getFullYear() &&
+        a.getMonth() === b.getMonth();
+};
 
     const isBusinessDay = (d, holidaySet) => {
         const dow = d.getDay();              // 0 = Sun, 6 = Sat
@@ -181,15 +186,23 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
                 projectDisplay: projectDisplay
             });
 
+          const noBill = v[CONFIG.FIELD_NO_BILL] === true || v[CONFIG.FIELD_NO_BILL] === 'T';
+const noBillDateRaw = v[CONFIG.FIELD_NO_BILL_DATE];
+const noBillDate = noBillDateRaw
+    ? stripTime(format.parse({ value: noBillDateRaw, type: format.Type.DATE }))
+    : null;
+
+const skipPmEmailsThisMonth = noBill && sameMonth(noBillDate, now);
+
             // --- 3 working days before upcoming bill date: notify PMs ---
-            if (sameDay(now, pmTriggerDate)) {
+            if (sameDay(now, pmTriggerDate) && !skipPmEmailsThisMonth) {
                 log.audit('PM trigger HIT', 'project ' + projectId + ' (' + ymd(now) + ')');
                 notifyMainPm(mainPmId, projectId, projectDisplay, upcomingDisplay);
                 notifyPhasePms(projectId, projectDisplay, upcomingDisplay);
             }
 
             // --- 1 working day before upcoming bill date: notify Accounting ---
-            if (sameDay(now, acctTriggerDate)) {
+            if (sameDay(now, pmTriggerDate) && !skipPmEmailsThisMonth) {
                 log.audit('Accounting trigger HIT', 'project ' + projectId + ' (' + ymd(now) + ')');
                 sendAccounting(
                     `Invoice creation due tomorrow - ${projectDisplay}`,
@@ -216,11 +229,11 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
             // --- On/after the most recent bill date: reminders / no-bill handling ---
             // (recent is always <= today, so this cycle's bill day has passed.)
             {
-                const noBill = v[CONFIG.FIELD_NO_BILL] === true || v[CONFIG.FIELD_NO_BILL] === 'T';
-                const noBillDateRaw = v[CONFIG.FIELD_NO_BILL_DATE];
-                const noBillDate = noBillDateRaw
-                    ? stripTime(format.parse({ value: noBillDateRaw, type: format.Type.DATE }))
-                    : null;
+                // const noBill = v[CONFIG.FIELD_NO_BILL] === true || v[CONFIG.FIELD_NO_BILL] === 'T';
+                // const noBillDateRaw = v[CONFIG.FIELD_NO_BILL_DATE];
+                // const noBillDate = noBillDateRaw
+                //     ? stripTime(format.parse({ value: noBillDateRaw, type: format.Type.DATE }))
+                //     : null;
 
                 // Checkbox set and applies to THIS cycle -> tell Accounting once, then stop.
                 if (noBill && noBillDate && sameDay(noBillDate, recent)) {
@@ -256,7 +269,11 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
                 log.debug('Invoice check', 'project ' + projectId + ' hasInvoice=' + hasInvoice);
                 if (!hasInvoice) {
                     log.audit('Reminder SENT', 'project ' + projectId + ' (no invoice in cycle)');
-                    notifyMainPm(mainPmId, projectId, projectDisplay, recentDisplay, true);
+                    if (!skipPmEmailsThisMonth) {
+    notifyMainPm(mainPmId, projectId, projectDisplay, recentDisplay, true);
+} else {
+    log.audit('PM reminder skipped - no bill this month', 'project ' + projectId + ' noBillDate=' + ymd(noBillDate));
+}
                     sendAccounting(
                         `REMINDER: no invoice yet - ${projectDisplay}`,
                         emailBody([
