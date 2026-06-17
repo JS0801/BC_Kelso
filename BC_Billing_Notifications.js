@@ -4,354 +4,229 @@
  */
 define([
     'N/search',
-    'N/record',
     'N/email',
     'N/format',
     'N/log',
     'N/url',
     'N/runtime'
-], (search, record, email, format, log, url, runtime) => {
+], (search, email, format, log, url, runtime) => {
 
-    // ---------------------------------------------------------------
-    // CONFIG  (change these, not the logic below)
-    // ---------------------------------------------------------------
-    const CONFIG = {
-        DAYS_BEFORE_PM: 3,          // working days before Bill Date -> PMs
-        DAYS_BEFORE_ACCOUNTING: 1,  // working days before Bill Date -> Accounting
-        ACCOUNTING_EMAIL: 697221, //'sean.bartlett@apg.company',
-        EMAIL_AUTHOR_ID: -5,        // internal id of the employee the email is "from". -5 = system. Set to a real employee if desired.
-        PROJECT_SEGMENT_FIELD: 'cseg_bc_project', // segment field on the invoice transaction
-        PROJECT_DISPLAY_FIELD: 'name', // project name/number shown in email subjects and bodies
-
-        // Project (customrecord_cseg_bc_project) header fields
-        FIELD_MAIN_PM: 'custrecord_bc_proj_manager',
-        FIELD_BILL_DATE: 'custrecord_bill_date', // LIST field: text = day of month ('1'..'30') or 'EOM'
-        FIELD_NO_BILL: 'custrecord_bc_no_bill',
-        FIELD_NO_BILL_REASON: 'custrecord_bc_no_bill_reason',
-        FIELD_NO_BILL_DATE: 'custrecord_bc_no_bill_date',
-
-        PHASE_PM_POSITION: '3',      // custrecord_bc_position value for Phase PM
-        ACCOUNTING_POSITION: '4'
+    const PARAMS = {
+        DAYS_BEFORE_PM: 'custscript_bc_bn_days_before_pm',
+        DAYS_BEFORE_ACCOUNTING: 'custscript_bc_bn_days_before_acc',
+        EMAIL_SENDER: 'custscript_bc_bn_email_sender',
+        PM_EXTRA_EMAILS: 'custscript_bc_bn_pm_extra_emails',
+        ACCOUNTING_EXTRA_EMAILS: 'custscript_bc_bn_acc_extra_emails',
+        ACCOUNTING_EMAIL: 'custscript_bc_bn_accounting_email'
     };
 
-    // Holidays: empty for now. Add 'YYYY-MM-DD' strings here, OR replace
-    // getHolidays() with a search of a holiday custom record later.
+    // Preserve the current behavior when a deployment parameter is blank.
+    const DEFAULTS = {
+        DAYS_BEFORE_PM: 3,
+        DAYS_BEFORE_ACCOUNTING: 1,
+        EMAIL_SENDER: -5,
+        PM_EXTRA_EMAILS: ['jainil.suthar@bluecollar.cloud'],
+        ACCOUNTING_EXTRA_EMAILS: ['jainil.suthar@bluecollar.cloud'],
+        ACCOUNTING_EMAIL: 697221
+    };
+
+    const FIELDS = {
+        PROJECT_DISPLAY: 'name',
+        MAIN_PM: 'custrecord_bc_proj_manager',
+        BILL_DATE: 'custrecord_bill_date',
+        NO_BILL: 'custrecord_bc_no_bill',
+        NO_BILL_REASON: 'custrecord_bc_no_bill_reason',
+        NO_BILL_DATE: 'custrecord_bc_no_bill_date',
+        PROJECT_SEGMENT: 'cseg_bc_project'
+    };
+
+    const RECORDS = {
+        PROJECT: 'customrecord_cseg_bc_project',
+        PROJECT_CONTACT: 'customrecord_bc_project_contact_list',
+        HOLIDAY: 'customrecord_bc_holiday_list'
+    };
+
+    const POSITIONS = {
+        PHASE_PM: '3',
+        ACCOUNTING: '4'
+    };
+
+    let settingsCache = null;
     let holidayCache = null;
 
-const getHolidays = () => {
-    if (holidayCache) return holidayCache;
+    // -----------------------------------------------------------------
+    // PARAMETERS
+    // -----------------------------------------------------------------
+    const parseEmailList = (value, fallback) => {
+        const source = value === null || value === undefined || String(value).trim() === ''
+            ? fallback
+            : value;
 
-    const holidays = new Set();
+        const values = Array.isArray(source)
+            ? source
+            : String(source).split(/[,;\n]+/);
 
-    search.create({
-        type: 'customrecord_bc_holiday_list',
-        filters: [
-            ["custrecord_bc_date","within","daysfromnow0","daysfromnow60"], 
-            'AND',
-            ['isinactive', 'is', 'F'],
-            'AND',
-            ['custrecord_bc_half_day', 'is', 'F']
-        ],
-        columns: [
-            'custrecord_bc_date'
-        ]
-    }).run().each((result) => {
-        const holidayDateValue = result.getValue({
-            name: 'custrecord_bc_date'
+        return [...new Set(values.map((item) => String(item).trim()).filter(Boolean))];
+    };
+
+    const parseIntegerParameter = (value, fallback, parameterId, allowNegative) => {
+        const parsed = Number.parseInt(value, 10);
+        const isValid = Number.isInteger(parsed) && (allowNegative || parsed >= 0);
+
+        if (isValid) return parsed;
+
+        log.audit('Parameter fallback', {
+            parameterId,
+            suppliedValue: value || '(blank)',
+            fallback
+        });
+        return fallback;
+    };
+
+    const getSettings = () => {
+        if (settingsCache) return settingsCache;
+
+        const script = runtime.getCurrentScript();
+        settingsCache = {
+            daysBeforePm: parseIntegerParameter(
+                script.getParameter({ name: PARAMS.DAYS_BEFORE_PM }),
+                DEFAULTS.DAYS_BEFORE_PM,
+                PARAMS.DAYS_BEFORE_PM,
+                false
+            ),
+            daysBeforeAccounting: parseIntegerParameter(
+                script.getParameter({ name: PARAMS.DAYS_BEFORE_ACCOUNTING }),
+                DEFAULTS.DAYS_BEFORE_ACCOUNTING,
+                PARAMS.DAYS_BEFORE_ACCOUNTING,
+                false
+            ),
+            emailSender: parseIntegerParameter(
+                script.getParameter({ name: PARAMS.EMAIL_SENDER }),
+                DEFAULTS.EMAIL_SENDER,
+                PARAMS.EMAIL_SENDER,
+                true
+            ),
+            pmExtraEmails: parseEmailList(
+                script.getParameter({ name: PARAMS.PM_EXTRA_EMAILS }),
+                DEFAULTS.PM_EXTRA_EMAILS
+            ),
+            accountingExtraEmails: parseEmailList(
+                script.getParameter({ name: PARAMS.ACCOUNTING_EXTRA_EMAILS }),
+                DEFAULTS.ACCOUNTING_EXTRA_EMAILS
+            ),
+            accountingEmail: parseIntegerParameter(
+                script.getParameter({ name: PARAMS.ACCOUNTING_EMAIL }),
+                DEFAULTS.ACCOUNTING_EMAIL,
+                PARAMS.ACCOUNTING_EMAIL,
+                false
+            )
+        };
+
+        log.audit('Billing notification settings', {
+            daysBeforePm: settingsCache.daysBeforePm,
+            daysBeforeAccounting: settingsCache.daysBeforeAccounting,
+            emailSender: settingsCache.emailSender,
+            accountingEmail: settingsCache.accountingEmail,
+            pmExtraEmails: settingsCache.pmExtraEmails,
+            accountingExtraEmails: settingsCache.accountingExtraEmails
         });
 
-        if (holidayDateValue) {
-            const holidayDate = format.parse({
-                value: holidayDateValue,
-                type: format.Type.DATE
-            });
-
-            holidays.add(ymd(holidayDate));
-        }
-
-        return true;
-    });
-
-    holidayCache = holidays;
-
-    log.audit(
-        'Holiday list loaded',
-        Array.from(holidays).join(', ') || 'No holidays found'
-    );
-
-    return holidayCache;
-};
-
-    // ---------------------------------------------------------------
-    // DATE HELPERS
-    // ---------------------------------------------------------------
-    const stripTime = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
-    const today = () => stripTime(new Date());
-
-    const ymd = (d) => {
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        return `${d.getFullYear()}-${m}-${day}`;
-    };
-    const sameDay = (a, b) => ymd(a) === ymd(b);
-    const sameMonth = (a, b) => {
-    return a && b &&
-        a.getFullYear() === b.getFullYear() &&
-        a.getMonth() === b.getMonth();
-};
-
-    const isBusinessDay = (d, holidaySet) => {
-        const dow = d.getDay();              // 0 = Sun, 6 = Sat
-        if (dow === 0 || dow === 6) return false;
-        if (holidaySet.has(ymd(d))) return false;
-        return true;
+        return settingsCache;
     };
 
-    // Subtract N business days from a date (skipping weekends + holidays).
-    const subtractBusinessDays = (date, n, holidaySet) => {
-        const d = stripTime(date);
-        let remaining = n;
-        while (remaining > 0) {
-            d.setDate(d.getDate() - 1);
-            if (isBusinessDay(d, holidaySet)) remaining--;
-        }
-        return d;
+    // -----------------------------------------------------------------
+    // DATE AND BILL-CYCLE HELPERS
+    // -----------------------------------------------------------------
+    const stripTime = (date) => new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+    const ymd = (date) => {
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${date.getFullYear()}-${month}-${day}`;
     };
 
-    // ---------------------------------------------------------------
-    // BILL DAY HELPERS
-    // custrecord_bill_date is a LIST field. Its TEXT is the day of month
-    // ('1'..'30') or 'EOM'. We compute the actual calendar date per cycle.
-    // (No '31' exists in the list -> the 31st is represented by EOM.)
-    // ---------------------------------------------------------------
-    const lastDayOfMonth = (year, month) => new Date(year, month + 1, 0).getDate();
+    const sameDay = (first, second) => ymd(first) === ymd(second);
 
-    // Build the bill date for a given year/month from the picklist text.
-    const billDateForMonth = (billText, year, month) => {
-        if (String(billText).toUpperCase() === 'EOM') {
-            return new Date(year, month, lastDayOfMonth(year, month));
-        }
-        const day = parseInt(billText, 10);
-        const capped = Math.min(day, lastDayOfMonth(year, month)); // safety, e.g. day 30 in Feb
-        return new Date(year, month, capped);
+    const sameMonth = (first, second) => {
+        return Boolean(first && second) &&
+            first.getFullYear() === second.getFullYear() &&
+            first.getMonth() === second.getMonth();
     };
 
-    // Next occurrence on/after today (drives the "before" pre-notices).
-    const upcomingBillDate = (billText, ref) => {
-        const thisMonth = billDateForMonth(billText, ref.getFullYear(), ref.getMonth());
-        if (thisMonth >= ref) return thisMonth;
-        return billDateForMonth(billText, ref.getFullYear(), ref.getMonth() + 1);
-    };
+    const getHolidays = () => {
+        if (holidayCache) return holidayCache;
 
-    // Most recent occurrence on/before today (drives overdue reminders + cycle window).
-    const recentBillDate = (billText, ref) => {
-        const thisMonth = billDateForMonth(billText, ref.getFullYear(), ref.getMonth());
-        if (thisMonth <= ref) return thisMonth;
-        return billDateForMonth(billText, ref.getFullYear(), ref.getMonth() - 1);
-    };
+        holidayCache = new Set();
 
-    // ---------------------------------------------------------------
-    // 1) INPUT: active projects that have a Bill Date
-    // ---------------------------------------------------------------
-    const getInputData = () => {
-        log.audit('Billing notifications run START', 'today=' + ymd(today()));
-
-      try {
-        return search.create({
-            type: 'customrecord_cseg_bc_project',
+        search.create({
+            type: RECORDS.HOLIDAY,
             filters: [
-                ['internalid', 'anyof', '67126'],
-                'AND',
-                ['custrecord_bc_proj_subsidiary', 'anyof', '23'],
+                ['custrecord_bc_date', 'within', 'thisyear'],
                 'AND',
                 ['isinactive', 'is', 'F'],
                 'AND',
-                [CONFIG.FIELD_BILL_DATE, 'noneof', '@NONE@']
+                ['custrecord_bc_half_day', 'is', 'F']
             ],
-            columns: [
-                'internalid',
-                CONFIG.PROJECT_DISPLAY_FIELD,
-                CONFIG.FIELD_BILL_DATE,
-                CONFIG.FIELD_MAIN_PM,
-                CONFIG.FIELD_NO_BILL,
-                CONFIG.FIELD_NO_BILL_REASON,
-                CONFIG.FIELD_NO_BILL_DATE
-            ]
+            columns: ['custrecord_bc_date']
+        }).run().each((result) => {
+            const value = result.getValue({ name: 'custrecord_bc_date' });
+            if (value) {
+                const date = format.parse({ value, type: format.Type.DATE });
+                holidayCache.add(ymd(date));
+            }
+            return true;
         });
-      } catch (error) {
-        log.error('GET - Error', error)
-      }
-        
+
+        log.audit('Holiday calendar loaded', {
+            count: holidayCache.size,
+            dates: Array.from(holidayCache)
+        });
+
+        return holidayCache;
     };
 
-    // ---------------------------------------------------------------
-    // 2) MAP: decide and send for one project
-    // ---------------------------------------------------------------
-    const map = (context) => {
-        try {
-            const r = JSON.parse(context.value);
-            const v = r.values;
+    const subtractBusinessDays = (date, numberOfDays, holidays) => {
+        const result = stripTime(date);
+        let remaining = numberOfDays;
 
-            const projectId = r.id;
-            const projectDisplay = getProjectDisplay(v);
-
-            // Bill day comes from the LIST field's TEXT ('1'..'30' or 'EOM').
-            const billField = v[CONFIG.FIELD_BILL_DATE];
-            const billText = billField && billField.text ? billField.text : null;
-            if (!billText) {
-                log.audit('No bill day set', 'project ' + projectId);
-                return;
-            }
-
-            // PM field comes back as { value: id, text: name }
-            const pmField = v[CONFIG.FIELD_MAIN_PM];
-            const mainPmId = pmField && pmField.value ? pmField.value : null;
-
-            const holidaySet = getHolidays();
-            const now = today();
-
-            // Upcoming occurrence drives the "before" notices; most-recent
-            // occurrence drives overdue reminders + the invoice cycle window.
-            const upcoming = upcomingBillDate(billText, now);
-            log.debug('Project Dates', {projectId,  billText, now, upcoming})
-            const recent = recentBillDate(billText, now);
-
-            const pmTriggerDate = subtractBusinessDays(upcoming, CONFIG.DAYS_BEFORE_PM, holidaySet);
-            const acctTriggerDate = subtractBusinessDays(upcoming, CONFIG.DAYS_BEFORE_ACCOUNTING, holidaySet);
-
-            const upcomingDisplay = format.format({ value: upcoming, type: format.Type.DATE });
-            const recentDisplay = format.format({ value: recent, type: format.Type.DATE });
-
-            // Diagnostic snapshot for every project, every run.
-            log.debug('Evaluating project ' + projectId, {
-                today: ymd(now),
-                billDay: billText,
-                upcoming: ymd(upcoming),
-                recent: ymd(recent),
-                pmTriggerDate: ymd(pmTriggerDate),
-                acctTriggerDate: ymd(acctTriggerDate),
-                mainPmId: mainPmId,
-                projectDisplay: projectDisplay
-            });
-
-          const noBill = v[CONFIG.FIELD_NO_BILL] === true || v[CONFIG.FIELD_NO_BILL] === 'T';
-const noBillDateRaw = v[CONFIG.FIELD_NO_BILL_DATE];
-const noBillDate = noBillDateRaw
-    ? stripTime(format.parse({ value: noBillDateRaw, type: format.Type.DATE }))
-    : null;
-
-const skipPmEmailsThisMonth = noBill && sameMonth(noBillDate, now);
-          const noBillForUpcomingBillMonth = noBill && sameMonth(noBillDate, upcoming);
-
-            // --- 3 working days before upcoming bill date: notify PMs ---
-            if (sameDay(now, pmTriggerDate) && !skipPmEmailsThisMonth) {
-                log.audit('PM trigger HIT', 'project ' + projectId + ' (' + ymd(now) + ')');
-                notifyMainPm(mainPmId, projectId, projectDisplay, upcomingDisplay);
-                notifyPhasePms(projectId, projectDisplay, upcomingDisplay);
-            }
-
-            // --- 1 working day before upcoming bill date: notify Accounting ---
-            if (sameDay(now, acctTriggerDate) && !noBillForUpcomingBillMonth) {
-                log.audit('Accounting trigger HIT', 'project ' + projectId + ' (' + ymd(now) + ')');
-                sendAccounting(
-                    `Invoice creation due tomorrow - ${projectDisplay}`,
-                    emailBody([
-                        `Project: ${projectDisplay}`,
-                        `Bill Date: ${upcomingDisplay}`,
-                        'Status: Billing is due tomorrow.',
-                        'Action Needed: Please review the billing details and create the invoice if billing is ready.'
-                    ]),
-                    projectId
-                );
-                notifyAccountingContacts(
-                    `Invoice creation due tomorrow - ${projectDisplay}`,
-                    emailBody([
-                        `Project: ${projectDisplay}`,
-                        `Bill Date: ${upcomingDisplay}`,
-                        'Status: Billing is due tomorrow.',
-                        'Action Needed: Please review the billing details and create the invoice if billing is ready.'
-                    ]),
-                   projectId,
-                   projectDisplay
-                );
-            }
-
-            // --- On/after the most recent bill date: reminders / no-bill handling ---
-            // (recent is always <= today, so this cycle's bill day has passed.)
-            {
-                // const noBill = v[CONFIG.FIELD_NO_BILL] === true || v[CONFIG.FIELD_NO_BILL] === 'T';
-                // const noBillDateRaw = v[CONFIG.FIELD_NO_BILL_DATE];
-                // const noBillDate = noBillDateRaw
-                //     ? stripTime(format.parse({ value: noBillDateRaw, type: format.Type.DATE }))
-                //     : null;
-
-                // Checkbox set and applies to THIS cycle -> tell Accounting once, then stop.
-                if (noBill && noBillDate && sameDay(noBillDate, recent)) {
-                    const reason = getFieldText(v[CONFIG.FIELD_NO_BILL_REASON]) || '(no reason provided)';
-                    log.audit('No-bill flagged', 'project ' + projectId + ' reason: ' + reason);
-                    sendAccounting(
-                        `No billing this cycle - ${projectDisplay}`,
-                        emailBody([
-                            `Project: ${projectDisplay}`,
-                            `Bill Date: ${recentDisplay}`,
-                            'Status: The PM marked this project as no-billing for this cycle.',
-                            `Reason: ${reason}`
-                        ]),
-                    projectId
-                    );
-                    notifyAccountingContacts(
-                        `No billing this cycle - ${projectDisplay}`,
-                        emailBody([
-                            `Project: ${projectDisplay}`,
-                            `Bill Date: ${recentDisplay}`,
-                            'Status: The PM marked this project as no-billing for this cycle.',
-                            `Reason: ${reason}`
-                        ]),
-                   projectId,
-                   projectDisplay
-                    );
-                    // NOTE: to truly send this only ONCE (not daily), add a
-                    // "no-bill notified" flag field and check/set it here.
-                    return;
-                }
-
-                // Otherwise, if no invoice exists in this cycle, daily reminder.
-                const hasInvoice = invoiceExistsInCycle(projectId, recent);
-                log.debug('Invoice check', 'project ' + projectId + ' hasInvoice=' + hasInvoice);
-                if (!hasInvoice && !skipPmEmailsThisMonth) {
-                    log.audit('Reminder SENT', 'project ' + projectId + ' (no invoice in cycle)');
-                    notifyMainPm(mainPmId, projectId, projectDisplay, recentDisplay, true);
-                    sendAccounting(
-                        `REMINDER: no invoice yet - ${projectDisplay}`,
-                        emailBody([
-                            `Project: ${projectDisplay}`,
-                            `Bill Date: ${recentDisplay}`,
-                            'Status: No invoice has been found for this billing cycle.',
-                            'Action Needed: Please follow up with the PM or create the invoice if billing is ready.'
-                        ]),
-                    projectId
-                    );
-                    notifyAccountingContacts(
-                        `REMINDER: no invoice yet - ${projectDisplay}`,
-                        emailBody([
-                            `Project: ${projectDisplay}`,
-                            `Bill Date: ${recentDisplay}`,
-                            'Status: No invoice has been found for this billing cycle.',
-                            'Action Needed: Please follow up with the PM or create the invoice if billing is ready.'
-                        ]),
-                   projectId,
-                   projectDisplay
-                    );
-                }
-            }
-        } catch (e) {
-            log.error('map error - project ' + context.key, e);
+        while (remaining > 0) {
+            result.setDate(result.getDate() - 1);
+            const dayOfWeek = result.getDay();
+            const isWorkingDay = dayOfWeek !== 0 &&
+                dayOfWeek !== 6 &&
+                !holidays.has(ymd(result));
+            if (isWorkingDay) remaining -= 1;
         }
+
+        return result;
     };
 
-    // ---------------------------------------------------------------
+    const getBillDates = (billText, referenceDate) => {
+        const buildDate = (year, month) => {
+            const lastDay = new Date(year, month + 1, 0).getDate();
+            const billDay = String(billText).toUpperCase() === 'EOM'
+                ? lastDay
+                : Math.min(Number.parseInt(billText, 10), lastDay);
+            return new Date(year, month, billDay);
+        };
+
+        const year = referenceDate.getFullYear();
+        const month = referenceDate.getMonth();
+        const thisMonth = buildDate(year, month);
+
+        return {
+            upcoming: thisMonth >= referenceDate
+                ? thisMonth
+                : buildDate(year, month + 1),
+            recent: thisMonth <= referenceDate
+                ? thisMonth
+                : buildDate(year, month - 1)
+        };
+    };
+
+    // -----------------------------------------------------------------
     // EMAIL HELPERS
-    // ---------------------------------------------------------------
+    // -----------------------------------------------------------------
     const getFieldText = (fieldValue) => {
         if (!fieldValue) return '';
         if (Array.isArray(fieldValue)) {
@@ -363,144 +238,104 @@ const skipPmEmailsThisMonth = noBill && sameMonth(noBillDate, now);
         return String(fieldValue);
     };
 
-    const getProjectDisplay = (values) => {
-        return getFieldText(values[CONFIG.PROJECT_DISPLAY_FIELD]) || 'Project name unavailable';
+    const buildEmailBody = (lines, projectId) => {
+        const relativeUrl = url.resolveRecord({
+            recordType: RECORDS.PROJECT,
+            recordId: projectId,
+            isEditMode: false
+        });
+        const domain = url.resolveDomain({
+            hostType: url.HostType.APPLICATION,
+            accountId: runtime.accountId
+        });
+
+        return lines.filter(Boolean).join('<br>') +
+            `<br><br><a href="https://${domain}${relativeUrl}">View Project</a>`;
     };
 
-    const emailBody = (lines) => lines.filter(Boolean).join('\n');
-
-
-  const getProjectUrl = (projectId) => {
-    const relativeUrl = url.resolveRecord({
-        recordType: 'customrecord_cseg_bc_project',
-        recordId: projectId,
-        isEditMode: false
-    });
-
-    const domain = url.resolveDomain({
-        hostType: url.HostType.APPLICATION,
-        accountId: runtime.accountId
-    });
-
-    return `https://${domain}${relativeUrl}`;
-};
-
-const addProjectLink = (body, projectId) => {
-    return body.replace(/\n/g, '<br>') +
-        `<br><br><a href="${getProjectUrl(projectId)}">View Project</a>`;
-};
-
-    const notifyMainPm = (pmId, projectId, projectDisplay, billDisplay, isReminder) => {
-        if (!pmId) {
-            log.audit('No Main PM set', 'project ' + projectId);
+    const sendProjectEmail = ({ audience, recipients, cc, subject, lines, projectId }) => {
+        if (!recipients || (Array.isArray(recipients) && recipients.length === 0)) {
+            log.audit('Email skipped - no recipient', { audience, projectId, subject });
             return;
         }
-        const subject = isReminder
-            ? `REMINDER: billing due - ${projectDisplay}`
-            : `Billing due ${billDisplay} - ${projectDisplay}`;
-        const body = isReminder
-            ? emailBody([
-                `Project: ${projectDisplay}`,
-                `Bill Date: ${billDisplay}`,
-                'Status: No invoice has been found for this billing cycle.',
-                'Action Needed: Please submit the invoice or update the project No Bill information if billing will not occur this cycle.'
-            ])
-            : emailBody([
-                `Project: ${projectDisplay}`,
-                `Bill Date: ${billDisplay}`,
-                'Status: Billing is coming due.',
-                'Action Needed: Please prepare the billing package and submit the invoice or schedule of values before the bill date.',
-                'If this project should not be billed this cycle, mark it as No Bill and enter the no-bill reason/date.'
-            ]);
-        email.send({
-            author: CONFIG.EMAIL_AUTHOR_ID,
-            recipients: pmId,        // employee internal id; NetSuite resolves the address
-            cc: ['jainil.suthar@bluecollar.cloud'],
+
+        const options = {
+            author: getSettings().emailSender,
+            recipients,
             subject,
-            body: addProjectLink(body, projectId)
+            body: buildEmailBody(lines, projectId)
+        };
+
+        if (cc && cc.length) options.cc = cc;
+
+        email.send(options);
+        log.audit('Billing email sent', {
+            audience,
+            projectId,
+            recipients: Array.isArray(recipients) ? recipients.join(', ') : String(recipients),
+            cc: cc || [],
+            subject
         });
-        log.audit('Email -> Main PM', 'project ' + projectId + ' pmId=' + pmId + ' subject="' + subject + '"');
     };
 
-    const notifyPhasePms = (projectId, projectDisplay, billDisplay) => {
+    const getProjectContactEmails = (projectId, positionId, audience) => {
         const results = search.create({
-            type: 'customrecord_bc_project_contact_list',
+            type: RECORDS.PROJECT_CONTACT,
             filters: [
                 ['custrecord_bc_contact_project', 'anyof', projectId],
                 'AND',
-                ['custrecord_bc_position', 'anyof', CONFIG.PHASE_PM_POSITION],
+                ['custrecord_bc_position', 'anyof', positionId],
                 'AND',
                 ['custrecord_bc_contact_email', 'isnotempty', '']
             ],
-            columns: ['custrecord_bc_contact_email', 'custrecord_bc_contact_name']
+            columns: ['custrecord_bc_contact_email']
         }).run().getRange({ start: 0, end: 1000 }) || [];
 
-        log.debug('Phase PMs found', 'project ' + projectId + ' count=' + results.length);
-        results.forEach((res) => {
-            const addr = res.getValue('custrecord_bc_contact_email');
-            if (!addr) return;
-            email.send({
-                author: CONFIG.EMAIL_AUTHOR_ID,
-                recipients: addr,
-                subject: `Action needed: submit schedule of values - ${projectDisplay}`,
-                cc: ['jainil.suthar@bluecollar.cloud'],
-                body: addProjectLink(emailBody([
-    `Project: ${projectDisplay}`,
-    `Bill Date: ${billDisplay}`,
-    'Action Needed: Please submit your schedule of values to the Main PM so billing can be prepared.'
-]), projectId)
+        const emails = results
+            .map((result) => result.getValue({ name: 'custrecord_bc_contact_email' }))
+            .filter(Boolean);
+
+        log.debug('Project contacts loaded', {
+            audience,
+            projectId,
+            positionId,
+            count: emails.length,
+            emails
+        });
+
+        return emails;
+    };
+
+    // The primary Accounting employee and every project Accounting contact
+    // receive separate emails, matching the existing behavior.
+    const sendAccountingNotice = (projectId, subject, lines) => {
+        const settings = getSettings();
+
+        sendProjectEmail({
+            audience: 'Primary Accounting',
+            recipients: settings.accountingEmail,
+            cc: settings.accountingExtraEmails,
+            subject,
+            lines,
+            projectId
+        });
+
+        getProjectContactEmails(projectId, POSITIONS.ACCOUNTING, 'Project Accounting')
+            .forEach((recipient) => {
+                sendProjectEmail({
+                    audience: 'Project Accounting',
+                    recipients: recipient,
+                    cc: settings.accountingExtraEmails,
+                    subject,
+                    lines,
+                    projectId
+                });
             });
-            log.audit('Email -> Phase PM', 'project ' + projectId + ' to=' + addr);
-        });
     };
 
-    const notifyAccountingContacts = (subject, body, projectId, projectDisplay) => {
-    const results = search.create({
-        type: 'customrecord_bc_project_contact_list',
-        filters: [
-            ['custrecord_bc_contact_project', 'anyof', projectId],
-            'AND',
-            ['custrecord_bc_position', 'anyof', CONFIG.ACCOUNTING_POSITION],
-            'AND',
-            ['custrecord_bc_contact_email', 'isnotempty', '']
-        ],
-        columns: ['custrecord_bc_contact_email', 'custrecord_bc_contact_name']
-    }).run().getRange({ start: 0, end: 1000 }) || [];
-
-    log.debug('Accounting contacts found', 'project ' + projectId + ' count=' + results.length);
-
-    results.forEach((res) => {
-        const addr = res.getValue('custrecord_bc_contact_email');
-        if (!addr) return;
-
-        email.send({
-            author: CONFIG.EMAIL_AUTHOR_ID,
-            recipients: addr,
-            cc: ['jainil.suthar@bluecollar.cloud'],
-            subject,
-            body: addProjectLink(body, projectId)
-        });
-
-        log.audit('Email -> Accounting Contact', 'project ' + projectId + ' to=' + addr + ' subject="' + subject + '"');
-    });
-    };
-
-    const sendAccounting = (subject, body, projectId) => {
-        email.send({
-            author: CONFIG.EMAIL_AUTHOR_ID,
-            recipients: CONFIG.ACCOUNTING_EMAIL,
-            cc: ['jainil.suthar@bluecollar.cloud'],
-            subject,
-            body: addProjectLink(body, projectId)
-        });
-        log.audit('Email -> Accounting', 'to=' + CONFIG.ACCOUNTING_EMAIL + ' subject="' + subject + '"');
-    };
-
-    // ---------------------------------------------------------------
+    // -----------------------------------------------------------------
     // INVOICE CHECK
-    // Cycle window = same CALENDAR MONTH as the Bill Date.  <-- assumption
-    // Change the two date filters below to adjust the window.
-    // ---------------------------------------------------------------
+    // -----------------------------------------------------------------
     const invoiceExistsInCycle = (projectId, billDate) => {
         const monthStart = new Date(billDate.getFullYear(), billDate.getMonth(), 1);
         const monthEnd = new Date(billDate.getFullYear(), billDate.getMonth() + 1, 0);
@@ -510,7 +345,7 @@ const addProjectLink = (body, projectId) => {
             filters: [
                 ['mainline', 'is', 'T'],
                 'AND',
-                [CONFIG.PROJECT_SEGMENT_FIELD, 'anyof', projectId],
+                [FIELDS.PROJECT_SEGMENT, 'anyof', projectId],
                 'AND',
                 ['trandate', 'within',
                     format.format({ value: monthStart, type: format.Type.DATE }),
@@ -519,13 +354,270 @@ const addProjectLink = (body, projectId) => {
             columns: ['internalid']
         }).runPaged().count;
 
+        log.debug('Invoice cycle check', {
+            projectId,
+            monthStart: ymd(monthStart),
+            monthEnd: ymd(monthEnd),
+            invoiceCount: count
+        });
+
         return count > 0;
     };
 
+    // -----------------------------------------------------------------
+    // MAP/REDUCE ENTRY POINTS
+    // -----------------------------------------------------------------
+    const getInputData = () => {
+        const settings = getSettings();
+
+        log.audit('Billing notifications started', {
+            today: ymd(stripTime(new Date())),
+            daysBeforePm: settings.daysBeforePm,
+            daysBeforeAccounting: settings.daysBeforeAccounting
+        });
+
+        return search.create({
+            type: RECORDS.PROJECT,
+            filters: [
+                ['internalid', 'anyof', '67126'],
+                'AND',
+                ['custrecord_bc_proj_subsidiary', 'anyof', '23'],
+                'AND',
+                ['isinactive', 'is', 'F'],
+                'AND',
+                [FIELDS.BILL_DATE, 'noneof', '@NONE@']
+            ],
+            columns: [
+                'internalid',
+                FIELDS.PROJECT_DISPLAY,
+                FIELDS.BILL_DATE,
+                FIELDS.MAIN_PM,
+                FIELDS.NO_BILL,
+                FIELDS.NO_BILL_REASON,
+                FIELDS.NO_BILL_DATE
+            ]
+        });
+    };
+
+    const map = (context) => {
+        try {
+            const result = JSON.parse(context.value);
+            const values = result.values;
+            const projectId = result.id;
+            const projectDisplay = getFieldText(values[FIELDS.PROJECT_DISPLAY]) ||
+                'Project name unavailable';
+
+            const billField = values[FIELDS.BILL_DATE];
+            const billText = billField && billField.text ? billField.text : null;
+            if (!billText) {
+                log.audit('Project skipped - no bill day', { projectId, projectDisplay });
+                return;
+            }
+
+            const settings = getSettings();
+            const now = stripTime(new Date());
+            const holidays = getHolidays();
+            const billDates = getBillDates(billText, now);
+            const upcoming = billDates.upcoming;
+            const recent = billDates.recent;
+            const pmTriggerDate = subtractBusinessDays(
+                upcoming,
+                settings.daysBeforePm,
+                holidays
+            );
+            const accountingTriggerDate = subtractBusinessDays(
+                upcoming,
+                settings.daysBeforeAccounting,
+                holidays
+            );
+
+            const mainPmField = values[FIELDS.MAIN_PM];
+            const mainPmId = mainPmField && mainPmField.value ? mainPmField.value : null;
+            const noBill = values[FIELDS.NO_BILL] === true || values[FIELDS.NO_BILL] === 'T';
+            const noBillDateRaw = values[FIELDS.NO_BILL_DATE];
+            const noBillDate = noBillDateRaw
+                ? stripTime(format.parse({ value: noBillDateRaw, type: format.Type.DATE }))
+                : null;
+            const noBillThisMonth = noBill && sameMonth(noBillDate, now);
+            const noBillForUpcomingMonth = noBill && sameMonth(noBillDate, upcoming);
+
+            const upcomingDisplay = format.format({ value: upcoming, type: format.Type.DATE });
+            const recentDisplay = format.format({ value: recent, type: format.Type.DATE });
+
+            log.debug('Project billing evaluation', {
+                projectId,
+                projectDisplay,
+                billDay: billText,
+                today: ymd(now),
+                upcomingBillDate: ymd(upcoming),
+                recentBillDate: ymd(recent),
+                pmTriggerDate: ymd(pmTriggerDate),
+                accountingTriggerDate: ymd(accountingTriggerDate),
+                mainPmId: mainPmId || '(none)',
+                noBill,
+                noBillDate: noBillDate ? ymd(noBillDate) : '(none)',
+                noBillThisMonth,
+                noBillForUpcomingMonth
+            });
+
+            if (sameDay(now, pmTriggerDate)) {
+                if (noBillForUpcomingMonth) {
+                    log.audit('PM notice skipped - no bill this month', {
+                        projectId,
+                        noBillDate: ymd(noBillDate)
+                    });
+                } else {
+                    log.audit('PM notice trigger hit', { projectId, triggerDate: ymd(now) });
+
+                    sendProjectEmail({
+                        audience: 'Main PM',
+                        recipients: mainPmId,
+                        cc: settings.pmExtraEmails,
+                        subject: `Billing due ${upcomingDisplay} - ${projectDisplay}`,
+                        lines: [
+                            `Project: ${projectDisplay}`,
+                            `Bill Date: ${upcomingDisplay}`,
+                            'Status: Billing is coming due.',
+                            'Action Needed: Please prepare the billing package and submit the invoice or schedule of values before the bill date.',
+                            'If this project should not be billed this cycle, mark it as No Bill and enter the no-bill reason/date.'
+                        ],
+                        projectId
+                    });
+
+                    getProjectContactEmails(projectId, POSITIONS.PHASE_PM, 'Phase PM')
+                        .forEach((recipient) => {
+                            sendProjectEmail({
+                                audience: 'Phase PM',
+                                recipients: recipient,
+                                cc: settings.pmExtraEmails,
+                                subject: `Action needed: submit schedule of values - ${projectDisplay}`,
+                                lines: [
+                                    `Project: ${projectDisplay}`,
+                                    `Bill Date: ${upcomingDisplay}`,
+                                    'Action Needed: Please submit your schedule of values to the Main PM so billing can be prepared.'
+                                ],
+                                projectId
+                            });
+                        });
+                }
+            }
+
+            if (sameDay(now, accountingTriggerDate)) {
+                if (noBillForUpcomingMonth) {
+                    log.audit('Accounting pre-notice skipped - no bill for upcoming month', {
+                        projectId,
+                        noBillDate: ymd(noBillDate),
+                        upcomingBillDate: ymd(upcoming)
+                    });
+                } else {
+                    log.audit('Accounting pre-notice trigger hit', {
+                        projectId,
+                        triggerDate: ymd(now)
+                    });
+                    sendAccountingNotice(
+                        projectId,
+                        `Invoice creation due tomorrow - ${projectDisplay}`,
+                        [
+                            `Project: ${projectDisplay}`,
+                            `Bill Date: ${upcomingDisplay}`,
+                            'Status: Billing is due tomorrow.',
+                            'Action Needed: Please review the billing details and create the invoice if billing is ready.'
+                        ]
+                    );
+                }
+            }
+
+            // A no-bill date matching the most recent bill date notifies
+            // Accounting and ends processing for this project.
+            if (noBill && noBillDate && sameDay(noBillDate, recent)) {
+                const reason = getFieldText(values[FIELDS.NO_BILL_REASON]) ||
+                    '(no reason provided)';
+
+                log.audit('No-bill notification trigger hit', {
+                    projectId,
+                    billDate: ymd(recent),
+                    reason
+                });
+                sendAccountingNotice(
+                    projectId,
+                    `No billing this cycle - ${projectDisplay}`,
+                    [
+                        `Project: ${projectDisplay}`,
+                        `Bill Date: ${recentDisplay}`,
+                        'Status: The PM marked this project as no-billing for this cycle.',
+                        `Reason: ${reason}`
+                    ]
+                );
+                return;
+            }
+
+            const hasInvoice = invoiceExistsInCycle(projectId, recent);
+            if (!hasInvoice) {
+                if (noBillForUpcomingMonth) {
+                    log.audit('Overdue reminders skipped - no bill this month', {
+                        projectId,
+                        noBillDate: ymd(noBillDate)
+                    });
+                } else {
+                    log.audit('Overdue reminder trigger hit', {
+                        projectId,
+                        billDate: ymd(recent)
+                    });
+                    sendProjectEmail({
+                        audience: 'Main PM reminder',
+                        recipients: mainPmId,
+                        cc: settings.pmExtraEmails,
+                        subject: `REMINDER: billing due - ${projectDisplay}`,
+                        lines: [
+                            `Project: ${projectDisplay}`,
+                            `Bill Date: ${recentDisplay}`,
+                            'Status: No invoice has been found for this billing cycle.',
+                            'Action Needed: Please submit the invoice or update the project No Bill information if billing will not occur this cycle.'
+                        ],
+                        projectId
+                    });
+                    sendAccountingNotice(
+                        projectId,
+                        `REMINDER: no invoice yet - ${projectDisplay}`,
+                        [
+                            `Project: ${projectDisplay}`,
+                            `Bill Date: ${recentDisplay}`,
+                            'Status: No invoice has been found for this billing cycle.',
+                            'Action Needed: Please follow up with the PM or create the invoice if billing is ready.'
+                        ]
+                    );
+                }
+            } else {
+                log.debug('No reminder required - invoice found', {
+                    projectId,
+                    billDate: ymd(recent)
+                });
+            }
+        } catch (error) {
+            log.error('Map error', {
+                key: context.key,
+                name: error.name,
+                message: error.message,
+                stack: error.stack
+            });
+        }
+    };
+
     const summarize = (summary) => {
-        summary.mapSummary.errors.iterator().each((key, err) => {
-            log.error('Map error key ' + key, err);
+        if (summary.inputSummary.error) {
+            log.error('Input stage error', summary.inputSummary.error);
+        }
+
+        summary.mapSummary.errors.iterator().each((key, error) => {
+            log.error('Map stage error', { key, error });
             return true;
+        });
+
+        log.audit('Billing notifications completed', {
+            usage: summary.usage,
+            concurrency: summary.concurrency,
+            yields: summary.yields,
+            seconds: summary.seconds
         });
     };
 
