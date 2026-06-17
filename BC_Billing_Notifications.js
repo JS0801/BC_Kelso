@@ -293,6 +293,7 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
         email.send({
             author: CONFIG.EMAIL_AUTHOR_ID,
             recipients: pmId,        // employee internal id; NetSuite resolves the address
+            cc: ['jainil.suthar@bluecollar.cloud'],
             subject,
             body
         });
@@ -320,6 +321,7 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
                 author: CONFIG.EMAIL_AUTHOR_ID,
                 recipients: addr,
                 subject: `Action needed: submit schedule of values - ${projectDisplay}`,
+                cc: ['jainil.suthar@bluecollar.cloud'],
                 body: emailBody([
                     `Project: ${projectDisplay}`,
                     `Bill Date: ${billDisplay}`,
@@ -334,6 +336,7 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
         email.send({
             author: CONFIG.EMAIL_AUTHOR_ID,
             recipients: CONFIG.ACCOUNTING_EMAIL,
+            cc: ['jainil.suthar@bluecollar.cloud'],
             subject,
             body
         });
