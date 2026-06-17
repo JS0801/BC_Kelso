@@ -207,7 +207,9 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
                         `Bill Date: ${upcomingDisplay}`,
                         'Status: Billing is due tomorrow.',
                         'Action Needed: Please review the billing details and create the invoice if billing is ready.'
-                    ])
+                    ]),
+                   projectId,
+                   projectDisplay
                 );
             }
 
@@ -240,7 +242,9 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
                             `Bill Date: ${recentDisplay}`,
                             'Status: The PM marked this project as no-billing for this cycle.',
                             `Reason: ${reason}`
-                        ])
+                        ]),
+                   projectId,
+                   projectDisplay
                     );
                     // NOTE: to truly send this only ONCE (not daily), add a
                     // "no-bill notified" flag field and check/set it here.
@@ -269,7 +273,9 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
                             `Bill Date: ${recentDisplay}`,
                             'Status: No invoice has been found for this billing cycle.',
                             'Action Needed: Please follow up with the PM or create the invoice if billing is ready.'
-                        ])
+                        ]),
+                   projectId,
+                   projectDisplay
                     );
                 }
             }
@@ -362,7 +368,7 @@ define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
         });
     };
 
-    const notifyAccountingContacts = (projectId, projectDisplay, subject, body) => {
+    const notifyAccountingContacts = (subject, body, projectId, projectDisplay) => {
     const results = search.create({
         type: 'customrecord_bc_project_contact_list',
         filters: [
