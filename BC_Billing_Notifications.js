@@ -2,8 +2,15 @@
  * @NApiVersion 2.1
  * @NScriptType MapReduceScript
  */
-define(['N/search', 'N/record', 'N/email', 'N/format', 'N/log'],
-(search, record, email, format, log) => {
+define([
+    'N/search',
+    'N/record',
+    'N/email',
+    'N/format',
+    'N/log',
+    'N/url',
+    'N/runtime'
+], (search, record, email, format, log, url, runtime) => {
 
     // ---------------------------------------------------------------
     // CONFIG  (change these, not the logic below)
@@ -253,7 +260,8 @@ const skipPmEmailsThisMonth = noBill && sameMonth(noBillDate, now);
                         `Bill Date: ${upcomingDisplay}`,
                         'Status: Billing is due tomorrow.',
                         'Action Needed: Please review the billing details and create the invoice if billing is ready.'
-                    ])
+                    ]),
+                    projectId
                 );
                 notifyAccountingContacts(
                     `Invoice creation due tomorrow - ${projectDisplay}`,
@@ -288,7 +296,8 @@ const skipPmEmailsThisMonth = noBill && sameMonth(noBillDate, now);
                             `Bill Date: ${recentDisplay}`,
                             'Status: The PM marked this project as no-billing for this cycle.',
                             `Reason: ${reason}`
-                        ])
+                        ]),
+                    projectId
                     );
                     notifyAccountingContacts(
                         `No billing this cycle - ${projectDisplay}`,
@@ -319,7 +328,8 @@ const skipPmEmailsThisMonth = noBill && sameMonth(noBillDate, now);
                             `Bill Date: ${recentDisplay}`,
                             'Status: No invoice has been found for this billing cycle.',
                             'Action Needed: Please follow up with the PM or create the invoice if billing is ready.'
-                        ])
+                        ]),
+                    projectId
                     );
                     notifyAccountingContacts(
                         `REMINDER: no invoice yet - ${projectDisplay}`,
@@ -359,6 +369,27 @@ const skipPmEmailsThisMonth = noBill && sameMonth(noBillDate, now);
 
     const emailBody = (lines) => lines.filter(Boolean).join('\n');
 
+
+  const getProjectUrl = (projectId) => {
+    const relativeUrl = url.resolveRecord({
+        recordType: 'customrecord_cseg_bc_project',
+        recordId: projectId,
+        isEditMode: false
+    });
+
+    const domain = url.resolveDomain({
+        hostType: url.HostType.APPLICATION,
+        accountId: runtime.accountId
+    });
+
+    return `https://${domain}${relativeUrl}`;
+};
+
+const addProjectLink = (body, projectId) => {
+    return body.replace(/\n/g, '<br>') +
+        `<br><br><a href="${getProjectUrl(projectId)}">View Project</a>`;
+};
+
     const notifyMainPm = (pmId, projectId, projectDisplay, billDisplay, isReminder) => {
         if (!pmId) {
             log.audit('No Main PM set', 'project ' + projectId);
@@ -386,7 +417,7 @@ const skipPmEmailsThisMonth = noBill && sameMonth(noBillDate, now);
             recipients: pmId,        // employee internal id; NetSuite resolves the address
             cc: ['jainil.suthar@bluecollar.cloud'],
             subject,
-            body
+            body: addProjectLink(body, projectId)
         });
         log.audit('Email -> Main PM', 'project ' + projectId + ' pmId=' + pmId + ' subject="' + subject + '"');
     };
@@ -413,11 +444,11 @@ const skipPmEmailsThisMonth = noBill && sameMonth(noBillDate, now);
                 recipients: addr,
                 subject: `Action needed: submit schedule of values - ${projectDisplay}`,
                 cc: ['jainil.suthar@bluecollar.cloud'],
-                body: emailBody([
-                    `Project: ${projectDisplay}`,
-                    `Bill Date: ${billDisplay}`,
-                    'Action Needed: Please submit your schedule of values to the Main PM so billing can be prepared.'
-                ])
+                body: addProjectLink(emailBody([
+    `Project: ${projectDisplay}`,
+    `Bill Date: ${billDisplay}`,
+    'Action Needed: Please submit your schedule of values to the Main PM so billing can be prepared.'
+]), projectId)
             });
             log.audit('Email -> Phase PM', 'project ' + projectId + ' to=' + addr);
         });
@@ -447,20 +478,20 @@ const skipPmEmailsThisMonth = noBill && sameMonth(noBillDate, now);
             recipients: addr,
             cc: ['jainil.suthar@bluecollar.cloud'],
             subject,
-            body
+            body: addProjectLink(body, projectId)
         });
 
         log.audit('Email -> Accounting Contact', 'project ' + projectId + ' to=' + addr + ' subject="' + subject + '"');
     });
     };
 
-    const sendAccounting = (subject, body) => {
+    const sendAccounting = (subject, body, projectId) => {
         email.send({
             author: CONFIG.EMAIL_AUTHOR_ID,
             recipients: CONFIG.ACCOUNTING_EMAIL,
             cc: ['jainil.suthar@bluecollar.cloud'],
             subject,
-            body
+            body: addProjectLink(body, projectId)
         });
         log.audit('Email -> Accounting', 'to=' + CONFIG.ACCOUNTING_EMAIL + ' subject="' + subject + '"');
     };
