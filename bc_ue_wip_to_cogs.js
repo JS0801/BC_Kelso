@@ -57,8 +57,8 @@ define(['N/record', 'N/search', 'N/log', 'N/format'], (record, search, log, form
           [`${CFG.RELATED_JE}.reversaldate`, 'isempty', '']
         ],
         columns: [
-          search.createColumn({ name: 'internalid', summary: search.Summary.GROUP }),
-          search.createColumn({ name: CFG.RELATED_JE, summary: search.Summary.MAX })
+          search.createColumn({ name: 'internalid'}),
+          search.createColumn({ name: CFG.RELATED_JE})
         ]
       });
 
