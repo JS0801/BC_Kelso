@@ -2051,7 +2051,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 </tr>
 </table>
 
-<table style="position: absolute;overflow: hidden;left: 60pt;top: 140pt;height: 80pt;width: 575pt;">
+<table style="position: absolute;overflow: hidden;left: 69pt;top: 145pt;height: 80pt;width: 575pt;">
 <tr>
     <td><#if check.address?contains("United States")>${check.address?replace("United States","")}<#else>${check.address}
     </#if>
