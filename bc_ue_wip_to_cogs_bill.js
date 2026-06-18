@@ -36,8 +36,8 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
         ? String(context.oldRecord.getValue({ fieldId: 'approvalstatus' }) || '')
         : '';
 
-      if (newStatus !== CFG.APPROVED) return;
-      if (context.type !== context.UserEventType.APPROVE && oldStatus === CFG.APPROVED) return;
+    //  if (newStatus !== CFG.APPROVED) return;
+     // if (context.type !== context.UserEventType.APPROVE && oldStatus === CFG.APPROVED) return;
 
       const billId = bill.id;
       const subsidiary = String(bill.getValue({ fieldId: 'subsidiary' }) || '');
