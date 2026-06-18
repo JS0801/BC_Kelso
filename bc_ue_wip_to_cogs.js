@@ -43,8 +43,8 @@ define(['N/record', 'N/search', 'N/log', 'N/format'], (record, search, log, form
       const projectId = invoice.getValue({ fieldId: 'job' });
       const subsidiary = String(invoice.getValue({ fieldId: 'subsidiary' }) || '');
 
-      if (!projectId || !CFG.SUBSIDIARIES.includes(subsidiary)) return;
-      if (findSourceJe(invoiceId)) return;
+      // if (!projectId || !CFG.SUBSIDIARIES.includes(subsidiary)) return;
+      // if (findSourceJe(invoiceId)) return;
 
       const activeJeSearch = search.create({
         type: search.Type.INVOICE,
