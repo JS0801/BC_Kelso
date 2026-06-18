@@ -2026,7 +2026,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
     </tr>
 </table>
 
-<table style="position: absolute;overflow: hidden;left: 60pt;top: 80pt;height: 18pt;width: 393pt;">
+<table style="position: absolute;overflow: hidden;left: 82pt;top: 95pt;height: 18pt;width: 393pt;">
     <tr>
         <td><#if (check.entity.companyname?has_content)>${check.entity.companyname}<#else>${check.entity}
         </#if>
@@ -2034,7 +2034,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 </tr>
 </table>
           
-<table style="position: absolute;overflow: hidden;left: 505pt;top: 88pt;height: 18pt;width: 111pt;">
+<table style="position: absolute;overflow: hidden;left: 505pt;top: 130pt;height: 18pt;width: 111pt;">
 <tr>
     <td>
         <#if (check.usertotal?length> 0)>${check.usertotal?string['#,###,##0.00']}
