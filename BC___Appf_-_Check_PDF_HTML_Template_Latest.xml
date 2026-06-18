@@ -2034,9 +2034,9 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 </tr>
 </table>
           
-<table style="position: absolute;overflow: hidden;left: 510pt;top: 170pt;height: 18pt;width: 111pt;">
+<table style="position: absolute;overflow: hidden;left: 500pt;top: 97pt;height: 18pt;width: 111pt;">
 <tr>
-    <td>
+    <td>**
         <#if (check.usertotal?length> 0)>${check.usertotal?string['#,###,##0.00']}
         <#else>${check.total?string['#,###,##0.00']}
     </#if>
