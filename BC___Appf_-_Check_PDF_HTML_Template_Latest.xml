@@ -2019,19 +2019,14 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 
 <div style="font-family: Helvetica,sans-serif;height: 240pt;width: 612pt;page-break-inside: avoid;font-size: 8pt;">
   <img src="https://6962009-sb2.app.netsuite.com/core/media/media.nl?id=593529&amp;c=6962009_SB2&amp;h=ruq3IWb_SAV9tjpGIhKgqgTHlJB3218ghKZzqpTCheCv8Qcg" style="position: absolute;left: 0pt;top: 0pt;" />
-    <table style="position: absolute;overflow: hidden;left: 489pt;top: 8pt;height: 7pt;width: 85pt;font-size: 8pt;">
-    <tr>
-        <td align="center">${check.checknumber}</td>
-    </tr>
-</table>
 
-<table style="position: absolute;overflow: hidden;left: 505pt;top: 60pt;height: 18pt;width: 575pt;">
+<table style="position: absolute;overflow: hidden;left: 505pt;top: 62pt;height: 18pt;width: 575pt;">
     <tr>
         <td>${check.trandate}</td>
     </tr>
 </table>
 
-<table style="position: absolute;overflow: hidden;left: 60pt;top: 74pt;height: 18pt;width: 393pt;">
+<table style="position: absolute;overflow: hidden;left: 60pt;top: 80pt;height: 18pt;width: 393pt;">
     <tr>
         <td><#if (check.entity.companyname?has_content)>${check.entity.companyname}<#else>${check.entity}
         </#if>
