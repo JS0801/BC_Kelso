@@ -36,8 +36,8 @@ define(['N/record', 'N/search', 'N/log', 'N/format'], (record, search, log, form
         ? String(context.oldRecord.getValue({ fieldId: 'approvalstatus' }) || '')
         : '';
 
-      if (newStatus !== CFG.APPROVED) return;
-      if (context.type !== context.UserEventType.APPROVE && oldStatus === CFG.APPROVED) return;
+      // if (newStatus !== CFG.APPROVED) return;
+      // if (context.type !== context.UserEventType.APPROVE && oldStatus === CFG.APPROVED) return;
 
       const invoiceId = invoice.id;
       const projectId = invoice.getValue({ fieldId: 'job' });
