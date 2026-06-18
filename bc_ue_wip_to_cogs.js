@@ -61,6 +61,7 @@ define(['N/record', 'N/search', 'N/log', 'N/format'], (record, search, log, form
           search.createColumn({ name: CFG.RELATED_JE})
         ]
       });
+      log.debug('Count of old JE', activeJeSearch.runPaged({ pageSize: 1000 }).count)
 
       if (activeJeSearch.runPaged({ pageSize: 1000 }).count > 0) {
         log.audit({
