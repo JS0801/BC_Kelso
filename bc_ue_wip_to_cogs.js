@@ -2,372 +2,284 @@
  * @NApiVersion 2.1
  * @NScriptType UserEventScript
  * @NModuleScope SameAccount
- *
- * KBS WIP -> COGS automation
- * --------------------------------------------------------------------------
- * Trigger : User Event on the INVOICE record.
- *   - On approval  -> pull every posted WIP cost line for the invoice's job
- *                     and create ONE journal entry that debits the COGS
- *                     account (from the item's COGS-mapping field) and
- *                     credits WIP (1806), line-for-line, with the source
- *                     bill + line id stamped on every JE line.
- *   - On delete    -> create a REVERSING journal entry for the relief JE(s)
- *                     previously created from this invoice.
- *
- * Scope    : Vendor bills only. (Labor / payroll JEs are handled by a
- *            separate script + search.)
- * --------------------------------------------------------------------------
  */
 define(['N/record', 'N/search', 'N/log', 'N/format'], (record, search, log, format) => {
 
-  // ===========================================================================
-  // CONFIG  — everything that may differ by account lives here.
-  //           Items flagged [CONFIRM] should be verified before go-live.
-  // ===========================================================================
-  const CONFIG = {
-    // --- accounts / subsidiaries -------------------------------------------
-    WIP_ACCOUNT: '1806',                       // credit (relief) account, internal id
-    SUBSIDIARIES: ['39', '57', '11', '59', '6'], // KBS set; trigger gates on these
-
-    // --- invoice fields -----------------------------------------------------
-    INVOICE_JOB_FIELD: 'job',                  // invoice -> job link
-
-    // --- approval detection -------------------------------------------------
-    // Relief fires when the invoice transitions INTO the approved state.
-    APPROVAL_FIELD: 'approvalstatus',          // [CONFIRM] field that holds approval state
-    APPROVED_VALUE: '2',                       // [CONFIRM] "Approved" value in your account
-
-    // --- item -> COGS mapping ----------------------------------------------
-    // Returns the COGS account INTERNAL ID directly (per your confirmation).
-    ITEM_COGS_FIELD: 'custitem_bc_cogsmapping',
-
-    // --- JE line reference fields (provided) -------------------------------
-    LINE_REF_TRANSACTION: 'custcol_bc_related_transaction',   // source bill record
-    LINE_REF_LINE_ID:    'custcol_bc_related_tran_line_id',   // source line id
-
-    // --- JE body fields -----------------------------------------------------
-    // Body link back to the source invoice. Set on BOTH the relief JE and the
-    // reversal JE, and used to locate the JE(s) on invoice delete.
-    // (Distinct from the line-level custcol_bc_related_transaction.)
-    JE_SOURCE_INVOICE_FIELD: 'custbody_bc_related_transaction',
-    JE_AUTO_FLAG_FIELD:      'custbody_bc_auto_wip_relief',   // optional reporting flag
-    JE_REVERSAL_FLAG_FIELD:  'custbody_bc_wip_reversal',      // optional: marks reversing JEs
-
-    // --- segment / dimension fields carried from source line to JE line ----
-    SEG_CUSTOMER_TYPE: 'cseg_kelso_custseg1',
-    SEG_SERVICE_TYPE:  'cseg1'
+  const CFG = {
+    WIP_ACCOUNT: '1806',
+    SUBSIDIARIES: ['39', '57', '11', '59', '6'],
+    APPROVED: '2',
+    ITEM_COGS: 'custitem_bc_cogsmapping',
+    RELATED_JE: 'custbody_bc_related_transaction',
+    LINE_SOURCE: 'custcol_bc_related_transaction',
+    LINE_SOURCE_ID: 'custcol_bc_related_tran_line_id',
+    CUSTOMER_TYPE: 'cseg_kelso_custseg1',
+    SERVICE_TYPE: 'cseg1'
   };
 
-  // ===========================================================================
-  // ENTRY POINT
-  // ===========================================================================
   const afterSubmit = (context) => {
     try {
-      const T = context.UserEventType;
-
-      if (context.type === T.DELETE) {
-        reverseReliefForInvoice(context.oldRecord);
+      if (context.type === context.UserEventType.DELETE) {
+        const jeId = context.oldRecord.getValue({ fieldId: CFG.RELATED_JE }) ||
+          findSourceJe(context.oldRecord.id);
+        if (jeId) reverseJe(jeId, `Invoice ${context.oldRecord.id} deleted`, true);
         return;
       }
 
-      if (context.type === T.CREATE || context.type === T.EDIT) {
-        if (!isBecomingApproved(context)) return;
-        createReliefForInvoice(context.newRecord);
+      if (context.type !== context.UserEventType.CREATE &&
+          context.type !== context.UserEventType.EDIT &&
+          context.type !== context.UserEventType.APPROVE) return;
+
+      const invoice = context.newRecord;
+      const newStatus = String(invoice.getValue({ fieldId: 'approvalstatus' }) || '');
+      const oldStatus = context.oldRecord
+        ? String(context.oldRecord.getValue({ fieldId: 'approvalstatus' }) || '')
+        : '';
+
+      if (newStatus !== CFG.APPROVED) return;
+      if (context.type !== context.UserEventType.APPROVE && oldStatus === CFG.APPROVED) return;
+
+      const invoiceId = invoice.id;
+      const projectId = invoice.getValue({ fieldId: 'job' });
+      const subsidiary = String(invoice.getValue({ fieldId: 'subsidiary' }) || '');
+
+      if (!projectId || !CFG.SUBSIDIARIES.includes(subsidiary)) return;
+      if (findSourceJe(invoiceId)) return;
+
+      const activeJeSearch = search.create({
+        type: search.Type.INVOICE,
+        settings: [{ name: 'consolidationtype', value: 'ACCTTYPE' }],
+        filters: [
+          ['type', 'anyof', 'CustInvc'], 'AND',
+          ['jobmain.internalid', 'anyof', projectId], 'AND',
+          ['mainline', 'is', 'T'], 'AND',
+          [`${CFG.RELATED_JE}.isreversal`, 'is', 'F'], 'AND',
+          [`${CFG.RELATED_JE}.reversaldate`, 'isempty', '']
+        ],
+        columns: [
+          search.createColumn({ name: 'internalid', summary: search.Summary.GROUP }),
+          search.createColumn({ name: CFG.RELATED_JE, summary: search.Summary.MAX })
+        ]
+      });
+
+      if (activeJeSearch.runPaged({ pageSize: 1000 }).count > 0) {
+        log.audit({
+          title: 'WIP relief skipped',
+          details: `Project ${projectId} already has an Invoice with an active WIP relief JE.`
+        });
+        return;
       }
+
+      const costs = [];
+      const costSearch = search.create({
+        type: search.Type.VENDOR_BILL,
+        settings: [{ name: 'consolidationtype', value: 'ACCTTYPE' }],
+        filters: [
+          ['account', 'anyof', CFG.WIP_ACCOUNT], 'AND',
+          ['subsidiary', 'anyof', CFG.SUBSIDIARIES], 'AND',
+          ['job.internalid', 'anyof', projectId], 'AND',
+          ['posting', 'is', 'T'], 'AND',
+          [
+            [CFG.RELATED_JE, 'anyof', '@NONE@'], 'OR',
+            [`${CFG.RELATED_JE}.isreversal`, 'is', 'T'], 'OR',
+            [`${CFG.RELATED_JE}.reversaldate`, 'isnotempty', '']
+          ]
+        ],
+        columns: [
+          'debitamount',
+          'creditamount',
+          'department',
+          'class',
+          'location',
+          CFG.CUSTOMER_TYPE,
+          CFG.SERVICE_TYPE,
+          'lineuniquekey',
+          search.createColumn({ name: CFG.ITEM_COGS, join: 'item' })
+        ]
+      });
+
+      const pages = costSearch.runPaged({ pageSize: 1000 });
+      pages.pageRanges.forEach((page) => {
+        pages.fetch({ index: page.index }).data.forEach((result) => {
+          const amount = round(
+            Number(result.getValue({ name: 'debitamount' }) || 0) -
+            Number(result.getValue({ name: 'creditamount' }) || 0)
+          );
+
+          if (!amount) return;
+          costs.push({
+            billId: result.id,
+            lineId: result.getValue({ name: 'lineuniquekey' }),
+            cogs: result.getValue({ name: CFG.ITEM_COGS, join: 'item' }),
+            amount,
+            department: result.getValue({ name: 'department' }),
+            classId: result.getValue({ name: 'class' }),
+            location: result.getValue({ name: 'location' }),
+            customerType: result.getValue({ name: CFG.CUSTOMER_TYPE }),
+            serviceType: result.getValue({ name: CFG.SERVICE_TYPE })
+          });
+        });
+      });
+
+      if (!costs.length) {
+        log.audit({ title: 'WIP relief skipped', details: `No unprocessed WIP Bills found for Project ${projectId}.` });
+        return;
+      }
+
+      const missing = costs.filter((line) => !line.cogs);
+      if (missing.length) {
+        log.error({
+          title: 'WIP relief not created',
+          details: `Missing COGS mapping on ${missing.length} Bill line(s): ${missing.map((x) => `${x.billId}:${x.lineId}`).join(', ')}`
+        });
+        return;
+      }
+
+      const tranId = invoice.getValue({ fieldId: 'tranid' });
+      const tranDate = invoice.getValue({ fieldId: 'trandate' });
+      const dateText = tranDate ? format.format({ value: tranDate, type: format.Type.DATE }) : '';
+      const memo = `WIP relief - Invoice ${tranId} - Project ${projectId}`;
+      const je = record.create({ type: record.Type.JOURNAL_ENTRY, isDynamic: true });
+
+      je.setValue({ fieldId: 'subsidiary', value: subsidiary });
+      if (tranDate) je.setValue({ fieldId: 'trandate', value: tranDate });
+      je.setValue({ fieldId: 'memo', value: `${memo} - ${dateText}` });
+      je.setValue({ fieldId: CFG.RELATED_JE, value: invoiceId });
+
+      costs.forEach((line) => {
+        const amount = Math.abs(line.amount);
+        addLine(je, line.cogs, line.amount > 0 ? amount : 0, line.amount < 0 ? amount : 0, line, memo, projectId);
+        addLine(je, CFG.WIP_ACCOUNT, line.amount < 0 ? amount : 0, line.amount > 0 ? amount : 0, line, memo, projectId);
+      });
+
+      const jeId = je.save({ enableSourcing: true, ignoreMandatoryFields: false });
+
+      record.submitFields({
+        type: record.Type.INVOICE,
+        id: invoiceId,
+        values: { [CFG.RELATED_JE]: jeId }
+      });
+
+      [...new Set(costs.map((line) => line.billId))].forEach((billId) => {
+        try {
+          record.submitFields({
+            type: record.Type.VENDOR_BILL,
+            id: billId,
+            values: { [CFG.RELATED_JE]: jeId }
+          });
+        } catch (e) {
+          log.error({ title: 'Bill link failed', details: `Bill ${billId}, JE ${jeId}: ${e.message}` });
+        }
+      });
+
+      log.audit({
+        title: 'WIP relief created',
+        details: `Invoice ${invoiceId}, Project ${projectId}, JE ${jeId}, ${costs.length} Bill line(s).`
+      });
     } catch (e) {
-      // Never block the invoice. Log loudly so it surfaces in the exec log / alerting.
-      log.error({
-        title: 'WIP->COGS afterSubmit failed',
-        details: (e && e.stack) ? e.stack : JSON.stringify(e)
-      });
+      log.error({ title: 'Invoice WIP relief failed', details: e.stack || e.message || e });
     }
   };
 
-  // ===========================================================================
-  // APPROVAL DETECTION
-  // ===========================================================================
-  const isBecomingApproved = (context) => {
-    const newStatus = context.newRecord.getValue({ fieldId: CONFIG.APPROVAL_FIELD });
-    if (String(newStatus) !== String(CONFIG.APPROVED_VALUE)) return false;
-
-    // On create, an already-approved invoice qualifies.
-    if (context.type === context.UserEventType.CREATE) return true;
-
-    // On edit, only the transition into approved qualifies (avoids re-firing on every save).
-    const oldStatus = context.oldRecord
-      ? context.oldRecord.getValue({ fieldId: CONFIG.APPROVAL_FIELD })
-      : null;
-    return String(oldStatus) !== String(CONFIG.APPROVED_VALUE);
-  };
-
-  // ===========================================================================
-  // CREATE RELIEF JE
-  // ===========================================================================
-  const createReliefForInvoice = (invoice) => {
-    const invoiceId  = invoice.id;
-    const jobId      = invoice.getValue({ fieldId: CONFIG.INVOICE_JOB_FIELD });
-    const subsidiary = invoice.getValue({ fieldId: 'subsidiary' });
-    const tranId     = invoice.getValue({ fieldId: 'tranid' });
-    const tranDate   = invoice.getValue({ fieldId: 'trandate' }); // same-period posting
-    const invDateStr = tranDate ? format.format({ value: tranDate, type: format.Type.DATE }) : '';
-
-    // --- gates --------------------------------------------------------------
-    if (!jobId) {
-      log.audit({ title: 'WIP relief skipped', details: `Invoice ${invoiceId} has no job.` });
-      return;
-    }
-    if (CONFIG.SUBSIDIARIES.indexOf(String(subsidiary)) === -1) {
-      log.audit({ title: 'WIP relief skipped', details: `Invoice ${invoiceId} subsidiary ${subsidiary} out of scope.` });
-      return;
-    }
-
-    // --- idempotency: bail if a relief JE already exists for this invoice ---
-    if (findReliefJEs(invoiceId).length > 0) {
-      log.audit({ title: 'WIP relief skipped', details: `Relief JE already exists for invoice ${invoiceId}.` });
-      return;
-    }
-
-    // --- pull WIP cost lines for the job -----------------------------------
-    const costLines = runWipSearch(jobId);
-    if (costLines.length === 0) {
-      log.audit({ title: 'Zero WIP balance', details: `No WIP cost lines for job ${jobId} (invoice ${invoiceId}). No JE created.` });
-      return;
-    }
-
-    // --- build the JE -------------------------------------------------------
-    const je = record.create({ type: record.Type.JOURNAL_ENTRY, isDynamic: true });
-    je.setValue({ fieldId: 'subsidiary', value: subsidiary });
-    if (tranDate) je.setValue({ fieldId: 'trandate', value: tranDate });
-    je.setValue({ fieldId: 'memo', value: `WIP relief — Inv ${tranId} / Job ${jobId} / ${invDateStr}` });
-    setIfFieldExists(je, CONFIG.JE_SOURCE_INVOICE_FIELD, invoiceId);
-    setIfFieldExists(je, CONFIG.JE_AUTO_FLAG_FIELD, true);
-
-    const memo = `Inv ${tranId} | Job ${jobId} | ${invDateStr}`;
-    const skipped = [];
-    let linesAdded = 0;
-
-    costLines.forEach((c) => {
-      if (!c.cogsAccount) {
-        // Item has no COGS mapping — cannot route. Skip + record for alerting.
-        skipped.push({ bill: c.billId, line: c.lineId, reason: 'no COGS mapping on item' });
-        return;
-      }
-      const amt = round2(c.debit - c.credit);
-      if (amt === 0) return;
-
-      if (amt > 0) {
-        // Normal: relieve cost out of WIP into COGS.
-        addJeLine(je, c.cogsAccount, amt, 0, c, memo, jobId);          // Dr COGS
-        addJeLine(je, CONFIG.WIP_ACCOUNT, 0, amt, c, memo, jobId);     // Cr WIP
-      } else {
-        // Net credit on the source line — mirror the direction.
-        const a = Math.abs(amt);
-        addJeLine(je, c.cogsAccount, 0, a, c, memo, jobId);            // Cr COGS
-        addJeLine(je, CONFIG.WIP_ACCOUNT, a, 0, c, memo, jobId);       // Dr WIP
-      }
-      linesAdded++;
-    });
-
-    if (linesAdded === 0) {
-      log.audit({ title: 'Nothing to relieve', details: `All lines netted to zero or unmapped for invoice ${invoiceId}.` });
-      if (skipped.length) log.error({ title: 'Unmapped cost lines', details: JSON.stringify(skipped) });
-      return;
-    }
-
-    const jeId = je.save({ enableSourcing: true, ignoreMandatoryFields: false });
-    log.audit({
-      title: 'WIP relief JE created',
-      details: `JE ${jeId} for invoice ${invoiceId} (job ${jobId}); ${linesAdded} cost line(s).`
-    });
-
-    if (jeId) {
-      record.submitFields({type: 'invoice', id: invoiceId, values: {custbody_bc_related_transaction: jeId}})
-    }
-
-    if (skipped.length) {
-      log.error({
-        title: 'WIP relief: some lines skipped (no COGS mapping)',
-        details: `Invoice ${invoiceId}: ` + JSON.stringify(skipped)
-      });
-    }
-  };
-
-  // Adds one JE line carrying dimensions + source references.
-  const addJeLine = (je, account, debit, credit, c, memo, pid) => {
+  const addLine = (je, account, debit, credit, source, memo, projectId) => {
     je.selectNewLine({ sublistId: 'line' });
     je.setCurrentSublistValue({ sublistId: 'line', fieldId: 'account', value: account });
-    if (debit)  je.setCurrentSublistValue({ sublistId: 'line', fieldId: 'debit',  value: debit });
+    if (debit) je.setCurrentSublistValue({ sublistId: 'line', fieldId: 'debit', value: debit });
     if (credit) je.setCurrentSublistValue({ sublistId: 'line', fieldId: 'credit', value: credit });
     je.setCurrentSublistValue({ sublistId: 'line', fieldId: 'memo', value: memo });
-    je.setCurrentSublistValue({ sublistId: 'line', fieldId: 'entity', value: pid });
-
-    setLineIfPresent(je, 'department', c.department);
-    setLineIfPresent(je, 'class',      c.classId);
-    setLineIfPresent(je, 'location',   c.location);
-    setLineIfPresent(je, CONFIG.SEG_CUSTOMER_TYPE, c.custType);
-    setLineIfPresent(je, CONFIG.SEG_SERVICE_TYPE,  c.svcType);
-
-    // Source traceability (your fields).
-    setLineIfPresent(je, CONFIG.LINE_REF_TRANSACTION, c.billId);
-    setLineIfPresent(je, CONFIG.LINE_REF_LINE_ID,     c.lineId);
-
+    je.setCurrentSublistValue({ sublistId: 'line', fieldId: 'entity', value: projectId });
+    setLine(je, 'department', source.department);
+    setLine(je, 'class', source.classId);
+    setLine(je, 'location', source.location);
+    setLine(je, CFG.CUSTOMER_TYPE, source.customerType);
+    setLine(je, CFG.SERVICE_TYPE, source.serviceType);
+    setLine(je, CFG.LINE_SOURCE, source.billId);
+    setLine(je, CFG.LINE_SOURCE_ID, source.lineId);
     je.commitLine({ sublistId: 'line' });
   };
 
-  // ===========================================================================
-  // REVERSAL ON DELETE
-  // ===========================================================================
-  const reverseReliefForInvoice = (invoice) => {
-    const invoiceId = invoice.id;
-    const jeIds = findReliefJEs(invoiceId);
-    if (jeIds.length === 0) {
-      log.audit({ title: 'No relief JE to reverse', details: `Invoice ${invoiceId} deleted; no relief JE found.` });
-      return;
-    }
+  const reverseJe = (jeId, memo, clearBills) => {
+    const original = record.load({ type: record.Type.JOURNAL_ENTRY, id: jeId });
+    const reversal = record.create({ type: record.Type.JOURNAL_ENTRY, isDynamic: true });
+    const billIds = new Set();
 
-    jeIds.forEach((origId) => {
-      const orig = record.load({ type: record.Type.JOURNAL_ENTRY, id: origId });
-      const rev  = record.create({ type: record.Type.JOURNAL_ENTRY, isDynamic: true });
+    reversal.setValue({ fieldId: 'subsidiary', value: original.getValue({ fieldId: 'subsidiary' }) });
+    reversal.setValue({ fieldId: 'trandate', value: new Date() });
+    reversal.setValue({ fieldId: 'memo', value: `Reversal of JE ${jeId} - ${memo}` });
 
-      rev.setValue({ fieldId: 'subsidiary', value: orig.getValue({ fieldId: 'subsidiary' }) });
-      // Reversal posts on today's date so it lands in an open period
-      // even if the original period is closed.
-      rev.setValue({ fieldId: 'trandate', value: new Date() });
-      rev.setValue({ fieldId: 'memo', value: `Reversal of JE ${origId} — source invoice ${invoiceId} deleted` });
-      setIfFieldExists(rev, CONFIG.JE_SOURCE_INVOICE_FIELD, invoiceId);
-      setIfFieldExists(rev, CONFIG.JE_REVERSAL_FLAG_FIELD, true);
+    for (let i = 0; i < original.getLineCount({ sublistId: 'line' }); i++) {
+      const debit = Number(original.getSublistValue({ sublistId: 'line', fieldId: 'debit', line: i }) || 0);
+      const credit = Number(original.getSublistValue({ sublistId: 'line', fieldId: 'credit', line: i }) || 0);
+      const billId = original.getSublistValue({ sublistId: 'line', fieldId: CFG.LINE_SOURCE, line: i });
+      if (billId) billIds.add(String(billId));
 
-      const count = orig.getLineCount({ sublistId: 'line' });
-      for (let i = 0; i < count; i++) {
-        const account = orig.getSublistValue({ sublistId: 'line', fieldId: 'account', line: i });
-        const debit   = parseFloat(orig.getSublistValue({ sublistId: 'line', fieldId: 'debit',  line: i }) || 0);
-        const credit  = parseFloat(orig.getSublistValue({ sublistId: 'line', fieldId: 'credit', line: i }) || 0);
-
-        rev.selectNewLine({ sublistId: 'line' });
-        rev.setCurrentSublistValue({ sublistId: 'line', fieldId: 'account', value: account });
-        // swap debit <-> credit
-        if (credit) rev.setCurrentSublistValue({ sublistId: 'line', fieldId: 'debit',  value: round2(credit) });
-        if (debit)  rev.setCurrentSublistValue({ sublistId: 'line', fieldId: 'credit', value: round2(debit) });
-
-        copyLineField(orig, rev, i, 'department');
-        copyLineField(orig, rev, i, 'class');
-        copyLineField(orig, rev, i, 'location');
-        copyLineField(orig, rev, i, CONFIG.SEG_CUSTOMER_TYPE);
-        copyLineField(orig, rev, i, CONFIG.SEG_SERVICE_TYPE);
-        copyLineField(orig, rev, i, CONFIG.LINE_REF_TRANSACTION);
-        copyLineField(orig, rev, i, CONFIG.LINE_REF_LINE_ID);
-        rev.setCurrentSublistValue({ sublistId: 'line', fieldId: 'memo', value: `Reversal of JE ${origId}` });
-
-        rev.commitLine({ sublistId: 'line' });
-      }
-
-      const revId = rev.save({ enableSourcing: true, ignoreMandatoryFields: false });
-      log.audit({ title: 'WIP relief reversed', details: `Reversing JE ${revId} created for original JE ${origId} (invoice ${invoiceId}).` });
-    });
-  };
-
-  // ===========================================================================
-  // SEARCHES
-  // ===========================================================================
-  // Posted vendor-bill WIP cost lines for a given job.
-  const runWipSearch = (jobId) => {
-    const s = search.create({
-      type: 'vendorbill',
-      settings: [{ name: 'consolidationtype', value: 'ACCTTYPE' }],
-      filters: [
-        ['type', 'anyof', 'VendBill'], 'AND',
-        ['account', 'anyof', CONFIG.WIP_ACCOUNT], 'AND',
-        ['subsidiary', 'anyof', CONFIG.SUBSIDIARIES], 'AND',
-        ['job.internalid', 'anyof', jobId], 'AND',
-        ['posting', 'is', 'T']
-      ],
-      columns: [
-        search.createColumn({ name: 'account' }),
-        search.createColumn({ name: 'debitamount' }),
-        search.createColumn({ name: 'creditamount' }),
-        search.createColumn({ name: 'subsidiary' }),
-        search.createColumn({ name: CONFIG.ITEM_COGS_FIELD, join: 'item' }),
-        search.createColumn({ name: 'department' }),
-        search.createColumn({ name: 'class' }),
-        search.createColumn({ name: 'location' }),
-        search.createColumn({ name: CONFIG.SEG_CUSTOMER_TYPE }),
-        search.createColumn({ name: CONFIG.SEG_SERVICE_TYPE }),
-        // line-level id for source-line traceability.
-        // If custcol_bc_related_tran_line_id expects the line *sequence*
-        // instead, swap 'lineuniquekey' for 'line'.
-        search.createColumn({ name: 'lineuniquekey' })
-      ]
-    });
-
-    const out = [];
-    const pageData = s.runPaged({ pageSize: 1000 });
-    pageData.pageRanges.forEach((pr) => {
-      pageData.fetch({ index: pr.index }).data.forEach((r) => {
-        out.push({
-          billId:     r.id, // vendor bill internal id
-          lineId:     r.getValue({ name: 'lineuniquekey' }),
-          cogsAccount: r.getValue({ name: CONFIG.ITEM_COGS_FIELD, join: 'item' }),
-          debit:      parseFloat(r.getValue({ name: 'debitamount' })  || 0),
-          credit:     parseFloat(r.getValue({ name: 'creditamount' }) || 0),
-          department: r.getValue({ name: 'department' }),
-          classId:    r.getValue({ name: 'class' }),
-          location:   r.getValue({ name: 'location' }),
-          custType:   r.getValue({ name: CONFIG.SEG_CUSTOMER_TYPE }),
-          svcType:    r.getValue({ name: CONFIG.SEG_SERVICE_TYPE })
-        });
+      reversal.selectNewLine({ sublistId: 'line' });
+      reversal.setCurrentSublistValue({
+        sublistId: 'line',
+        fieldId: 'account',
+        value: original.getSublistValue({ sublistId: 'line', fieldId: 'account', line: i })
       });
-    });
-    return out;
-  };
+      if (credit) reversal.setCurrentSublistValue({ sublistId: 'line', fieldId: 'debit', value: round(credit) });
+      if (debit) reversal.setCurrentSublistValue({ sublistId: 'line', fieldId: 'credit', value: round(debit) });
 
-  // Finds relief JEs previously created from a given invoice.
-  const findReliefJEs = (invoiceId) => {
-    const ids = [];
-    try {
-      search.create({
-        type: search.Type.JOURNAL_ENTRY,
-        filters: [
-          [CONFIG.JE_SOURCE_INVOICE_FIELD, 'anyof', invoiceId], 'AND',
-          // exclude reversing JEs so a delete doesn't try to reverse a reversal
-          [CONFIG.JE_REVERSAL_FLAG_FIELD, 'is', 'F']
-        ],
-        columns: [search.createColumn({ name: 'internalid' })]
-      }).run().each((r) => { ids.push(r.id); return true; });
-    } catch (e) {
-      // If the reversal flag field doesn't exist yet, fall back to source-invoice only.
-      search.create({
-        type: search.Type.JOURNAL_ENTRY,
-        filters: [[CONFIG.JE_SOURCE_INVOICE_FIELD, 'anyof', invoiceId]],
-        columns: [search.createColumn({ name: 'internalid' })]
-      }).run().each((r) => { ids.push(r.id); return true; });
+      ['department', 'class', 'location', CFG.CUSTOMER_TYPE, CFG.SERVICE_TYPE, CFG.LINE_SOURCE, CFG.LINE_SOURCE_ID]
+        .forEach((fieldId) => {
+          const value = original.getSublistValue({ sublistId: 'line', fieldId, line: i });
+          setLine(reversal, fieldId, value);
+        });
+
+      setLine(reversal, 'entity', original.getSublistValue({ sublistId: 'line', fieldId: 'entity', line: i }));
+      reversal.setCurrentSublistValue({ sublistId: 'line', fieldId: 'memo', value: `Reversal of JE ${jeId}` });
+      reversal.commitLine({ sublistId: 'line' });
     }
-    return ids;
+
+    const reversalId = reversal.save({ enableSourcing: true, ignoreMandatoryFields: false });
+
+    if (clearBills) {
+      billIds.forEach((billId) => {
+        const linked = search.lookupFields({
+          type: search.Type.VENDOR_BILL,
+          id: billId,
+          columns: [CFG.RELATED_JE]
+        })[CFG.RELATED_JE];
+        const linkedId = Array.isArray(linked) && linked[0] ? String(linked[0].value) : '';
+        if (linkedId === String(jeId)) {
+          record.submitFields({
+            type: record.Type.VENDOR_BILL,
+            id: billId,
+            values: { [CFG.RELATED_JE]: '' }
+          });
+        }
+      });
+    }
+
+    log.audit({ title: 'WIP relief reversed', details: `JE ${jeId} reversed by JE ${reversalId}.` });
   };
 
-  // ===========================================================================
-  // HELPERS
-  // ===========================================================================
-  const round2 = (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
-
-  const setLineIfPresent = (rec, fieldId, value) => {
-    if (value === null || value === undefined || value === '') return;
-    try { rec.setCurrentSublistValue({ sublistId: 'line', fieldId, value }); }
-    catch (e) { /* field not on JE line in this account — ignore */ }
+  const setLine = (je, fieldId, value) => {
+    if (value !== null && value !== undefined && value !== '') {
+      je.setCurrentSublistValue({ sublistId: 'line', fieldId, value });
+    }
   };
 
-  const copyLineField = (src, dst, lineIdx, fieldId) => {
-    try {
-      const v = src.getSublistValue({ sublistId: 'line', fieldId, line: lineIdx });
-      if (v !== null && v !== undefined && v !== '') {
-        dst.setCurrentSublistValue({ sublistId: 'line', fieldId, value: v });
-      }
-    } catch (e) { /* ignore */ }
+  const findSourceJe = (sourceId) => {
+    let jeId = '';
+    search.create({
+      type: search.Type.JOURNAL_ENTRY,
+      filters: [
+        [CFG.RELATED_JE, 'anyof', sourceId], 'AND',
+        ['isreversal', 'is', 'F'], 'AND',
+        ['reversaldate', 'isempty', '']
+      ],
+      columns: ['internalid']
+    }).run().each((result) => {
+      jeId = result.id;
+      return false;
+    });
+    return jeId;
   };
 
-  const setIfFieldExists = (rec, fieldId, value) => {
-    try { rec.setValue({ fieldId, value }); }
-    catch (e) { /* body field not created yet — ignore */ }
-  };
+  const round = (value) => Math.round((Number(value) + Number.EPSILON) * 100) / 100;
 
   return { afterSubmit };
 });
