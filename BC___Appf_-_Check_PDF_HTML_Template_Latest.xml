@@ -2025,7 +2025,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
     </tr>
 </table>
 
-<table style="position: absolute;overflow: hidden;left: 505pt;top: 40pt;height: 18pt;width: 575pt;">
+<table style="position: absolute;overflow: hidden;left: 505pt;top: 70pt;height: 18pt;width: 575pt;">
     <tr>
         <td>${check.trandate}</td>
     </tr>
