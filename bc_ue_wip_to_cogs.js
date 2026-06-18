@@ -54,7 +54,8 @@ define(['N/record', 'N/search', 'N/log', 'N/format'], (record, search, log, form
           ['jobmain.internalid', 'anyof', projectId], 'AND',
           ['mainline', 'is', 'T'], 'AND',
           [`${CFG.RELATED_JE}.isreversal`, 'is', 'F'], 'AND',
-          [`${CFG.RELATED_JE}.reversaldate`, 'isempty', '']
+          [`${CFG.RELATED_JE}.reversaldate`, 'isempty', ''], "AND", 
+          ["custbody_bc_related_transaction","noneof","@NONE@"]
         ],
         columns: [
           search.createColumn({ name: 'internalid'}),
