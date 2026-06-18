@@ -9,6 +9,7 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
     WIP_ACCOUNT: '1806',
     SUBSIDIARIES: ['39', '57', '11', '59', '6'],
     APPROVED: '2',
+    CLOSED_STATUS: '1',
     ITEM_COGS: 'custitem_bc_cogsmapping',
     RELATED_JE: 'custbody_bc_related_transaction',
     LINE_SOURCE: 'custcol_bc_related_transaction',
@@ -36,8 +37,8 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
         ? String(context.oldRecord.getValue({ fieldId: 'approvalstatus' }) || '')
         : '';
 
-     if (newStatus !== CFG.APPROVED) return;
-     if (context.type !== context.UserEventType.APPROVE && oldStatus === CFG.APPROVED) return;
+      if (newStatus !== CFG.APPROVED) return;
+      if (context.type !== context.UserEventType.APPROVE && oldStatus === CFG.APPROVED) return;
 
       const billId = bill.id;
       const subsidiary = String(bill.getValue({ fieldId: 'subsidiary' }) || '');
@@ -116,14 +117,14 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
           id: projectId,
           columns: ['entitystatus']
         }).entitystatus;
-        const statusText = Array.isArray(status)
-          ? status.map((value) => value.text || '').join(' ').toLowerCase()
-          : String((status && status.text) || status || '').toLowerCase();
+        const statusId = Array.isArray(status) && status[0]
+          ? String(status[0].value || '')
+          : String((status && status.value) || status || '');
 
-        if (!/(^|\W)(closed|complete|completed)(\W|$)/i.test(statusText)) {
+        if (statusId !== CFG.CLOSED_STATUS) {
           log.audit({
             title: 'Bill WIP relief skipped',
-            details: `Bill ${billId}, Project ${projectId}, status "${statusText || 'blank'}".`
+            details: `Bill ${billId}, Project ${projectId}, status ${statusId || 'blank'} is not closed.`
           });
           return;
         }
