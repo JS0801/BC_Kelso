@@ -45,9 +45,7 @@ define(['N/search', 'N/record', 'N/format', 'N/log'], (search, record, format, l
         });
         const billText = getFieldText(projectValues[FIELDS.PROJECT_BILL_DATE]);
 
-        if (!billText) {
-            throw new Error(`Project ${projectId} does not have a Bill Date.`);
-        }
+        if (!billText) return;
 
         const year = transactionDate.getFullYear();
         const month = transactionDate.getMonth();
