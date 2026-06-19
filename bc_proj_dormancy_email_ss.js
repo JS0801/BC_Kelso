@@ -34,7 +34,7 @@ define(['N/query', 'N/email', 'N/runtime', 'N/url', 'N/log'],
             }
 
             if (!recipientEmail) {
-                recipientEmail = 'sean.bartlett@apg.company';
+                recipientEmail = 700342, //'sean.bartlett@apg.company';
             }
 
             const subsidiaryId = subsidiaryParam ? String(subsidiaryParam).trim() : '23';
