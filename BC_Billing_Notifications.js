@@ -42,6 +42,7 @@ define([
         PROJECT_DISPLAY: 'name',
         MAIN_PM: 'custrecord_bc_proj_manager',
         BILL_DATE: 'custrecord_bill_date',
+        PROJECT_SEGMENT: 'cseg_bc_project',
         HISTORY_PROJECT: 'custrecord_bc_bh_project',
         HISTORY_CYCLE_DATE: 'custrecord_bc_bh_cycle_date',
         HISTORY_STATUS: 'custrecord_bc_bh_status',
@@ -527,6 +528,82 @@ define([
         );
     };
 
+    const backfillInvoicedHistory = (projectId, cycleDate) => {
+        const monthStart = new Date(cycleDate.getFullYear(), cycleDate.getMonth(), 1);
+        const monthEnd = new Date(cycleDate.getFullYear(), cycleDate.getMonth() + 1, 0);
+        const invoiceIds = [];
+
+        search.create({
+            type: 'invoice',
+            filters: [
+                ['mainline', 'is', 'T'],
+                'AND',
+                [FIELDS.PROJECT_SEGMENT, 'anyof', projectId],
+                'AND',
+                ['trandate', 'within',
+                    format.format({ value: monthStart, type: format.Type.DATE }),
+                    format.format({ value: monthEnd, type: format.Type.DATE })]
+            ],
+            columns: ['internalid']
+        }).run().each((result) => {
+            invoiceIds.push(String(result.id));
+            return true;
+        });
+
+        log.debug('Recent-cycle invoice fallback check', {
+            projectId,
+            cycleDate: ymd(cycleDate),
+            monthStart: ymd(monthStart),
+            monthEnd: ymd(monthEnd),
+            invoiceIds
+        });
+
+        if (!invoiceIds.length) return null;
+
+        const historyRecord = record.create({
+            type: RECORDS.BILLING_HISTORY,
+            isDynamic: false
+        });
+        historyRecord.setValue({
+            fieldId: FIELDS.HISTORY_PROJECT,
+            value: projectId
+        });
+        historyRecord.setValue({
+            fieldId: FIELDS.HISTORY_CYCLE_DATE,
+            value: cycleDate
+        });
+        historyRecord.setValue({
+            fieldId: FIELDS.HISTORY_STATUS,
+            value: HISTORY_STATUS.INVOICED
+        });
+        historyRecord.setValue({
+            fieldId: FIELDS.HISTORY_NO_BILL_REASON,
+            value: ''
+        });
+        historyRecord.setValue({
+            fieldId: FIELDS.HISTORY_RELATED_INVOICES,
+            value: invoiceIds
+        });
+        historyRecord.setValue({
+            fieldId: FIELDS.HISTORY_ACCOUNTING_NOTIFIED,
+            value: false
+        });
+
+        const historyId = historyRecord.save({
+            enableSourcing: false,
+            ignoreMandatoryFields: true
+        });
+
+        log.audit('Recent-cycle Billing History backfilled from invoices', {
+            historyId,
+            projectId,
+            cycleDate: ymd(cycleDate),
+            invoiceIds
+        });
+
+        return historyId;
+    };
+
     // -----------------------------------------------------------------
     // MAP/REDUCE ENTRY POINTS
     // -----------------------------------------------------------------
@@ -633,6 +710,11 @@ define([
                         projectDisplay,
                         upcoming
                     );
+                } else if (backfillInvoicedHistory(projectId, upcoming)) {
+                    log.audit('Upcoming-cycle notices stopped after history backfill', {
+                        projectId,
+                        cycleDate: ymd(upcoming)
+                    });
                 } else {
                     if (now >= pmTriggerDate) {
                         log.audit('Daily PM notice window active', {
@@ -682,6 +764,11 @@ define([
                         projectDisplay,
                         recent
                     );
+                } else if (backfillInvoicedHistory(projectId, recent)) {
+                    log.audit('Recent-cycle reminders stopped after history backfill', {
+                        projectId,
+                        cycleDate: ymd(recent)
+                    });
                 } else if (now >= recent) {
                     log.audit('Daily overdue reminder window active', {
                         projectId,
