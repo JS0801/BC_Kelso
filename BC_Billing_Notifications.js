@@ -44,7 +44,6 @@ define([
         BILL_DATE: 'custrecord_bill_date',
         HISTORY_PROJECT: 'custrecord_bc_bh_project',
         HISTORY_CYCLE_DATE: 'custrecord_bc_bh_cycle_date',
-        HISTORY_CYCLE_KEY: 'custrecord_bc_bh_cycle_key',
         HISTORY_STATUS: 'custrecord_bc_bh_status',
         HISTORY_NO_BILL_REASON: 'custrecord_bc_bh_no_bill_reason',
         HISTORY_RELATED_INVOICES: 'custrecord_bc_bh_related_invoices',
@@ -189,9 +188,9 @@ define([
         return `${date.getFullYear()}-${month}-${day}`;
     };
 
-    const cycleKey = (projectId, cycleDate) => {
-        const month = String(cycleDate.getMonth() + 1).padStart(2, '0');
-        return `${projectId}|${cycleDate.getFullYear()}-${month}`;
+    const sameMonth = (first, second) => {
+        return first.getFullYear() === second.getFullYear() &&
+            first.getMonth() === second.getMonth();
     };
 
     const getHolidays = (referenceDate) => {
@@ -275,11 +274,16 @@ define([
     // BILLING HISTORY
     // -----------------------------------------------------------------
     const findBillingHistory = (projectId, cycleDate) => {
-        const key = cycleKey(projectId, cycleDate);
+        const monthStart = new Date(cycleDate.getFullYear(), cycleDate.getMonth(), 1);
+        const monthEnd = new Date(cycleDate.getFullYear(), cycleDate.getMonth() + 1, 0);
         const results = search.create({
             type: RECORDS.BILLING_HISTORY,
             filters: [
-                [FIELDS.HISTORY_CYCLE_KEY, 'is', key],
+                [FIELDS.HISTORY_PROJECT, 'anyof', projectId],
+                'AND',
+                [FIELDS.HISTORY_CYCLE_DATE, 'within',
+                    format.format({ value: monthStart, type: format.Type.DATE }),
+                    format.format({ value: monthEnd, type: format.Type.DATE })],
                 'AND',
                 ['isinactive', 'is', 'F']
             ],
@@ -296,7 +300,6 @@ define([
             log.error('Duplicate billing history records', {
                 projectId,
                 cycleDate: ymd(cycleDate),
-                cycleKey: key,
                 recordIds: results.map((result) => result.id)
             });
         }
@@ -306,7 +309,6 @@ define([
         const result = results[0];
         return {
             id: result.id,
-            cycleKey: key,
             status: String(result.getValue({ name: FIELDS.HISTORY_STATUS }) || ''),
             statusText: result.getText({ name: FIELDS.HISTORY_STATUS }) || '',
             noBillReason: result.getValue({ name: FIELDS.HISTORY_NO_BILL_REASON }) || '',
@@ -599,7 +601,7 @@ define([
             );
             const mainPmField = values[FIELDS.MAIN_PM];
             const mainPmId = mainPmField && mainPmField.value ? mainPmField.value : null;
-            const sameCycle = cycleKey(projectId, upcoming) === cycleKey(projectId, recent);
+            const sameCycle = sameMonth(upcoming, recent);
 
             log.debug('Project billing evaluation', {
                 projectId,
