@@ -74,7 +74,7 @@ project_billings_and_ar AS (
           SELECT 1 
           FROM systemnote sn 
           WHERE sn.recordid = inv.id 
-            AND sn.context = 'SLT'
+            AND sn.context = 'UI'
       )
     GROUP BY tl.createdfrom
 ),
