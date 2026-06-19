@@ -4,12 +4,13 @@
  */
 define([
     'N/search',
+    'N/record',
     'N/email',
     'N/format',
     'N/log',
     'N/url',
     'N/runtime'
-], (search, email, format, log, url, runtime) => {
+], (search, record, email, format, log, url, runtime) => {
 
     const PARAMS = {
         DAYS_BEFORE_PM: 'custscript_bc_bn_days_before_pm',
@@ -21,7 +22,6 @@ define([
         TEST_CURRENT_DATE: 'custscript_bc_bn_test_current_date'
     };
 
-    // Preserve the current behavior when a deployment parameter is blank.
     const DEFAULTS = {
         DAYS_BEFORE_PM: 3,
         DAYS_BEFORE_ACCOUNTING: 1,
@@ -31,20 +31,30 @@ define([
         ACCOUNTING_EMAIL: 697221
     };
 
+    const RECORDS = {
+        PROJECT: 'customrecord_cseg_bc_project',
+        PROJECT_CONTACT: 'customrecord_bc_project_contact_list',
+        HOLIDAY: 'customrecord_bc_holiday_list',
+        BILLING_HISTORY: 'customrecord_bc_project_billing_history'
+    };
+
     const FIELDS = {
         PROJECT_DISPLAY: 'name',
         MAIN_PM: 'custrecord_bc_proj_manager',
         BILL_DATE: 'custrecord_bill_date',
-        NO_BILL: 'custrecord_bc_no_bill',
-        NO_BILL_REASON: 'custrecord_bc_no_bill_reason',
-        NO_BILL_DATE: 'custrecord_bc_no_bill_date',
-        PROJECT_SEGMENT: 'cseg_bc_project'
+        HISTORY_PROJECT: 'custrecord_bc_bh_project',
+        HISTORY_CYCLE_DATE: 'custrecord_bc_bh_cycle_date',
+        HISTORY_CYCLE_KEY: 'custrecord_bc_bh_cycle_key',
+        HISTORY_STATUS: 'custrecord_bc_bh_status',
+        HISTORY_NO_BILL_REASON: 'custrecord_bc_bh_no_bill_reason',
+        HISTORY_RELATED_INVOICES: 'custrecord_bc_bh_related_invoices',
+        HISTORY_ACCOUNTING_NOTIFIED: 'custrecord_bc_bh_accounting_notified'
     };
 
-    const RECORDS = {
-        PROJECT: 'customrecord_cseg_bc_project',
-        PROJECT_CONTACT: 'customrecord_bc_project_contact_list',
-        HOLIDAY: 'customrecord_bc_holiday_list'
+    // Create the custom-list values in this order and verify these IDs.
+    const HISTORY_STATUS = {
+        NO_BILLING: '1',
+        INVOICED: '2'
     };
 
     const POSITIONS = {
@@ -62,7 +72,6 @@ define([
         const source = value === null || value === undefined || String(value).trim() === ''
             ? fallback
             : value;
-
         const values = Array.isArray(source)
             ? source
             : String(source).split(/[,;\n]+/);
@@ -84,7 +93,7 @@ define([
         return fallback;
     };
 
-    const parseDateParameter = (value, parameterId) => {
+    const parseDateParameter = (value) => {
         if (!value) return null;
 
         try {
@@ -95,11 +104,10 @@ define([
             if (!(parsed instanceof Date) || Number.isNaN(parsed.getTime())) {
                 throw new Error('Invalid date value');
             }
-
             return new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
         } catch (error) {
-            log.error('Invalid date parameter - using actual current date', {
-                parameterId,
+            log.error('Invalid test date - actual date will be used', {
+                parameterId: PARAMS.TEST_CURRENT_DATE,
                 suppliedValue: value,
                 error: error.message
             });
@@ -111,11 +119,6 @@ define([
         if (settingsCache) return settingsCache;
 
         const script = runtime.getCurrentScript();
-        const testCurrentDate = parseDateParameter(
-            script.getParameter({ name: PARAMS.TEST_CURRENT_DATE }),
-            PARAMS.TEST_CURRENT_DATE
-        );
-
         settingsCache = {
             daysBeforePm: parseIntegerParameter(
                 script.getParameter({ name: PARAMS.DAYS_BEFORE_PM }),
@@ -149,7 +152,9 @@ define([
                 PARAMS.ACCOUNTING_EMAIL,
                 false
             ),
-            testCurrentDate
+            testCurrentDate: parseDateParameter(
+                script.getParameter({ name: PARAMS.TEST_CURRENT_DATE })
+            )
         };
 
         log.audit('Billing notification settings', {
@@ -167,14 +172,14 @@ define([
     };
 
     // -----------------------------------------------------------------
-    // DATE AND BILL-CYCLE HELPERS
+    // DATE AND CYCLE HELPERS
     // -----------------------------------------------------------------
     const stripTime = (date) => new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
     const getCurrentDate = () => {
-        const testCurrentDate = getSettings().testCurrentDate;
-        return testCurrentDate
-            ? stripTime(new Date(testCurrentDate.getTime()))
+        const testDate = getSettings().testCurrentDate;
+        return testDate
+            ? stripTime(new Date(testDate.getTime()))
             : stripTime(new Date());
     };
 
@@ -184,12 +189,9 @@ define([
         return `${date.getFullYear()}-${month}-${day}`;
     };
 
-    const sameDay = (first, second) => ymd(first) === ymd(second);
-
-    const sameMonth = (first, second) => {
-        return Boolean(first && second) &&
-            first.getFullYear() === second.getFullYear() &&
-            first.getMonth() === second.getMonth();
+    const cycleKey = (projectId, cycleDate) => {
+        const month = String(cycleDate.getMonth() + 1).padStart(2, '0');
+        return `${projectId}|${cycleDate.getFullYear()}-${month}`;
     };
 
     const getHolidays = (referenceDate) => {
@@ -215,8 +217,8 @@ define([
         }).run().each((result) => {
             const value = result.getValue({ name: 'custrecord_bc_date' });
             if (value) {
-                const date = format.parse({ value, type: format.Type.DATE });
-                holidayCache.add(ymd(date));
+                const holidayDate = format.parse({ value, type: format.Type.DATE });
+                holidayCache.add(ymd(holidayDate));
             }
             return true;
         });
@@ -243,7 +245,6 @@ define([
                 !holidays.has(ymd(result));
             if (isWorkingDay) remaining -= 1;
         }
-
         return result;
     };
 
@@ -267,6 +268,52 @@ define([
             recent: thisMonth <= referenceDate
                 ? thisMonth
                 : buildDate(year, month - 1)
+        };
+    };
+
+    // -----------------------------------------------------------------
+    // BILLING HISTORY
+    // -----------------------------------------------------------------
+    const findBillingHistory = (projectId, cycleDate) => {
+        const key = cycleKey(projectId, cycleDate);
+        const results = search.create({
+            type: RECORDS.BILLING_HISTORY,
+            filters: [
+                [FIELDS.HISTORY_CYCLE_KEY, 'is', key],
+                'AND',
+                ['isinactive', 'is', 'F']
+            ],
+            columns: [
+                'internalid',
+                FIELDS.HISTORY_STATUS,
+                FIELDS.HISTORY_NO_BILL_REASON,
+                FIELDS.HISTORY_RELATED_INVOICES,
+                FIELDS.HISTORY_ACCOUNTING_NOTIFIED
+            ]
+        }).run().getRange({ start: 0, end: 2 }) || [];
+
+        if (results.length > 1) {
+            log.error('Duplicate billing history records', {
+                projectId,
+                cycleDate: ymd(cycleDate),
+                cycleKey: key,
+                recordIds: results.map((result) => result.id)
+            });
+        }
+
+        if (!results.length) return null;
+
+        const result = results[0];
+        return {
+            id: result.id,
+            cycleKey: key,
+            status: String(result.getValue({ name: FIELDS.HISTORY_STATUS }) || ''),
+            statusText: result.getText({ name: FIELDS.HISTORY_STATUS }) || '',
+            noBillReason: result.getValue({ name: FIELDS.HISTORY_NO_BILL_REASON }) || '',
+            relatedInvoices: result.getValue({ name: FIELDS.HISTORY_RELATED_INVOICES }) || '',
+            accountingNotified:
+                result.getValue({ name: FIELDS.HISTORY_ACCOUNTING_NOTIFIED }) === true ||
+                result.getValue({ name: FIELDS.HISTORY_ACCOUNTING_NOTIFIED }) === 'T'
         };
     };
 
@@ -311,7 +358,6 @@ define([
             subject,
             body: buildEmailBody(lines, projectId)
         };
-
         if (cc && cc.length) options.cc = cc;
 
         email.send(options);
@@ -345,15 +391,11 @@ define([
             audience,
             projectId,
             positionId,
-            count: emails.length,
-            emails
+            count: emails.length
         });
-
         return emails;
     };
 
-    // The primary Accounting employee and every project Accounting contact
-    // receive separate emails, matching the existing behavior.
     const sendAccountingNotice = (projectId, subject, lines) => {
         const settings = getSettings();
 
@@ -379,35 +421,108 @@ define([
             });
     };
 
-    // -----------------------------------------------------------------
-    // INVOICE CHECK
-    // -----------------------------------------------------------------
-    const invoiceExistsInCycle = (projectId, billDate) => {
-        const monthStart = new Date(billDate.getFullYear(), billDate.getMonth(), 1);
-        const monthEnd = new Date(billDate.getFullYear(), billDate.getMonth() + 1, 0);
+    const notifyNoBillingOnce = (history, projectId, projectDisplay, cycleDate) => {
+        if (!history ||
+            history.status !== HISTORY_STATUS.NO_BILLING ||
+            history.accountingNotified) {
+            return;
+        }
 
-        const count = search.create({
-            type: 'invoice',
-            filters: [
-                ['mainline', 'is', 'T'],
-                'AND',
-                [FIELDS.PROJECT_SEGMENT, 'anyof', projectId],
-                'AND',
-                ['trandate', 'within',
-                    format.format({ value: monthStart, type: format.Type.DATE }),
-                    format.format({ value: monthEnd, type: format.Type.DATE })]
-            ],
-            columns: ['internalid']
-        }).runPaged().count;
-
-        log.debug('Invoice cycle check', {
+        const cycleDisplay = format.format({ value: cycleDate, type: format.Type.DATE });
+        sendAccountingNotice(
             projectId,
-            monthStart: ymd(monthStart),
-            monthEnd: ymd(monthEnd),
-            invoiceCount: count
+            `No billing this cycle - ${projectDisplay}`,
+            [
+                `Project: ${projectDisplay}`,
+                `Bill Date: ${cycleDisplay}`,
+                'Status: The PM created a No Billing history entry for this cycle.',
+                `Reason: ${history.noBillReason || '(no reason provided)'}`
+            ]
+        );
+
+        record.submitFields({
+            type: RECORDS.BILLING_HISTORY,
+            id: history.id,
+            values: {
+                [FIELDS.HISTORY_ACCOUNTING_NOTIFIED]: true
+            },
+            options: {
+                enableSourcing: false,
+                ignoreMandatoryFields: true
+            }
         });
 
-        return count > 0;
+        history.accountingNotified = true;
+        log.audit('No Billing history notification completed', {
+            historyId: history.id,
+            projectId,
+            cycleDate: ymd(cycleDate)
+        });
+    };
+
+    const sendPmPreNotice = (mainPmId, projectId, projectDisplay, cycleDate) => {
+        const settings = getSettings();
+        const cycleDisplay = format.format({ value: cycleDate, type: format.Type.DATE });
+
+        sendProjectEmail({
+            audience: 'Main PM',
+            recipients: mainPmId,
+            cc: settings.pmExtraEmails,
+            subject: `Billing due ${cycleDisplay} - ${projectDisplay}`,
+            lines: [
+                `Project: ${projectDisplay}`,
+                `Bill Date: ${cycleDisplay}`,
+                'Status: Billing is coming due and no Billing History entry exists.',
+                'Action Needed: Please prepare billing. If this cycle will not be billed, create a No Billing entry in Project Billing History.'
+            ],
+            projectId
+        });
+
+        getProjectContactEmails(projectId, POSITIONS.PHASE_PM, 'Phase PM')
+            .forEach((recipient) => {
+                sendProjectEmail({
+                    audience: 'Phase PM',
+                    recipients: recipient,
+                    cc: settings.pmExtraEmails,
+                    subject: `Action needed: submit schedule of values - ${projectDisplay}`,
+                    lines: [
+                        `Project: ${projectDisplay}`,
+                        `Bill Date: ${cycleDisplay}`,
+                        'Action Needed: Please submit your schedule of values to the Main PM so billing can be prepared.'
+                    ],
+                    projectId
+                });
+            });
+    };
+
+    const sendOverdueNotices = (mainPmId, projectId, projectDisplay, cycleDate) => {
+        const settings = getSettings();
+        const cycleDisplay = format.format({ value: cycleDate, type: format.Type.DATE });
+
+        sendProjectEmail({
+            audience: 'Main PM overdue',
+            recipients: mainPmId,
+            cc: settings.pmExtraEmails,
+            subject: `REMINDER: billing decision required - ${projectDisplay}`,
+            lines: [
+                `Project: ${projectDisplay}`,
+                `Bill Date: ${cycleDisplay}`,
+                'Status: No Project Billing History entry exists for this cycle.',
+                'Action Needed: Submit the invoice or create a No Billing entry in Project Billing History.'
+            ],
+            projectId
+        });
+
+        sendAccountingNotice(
+            projectId,
+            `REMINDER: no billing history yet - ${projectDisplay}`,
+            [
+                `Project: ${projectDisplay}`,
+                `Bill Date: ${cycleDisplay}`,
+                'Status: No Invoiced or No Billing history entry exists for this cycle.',
+                'Action Needed: Please follow up with the PM or create the invoice if billing is ready.'
+            ]
+        );
     };
 
     // -----------------------------------------------------------------
@@ -446,10 +561,7 @@ define([
                 'internalid',
                 FIELDS.PROJECT_DISPLAY,
                 FIELDS.BILL_DATE,
-                FIELDS.MAIN_PM,
-                FIELDS.NO_BILL,
-                FIELDS.NO_BILL_REASON,
-                FIELDS.NO_BILL_DATE
+                FIELDS.MAIN_PM
             ]
         });
     };
@@ -461,9 +573,9 @@ define([
             const projectId = result.id;
             const projectDisplay = getFieldText(values[FIELDS.PROJECT_DISPLAY]) ||
                 'Project name unavailable';
-
             const billField = values[FIELDS.BILL_DATE];
             const billText = billField && billField.text ? billField.text : null;
+
             if (!billText) {
                 log.audit('Project skipped - no bill day', { projectId, projectDisplay });
                 return;
@@ -485,19 +597,9 @@ define([
                 settings.daysBeforeAccounting,
                 holidays
             );
-
             const mainPmField = values[FIELDS.MAIN_PM];
             const mainPmId = mainPmField && mainPmField.value ? mainPmField.value : null;
-            const noBill = values[FIELDS.NO_BILL] === true || values[FIELDS.NO_BILL] === 'T';
-            const noBillDateRaw = values[FIELDS.NO_BILL_DATE];
-            const noBillDate = noBillDateRaw
-                ? stripTime(format.parse({ value: noBillDateRaw, type: format.Type.DATE }))
-                : null;
-            const noBillThisMonth = noBill && sameMonth(noBillDate, now);
-            const noBillForUpcomingMonth = noBill && sameMonth(noBillDate, upcoming);
-
-            const upcomingDisplay = format.format({ value: upcoming, type: format.Type.DATE });
-            const recentDisplay = format.format({ value: recent, type: format.Type.DATE });
+            const sameCycle = cycleKey(projectId, upcoming) === cycleKey(projectId, recent);
 
             log.debug('Project billing evaluation', {
                 projectId,
@@ -508,145 +610,88 @@ define([
                 recentBillDate: ymd(recent),
                 pmTriggerDate: ymd(pmTriggerDate),
                 accountingTriggerDate: ymd(accountingTriggerDate),
-                mainPmId: mainPmId || '(none)',
-                noBill,
-                noBillDate: noBillDate ? ymd(noBillDate) : '(none)',
-                noBillThisMonth,
-                noBillForUpcomingMonth
+                mainPmId: mainPmId || '(none)'
             });
 
-            if (sameDay(now, pmTriggerDate)) {
-                if (noBillThisMonth) {
-                    log.audit('PM notice skipped - no bill this month', {
+            // Before the bill date, notices repeat every run after each threshold
+            // until a No Billing or Invoiced child history record exists.
+            if (now < upcoming) {
+                const upcomingHistory = findBillingHistory(projectId, upcoming);
+
+                if (upcomingHistory) {
+                    log.audit('Upcoming-cycle notices stopped by billing history', {
                         projectId,
-                        noBillDate: ymd(noBillDate)
+                        cycleDate: ymd(upcoming),
+                        historyId: upcomingHistory.id,
+                        status: upcomingHistory.statusText || upcomingHistory.status
                     });
+                    notifyNoBillingOnce(
+                        upcomingHistory,
+                        projectId,
+                        projectDisplay,
+                        upcoming
+                    );
                 } else {
-                    log.audit('PM notice trigger hit', { projectId, triggerDate: ymd(now) });
-
-                    sendProjectEmail({
-                        audience: 'Main PM',
-                        recipients: mainPmId,
-                        cc: settings.pmExtraEmails,
-                        subject: `Billing due ${upcomingDisplay} - ${projectDisplay}`,
-                        lines: [
-                            `Project: ${projectDisplay}`,
-                            `Bill Date: ${upcomingDisplay}`,
-                            'Status: Billing is coming due.',
-                            'Action Needed: Please prepare the billing package and submit the invoice or schedule of values before the bill date.',
-                            'If this project should not be billed this cycle, mark it as No Bill and enter the no-bill reason/date.'
-                        ],
-                        projectId
-                    });
-
-                    getProjectContactEmails(projectId, POSITIONS.PHASE_PM, 'Phase PM')
-                        .forEach((recipient) => {
-                            sendProjectEmail({
-                                audience: 'Phase PM',
-                                recipients: recipient,
-                                cc: settings.pmExtraEmails,
-                                subject: `Action needed: submit schedule of values - ${projectDisplay}`,
-                                lines: [
-                                    `Project: ${projectDisplay}`,
-                                    `Bill Date: ${upcomingDisplay}`,
-                                    'Action Needed: Please submit your schedule of values to the Main PM so billing can be prepared.'
-                                ],
-                                projectId
-                            });
+                    if (now >= pmTriggerDate) {
+                        log.audit('Daily PM notice window active', {
+                            projectId,
+                            cycleDate: ymd(upcoming)
                         });
+                        sendPmPreNotice(mainPmId, projectId, projectDisplay, upcoming);
+                    }
+
+                    if (now >= accountingTriggerDate) {
+                        log.audit('Daily Accounting notice window active', {
+                            projectId,
+                            cycleDate: ymd(upcoming)
+                        });
+                        sendAccountingNotice(
+                            projectId,
+                            `Invoice creation approaching - ${projectDisplay}`,
+                            [
+                                `Project: ${projectDisplay}`,
+                                `Bill Date: ${format.format({
+                                    value: upcoming,
+                                    type: format.Type.DATE
+                                })}`,
+                                'Status: Billing is approaching and no Billing History entry exists.',
+                                'Action Needed: Please review the billing details and create the invoice if billing is ready.'
+                            ]
+                        );
+                    }
                 }
             }
 
-            if (sameDay(now, accountingTriggerDate)) {
-                if (noBillForUpcomingMonth) {
-                    log.audit('Accounting pre-notice skipped - no bill for upcoming month', {
+            // The recent cycle remains open until a history record exists.
+            // On and after its bill date, reminders repeat every run.
+            if (!sameCycle || now >= recent) {
+                const recentHistory = findBillingHistory(projectId, recent);
+
+                if (recentHistory) {
+                    log.audit('Recent-cycle reminders stopped by billing history', {
                         projectId,
-                        noBillDate: ymd(noBillDate),
-                        upcomingBillDate: ymd(upcoming)
+                        cycleDate: ymd(recent),
+                        historyId: recentHistory.id,
+                        status: recentHistory.statusText || recentHistory.status
                     });
-                } else {
-                    log.audit('Accounting pre-notice trigger hit', {
+                    notifyNoBillingOnce(
+                        recentHistory,
                         projectId,
-                        triggerDate: ymd(now)
+                        projectDisplay,
+                        recent
+                    );
+                } else if (now >= recent) {
+                    log.audit('Daily overdue reminder window active', {
+                        projectId,
+                        cycleDate: ymd(recent)
                     });
-                    sendAccountingNotice(
+                    sendOverdueNotices(
+                        mainPmId,
                         projectId,
-                        `Invoice creation due tomorrow - ${projectDisplay}`,
-                        [
-                            `Project: ${projectDisplay}`,
-                            `Bill Date: ${upcomingDisplay}`,
-                            'Status: Billing is due tomorrow.',
-                            'Action Needed: Please review the billing details and create the invoice if billing is ready.'
-                        ]
+                        projectDisplay,
+                        recent
                     );
                 }
-            }
-
-            // A no-bill date matching the most recent bill date notifies
-            // Accounting and ends processing for this project.
-            if (noBill && noBillDate && sameDay(noBillDate, recent)) {
-                const reason = getFieldText(values[FIELDS.NO_BILL_REASON]) ||
-                    '(no reason provided)';
-
-                log.audit('No-bill notification trigger hit', {
-                    projectId,
-                    billDate: ymd(recent),
-                    reason
-                });
-                sendAccountingNotice(
-                    projectId,
-                    `No billing this cycle - ${projectDisplay}`,
-                    [
-                        `Project: ${projectDisplay}`,
-                        `Bill Date: ${recentDisplay}`,
-                        'Status: The PM marked this project as no-billing for this cycle.',
-                        `Reason: ${reason}`
-                    ]
-                );
-                return;
-            }
-
-            const hasInvoice = invoiceExistsInCycle(projectId, recent);
-            if (!hasInvoice) {
-                if (noBillThisMonth) {
-                    log.audit('Overdue reminders skipped - no bill this month', {
-                        projectId,
-                        noBillDate: ymd(noBillDate)
-                    });
-                } else {
-                    log.audit('Overdue reminder trigger hit', {
-                        projectId,
-                        billDate: ymd(recent)
-                    });
-                    sendProjectEmail({
-                        audience: 'Main PM reminder',
-                        recipients: mainPmId,
-                        cc: settings.pmExtraEmails,
-                        subject: `REMINDER: billing due - ${projectDisplay}`,
-                        lines: [
-                            `Project: ${projectDisplay}`,
-                            `Bill Date: ${recentDisplay}`,
-                            'Status: No invoice has been found for this billing cycle.',
-                            'Action Needed: Please submit the invoice or update the project No Bill information if billing will not occur this cycle.'
-                        ],
-                        projectId
-                    });
-                    sendAccountingNotice(
-                        projectId,
-                        `REMINDER: no invoice yet - ${projectDisplay}`,
-                        [
-                            `Project: ${projectDisplay}`,
-                            `Bill Date: ${recentDisplay}`,
-                            'Status: No invoice has been found for this billing cycle.',
-                            'Action Needed: Please follow up with the PM or create the invoice if billing is ready.'
-                        ]
-                    );
-                }
-            } else {
-                log.debug('No reminder required - invoice found', {
-                    projectId,
-                    billDate: ymd(recent)
-                });
             }
         } catch (error) {
             log.error('Map error', {
