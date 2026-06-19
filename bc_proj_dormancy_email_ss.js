@@ -11,7 +11,7 @@ define(['N/query', 'N/email', 'N/runtime', 'N/url', 'N/log'],
             
             // 1. Retrieve parameters
             let emailAuthor = scriptObj.getParameter({ name: 'custscript_author_email' });
-            let recipientEmail = scriptObj.getParameter({ name: 'custscript_recipient_email' });
+            let recipientEmail = 697221; //scriptObj.getParameter({ name: 'custscript_recipient_email' });
             const savedSearchId = scriptObj.getParameter({ name: 'custscript_bc_dorm_saved_search' });
             const subsidiaryParam = scriptObj.getParameter({ name: 'custscript_subsidiary_default' });
 
