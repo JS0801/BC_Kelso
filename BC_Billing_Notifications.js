@@ -17,7 +17,8 @@ define([
         EMAIL_SENDER: 'custscript_bc_bn_email_sender',
         PM_EXTRA_EMAILS: 'custscript_bc_bn_pm_extra_emails',
         ACCOUNTING_EXTRA_EMAILS: 'custscript_bc_bn_acc_extra_emails',
-        ACCOUNTING_EMAIL: 'custscript_bc_bn_accounting_email'
+        ACCOUNTING_EMAIL: 'custscript_bc_bn_accounting_email',
+        TEST_CURRENT_DATE: 'custscript_bc_bn_test_current_date'
     };
 
     // Preserve the current behavior when a deployment parameter is blank.
@@ -83,10 +84,38 @@ define([
         return fallback;
     };
 
+    const parseDateParameter = (value, parameterId) => {
+        if (!value) return null;
+
+        try {
+            const parsed = value instanceof Date
+                ? value
+                : format.parse({ value, type: format.Type.DATE });
+
+            if (!(parsed instanceof Date) || Number.isNaN(parsed.getTime())) {
+                throw new Error('Invalid date value');
+            }
+
+            return new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+        } catch (error) {
+            log.error('Invalid date parameter - using actual current date', {
+                parameterId,
+                suppliedValue: value,
+                error: error.message
+            });
+            return null;
+        }
+    };
+
     const getSettings = () => {
         if (settingsCache) return settingsCache;
 
         const script = runtime.getCurrentScript();
+        const testCurrentDate = parseDateParameter(
+            script.getParameter({ name: PARAMS.TEST_CURRENT_DATE }),
+            PARAMS.TEST_CURRENT_DATE
+        );
+
         settingsCache = {
             daysBeforePm: parseIntegerParameter(
                 script.getParameter({ name: PARAMS.DAYS_BEFORE_PM }),
@@ -119,7 +148,8 @@ define([
                 DEFAULTS.ACCOUNTING_EMAIL,
                 PARAMS.ACCOUNTING_EMAIL,
                 false
-            )
+            ),
+            testCurrentDate
         };
 
         log.audit('Billing notification settings', {
@@ -128,7 +158,9 @@ define([
             emailSender: settingsCache.emailSender,
             accountingEmail: settingsCache.accountingEmail,
             pmExtraEmails: settingsCache.pmExtraEmails,
-            accountingExtraEmails: settingsCache.accountingExtraEmails
+            accountingExtraEmails: settingsCache.accountingExtraEmails,
+            testMode: Boolean(settingsCache.testCurrentDate),
+            testCurrentDate: settingsCache.testCurrentDate || '(blank - actual date used)'
         });
 
         return settingsCache;
@@ -138,6 +170,13 @@ define([
     // DATE AND BILL-CYCLE HELPERS
     // -----------------------------------------------------------------
     const stripTime = (date) => new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+    const getCurrentDate = () => {
+        const testCurrentDate = getSettings().testCurrentDate;
+        return testCurrentDate
+            ? stripTime(new Date(testCurrentDate.getTime()))
+            : stripTime(new Date());
+    };
 
     const ymd = (date) => {
         const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -153,15 +192,20 @@ define([
             first.getMonth() === second.getMonth();
     };
 
-    const getHolidays = () => {
+    const getHolidays = (referenceDate) => {
         if (holidayCache) return holidayCache;
 
         holidayCache = new Set();
+        const rangeStart = stripTime(referenceDate);
+        const rangeEnd = stripTime(referenceDate);
+        rangeEnd.setDate(rangeEnd.getDate() + 60);
 
         search.create({
             type: RECORDS.HOLIDAY,
             filters: [
-                ['custrecord_bc_date', 'within', 'thisyear'],
+                ['custrecord_bc_date', 'within',
+                    format.format({ value: rangeStart, type: format.Type.DATE }),
+                    format.format({ value: rangeEnd, type: format.Type.DATE })],
                 'AND',
                 ['isinactive', 'is', 'F'],
                 'AND',
@@ -178,6 +222,8 @@ define([
         });
 
         log.audit('Holiday calendar loaded', {
+            rangeStart: ymd(rangeStart),
+            rangeEnd: ymd(rangeEnd),
             count: holidayCache.size,
             dates: Array.from(holidayCache)
         });
@@ -369,12 +415,21 @@ define([
     // -----------------------------------------------------------------
     const getInputData = () => {
         const settings = getSettings();
+        const currentDate = getCurrentDate();
 
         log.audit('Billing notifications started', {
-            today: ymd(stripTime(new Date())),
+            effectiveCurrentDate: ymd(currentDate),
+            testMode: Boolean(settings.testCurrentDate),
             daysBeforePm: settings.daysBeforePm,
             daysBeforeAccounting: settings.daysBeforeAccounting
         });
+
+        if (settings.testCurrentDate) {
+            log.audit('TEST DATE OVERRIDE ACTIVE', {
+                effectiveCurrentDate: ymd(currentDate),
+                parameterId: PARAMS.TEST_CURRENT_DATE
+            });
+        }
 
         return search.create({
             type: RECORDS.PROJECT,
@@ -415,8 +470,8 @@ define([
             }
 
             const settings = getSettings();
-            const now = stripTime(new Date());
-            const holidays = getHolidays();
+            const now = getCurrentDate();
+            const holidays = getHolidays(now);
             const billDates = getBillDates(billText, now);
             const upcoming = billDates.upcoming;
             const recent = billDates.recent;
@@ -461,7 +516,7 @@ define([
             });
 
             if (sameDay(now, pmTriggerDate)) {
-                if (noBillForUpcomingMonth) {
+                if (noBillThisMonth) {
                     log.audit('PM notice skipped - no bill this month', {
                         projectId,
                         noBillDate: ymd(noBillDate)
@@ -553,7 +608,7 @@ define([
 
             const hasInvoice = invoiceExistsInCycle(projectId, recent);
             if (!hasInvoice) {
-                if (noBillForUpcomingMonth) {
+                if (noBillThisMonth) {
                     log.audit('Overdue reminders skipped - no bill this month', {
                         projectId,
                         noBillDate: ymd(noBillDate)
