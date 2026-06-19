@@ -14,7 +14,6 @@ define(['N/search', 'N/record', 'N/format', 'N/log'], (search, record, format, l
         PROJECT_BILL_DATE: 'custrecord_bill_date',
         HISTORY_PROJECT: 'custrecord_bc_bh_project',
         HISTORY_CYCLE_DATE: 'custrecord_bc_bh_cycle_date',
-        HISTORY_CYCLE_KEY: 'custrecord_bc_bh_cycle_key',
         HISTORY_STATUS: 'custrecord_bc_bh_status',
         HISTORY_NO_BILL_REASON: 'custrecord_bc_bh_no_bill_reason',
         HISTORY_RELATED_INVOICES: 'custrecord_bc_bh_related_invoices',
@@ -25,11 +24,6 @@ define(['N/search', 'N/record', 'N/format', 'N/log'], (search, record, format, l
     const STATUS = {
         NO_BILLING: '1',
         INVOICED: '2'
-    };
-
-    const buildCycleKey = (projectId, cycleDate) => {
-        const month = String(cycleDate.getMonth() + 1).padStart(2, '0');
-        return `${projectId}|${cycleDate.getFullYear()}-${month}`;
     };
 
     const getFieldText = (fieldValue) => {
@@ -65,11 +59,25 @@ define(['N/search', 'N/record', 'N/format', 'N/log'], (search, record, format, l
         return new Date(year, month, day);
     };
 
-    const findHistory = (key) => {
+    const findHistory = (projectId, transactionDate) => {
+        const monthStart = new Date(
+            transactionDate.getFullYear(),
+            transactionDate.getMonth(),
+            1
+        );
+        const monthEnd = new Date(
+            transactionDate.getFullYear(),
+            transactionDate.getMonth() + 1,
+            0
+        );
         const results = search.create({
             type: RECORDS.BILLING_HISTORY,
             filters: [
-                [FIELDS.HISTORY_CYCLE_KEY, 'is', key],
+                [FIELDS.HISTORY_PROJECT, 'anyof', projectId],
+                'AND',
+                [FIELDS.HISTORY_CYCLE_DATE, 'within',
+                    format.format({ value: monthStart, type: format.Type.DATE }),
+                    format.format({ value: monthEnd, type: format.Type.DATE })],
                 'AND',
                 ['isinactive', 'is', 'F']
             ],
@@ -78,7 +86,9 @@ define(['N/search', 'N/record', 'N/format', 'N/log'], (search, record, format, l
 
         if (results.length > 1) {
             log.error('Duplicate Billing History records', {
-                cycleKey: key,
+                projectId,
+                monthStart,
+                monthEnd,
                 recordIds: results.map((result) => result.id)
             });
         }
@@ -130,9 +140,8 @@ define(['N/search', 'N/record', 'N/format', 'N/log'], (search, record, format, l
         if (!projectId || !(transactionDate instanceof Date)) return;
 
         const cycleDate = getProjectCycleDate(projectId, transactionDate);
-        const key = buildCycleKey(projectId, cycleDate);
         const invoiceIds = findInvoiceIds(projectId, transactionDate);
-        const existing = findHistory(key);
+        const existing = findHistory(projectId, transactionDate);
 
         if (!invoiceIds.length) {
             if (existing && existing.status === STATUS.INVOICED) {
@@ -143,12 +152,12 @@ define(['N/search', 'N/record', 'N/format', 'N/log'], (search, record, format, l
                 log.audit('Invoiced Billing History deleted - no invoices remain', {
                     historyId: existing.id,
                     projectId,
-                    cycleKey: key
+                    cycleDate
                 });
             } else {
                 log.debug('Billing History unchanged - no invoices remain', {
                     projectId,
-                    cycleKey: key,
+                    cycleDate,
                     existingStatus: existing ? existing.status : '(none)'
                 });
             }
@@ -167,20 +176,12 @@ define(['N/search', 'N/record', 'N/format', 'N/log'], (search, record, format, l
             });
 
         historyRecord.setValue({
-            fieldId: 'name',
-            value: `Project ${projectId} - ${key.split('|')[1]}`
-        });
-        historyRecord.setValue({
             fieldId: FIELDS.HISTORY_PROJECT,
             value: projectId
         });
         historyRecord.setValue({
             fieldId: FIELDS.HISTORY_CYCLE_DATE,
             value: cycleDate
-        });
-        historyRecord.setValue({
-            fieldId: FIELDS.HISTORY_CYCLE_KEY,
-            value: key
         });
         historyRecord.setValue({
             fieldId: FIELDS.HISTORY_STATUS,
@@ -201,14 +202,13 @@ define(['N/search', 'N/record', 'N/format', 'N/log'], (search, record, format, l
 
         const historyId = historyRecord.save({
             enableSourcing: false,
-            ignoreMandatoryFields: false
+            ignoreMandatoryFields: true
         });
 
         log.audit('Invoice Billing History refreshed', {
             historyId,
             projectId,
             cycleDate,
-            cycleKey: key,
             invoiceIds,
             convertedFromNoBilling:
                 Boolean(existing && existing.status === STATUS.NO_BILLING)
