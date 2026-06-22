@@ -64,6 +64,7 @@ define([
 
     let settingsCache = null;
     let holidayCache = null;
+    let billingHistoryTypeIdCache = null;
 
     // -----------------------------------------------------------------
     // PARAMETERS
@@ -334,22 +335,135 @@ define([
         return String(fieldValue);
     };
 
-    const buildEmailBody = (lines, projectId) => {
+    const escapeHtml = (value) => String(value === null || value === undefined ? '' : value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+
+    const getApplicationBaseUrl = () => {
+        const domain = url.resolveDomain({
+            hostType: url.HostType.APPLICATION,
+            accountId: runtime.accountId
+        });
+        return `https://${domain}`;
+    };
+
+    const getProjectUrl = (projectId) => {
         const relativeUrl = url.resolveRecord({
             recordType: RECORDS.PROJECT,
             recordId: projectId,
             isEditMode: false
         });
-        const domain = url.resolveDomain({
-            hostType: url.HostType.APPLICATION,
-            accountId: runtime.accountId
-        });
-
-        return lines.filter(Boolean).join('<br>') +
-            `<br><br><a href="https://${domain}${relativeUrl}">View Project</a>`;
+        return `${getApplicationBaseUrl()}${relativeUrl}`;
     };
 
-    const sendProjectEmail = ({ audience, recipients, cc, subject, lines, projectId }) => {
+    const getBillingHistoryTypeId = () => {
+        if (billingHistoryTypeIdCache) return billingHistoryTypeIdCache;
+
+        const results = search.create({
+            type: 'customrecordtype',
+            filters: [['scriptid', 'is', RECORDS.BILLING_HISTORY]],
+            columns: ['internalid']
+        }).run().getRange({ start: 0, end: 1 }) || [];
+
+        if (!results.length) {
+            throw new Error(
+                `Unable to find the custom record type ${RECORDS.BILLING_HISTORY}`
+            );
+        }
+
+        billingHistoryTypeIdCache = String(results[0].id);
+        return billingHistoryTypeIdCache;
+    };
+
+    const getNoBillingEntryUrl = (projectId, cycleDate) => {
+        try {
+            const params = [
+                `rectype=${encodeURIComponent(getBillingHistoryTypeId())}`,
+                `${FIELDS.HISTORY_PROJECT}=${encodeURIComponent(projectId)}`,
+                `${FIELDS.HISTORY_CYCLE_DATE}=${encodeURIComponent(format.format({
+                    value: cycleDate,
+                    type: format.Type.DATE
+                }))}`,
+                `${FIELDS.HISTORY_STATUS}=${encodeURIComponent(HISTORY_STATUS.NO_BILLING)}`
+            ];
+
+            return `${getApplicationBaseUrl()}/app/common/custom/custrecordentry.nl?${params.join('&')}`;
+        } catch (error) {
+            log.error('Unable to build No Billing entry link', {
+                projectId,
+                cycleDate: ymd(cycleDate),
+                error: error.message
+            });
+            return '';
+        }
+    };
+
+    const buildButton = (label, href, secondary) => {
+        const background = secondary ? '#ffffff' : '#1769aa';
+        const color = secondary ? '#1769aa' : '#ffffff';
+        const border = secondary ? '1px solid #1769aa' : '1px solid #1769aa';
+
+        return `<a href="${escapeHtml(href)}" style="display:inline-block;` +
+            `margin:0 10px 10px 0;padding:11px 18px;background:${background};` +
+            `color:${color};border:${border};border-radius:5px;text-decoration:none;` +
+            `font-family:Arial,sans-serif;font-size:14px;font-weight:bold;">` +
+            `${escapeHtml(label)}</a>`;
+    };
+
+    const buildEmailBody = ({
+        heading,
+        intro,
+        details,
+        message,
+        actions,
+        footer
+    }) => {
+        const detailRows = (details || []).filter((item) => item && item.value)
+            .map((item) =>
+                '<tr>' +
+                `<td style="padding:5px 12px 5px 0;color:#667085;` +
+                `font-size:13px;vertical-align:top;white-space:nowrap;">` +
+                `${escapeHtml(item.label)}</td>` +
+                `<td style="padding:5px 0;color:#101828;font-size:14px;` +
+                `font-weight:600;vertical-align:top;">${escapeHtml(item.value)}</td>` +
+                '</tr>'
+            ).join('');
+        const actionButtons = (actions || [])
+            .filter((action) => action && action.href)
+            .map((action) => buildButton(action.label, action.href, action.secondary))
+            .join('');
+
+        return '<div style="margin:0;padding:24px;background:#f4f7fb;">' +
+            '<table role="presentation" cellpadding="0" cellspacing="0" ' +
+            'style="width:100%;max-width:640px;margin:0 auto;background:#ffffff;' +
+            'border:1px solid #e4e7ec;border-radius:8px;">' +
+            '<tr><td style="height:5px;background:#1769aa;border-radius:8px 8px 0 0;"></td></tr>' +
+            '<tr><td style="padding:28px 30px;font-family:Arial,sans-serif;">' +
+            `<h2 style="margin:0 0 14px;color:#17324d;font-size:22px;line-height:1.3;">` +
+            `${escapeHtml(heading)}</h2>` +
+            `<p style="margin:0 0 18px;color:#344054;font-size:15px;line-height:1.6;">` +
+            `${escapeHtml(intro)}</p>` +
+            (detailRows
+                ? `<table role="presentation" cellpadding="0" cellspacing="0" ` +
+                    `style="margin:0 0 20px;">${detailRows}</table>`
+                : '') +
+            (message
+                ? `<div style="margin:0 0 20px;padding:14px 16px;background:#f8fafc;` +
+                    `border-left:4px solid #1769aa;color:#344054;font-size:14px;` +
+                    `line-height:1.6;">${message}</div>`
+                : '') +
+            (actionButtons ? `<div style="margin-top:6px;">${actionButtons}</div>` : '') +
+            (footer
+                ? `<p style="margin:14px 0 0;color:#667085;font-size:12px;line-height:1.5;">` +
+                    `${escapeHtml(footer)}</p>`
+                : '') +
+            '</td></tr></table></div>';
+    };
+
+    const sendProjectEmail = ({ audience, recipients, cc, subject, body, projectId }) => {
         if (!recipients || (Array.isArray(recipients) && recipients.length === 0)) {
             log.audit('Email skipped - no recipient', { audience, projectId, subject });
             return;
@@ -359,7 +473,7 @@ define([
             author: getSettings().emailSender,
             recipients,
             subject,
-            body: buildEmailBody(lines, projectId)
+            body
         };
         if (cc && cc.length) options.cc = cc;
 
@@ -399,7 +513,7 @@ define([
         return emails;
     };
 
-    const sendAccountingNotice = (projectId, subject, lines) => {
+    const sendAccountingNotice = (projectId, subject, body) => {
         const settings = getSettings();
 
         sendProjectEmail({
@@ -407,7 +521,7 @@ define([
             recipients: settings.accountingEmail,
             cc: settings.accountingExtraEmails,
             subject,
-            lines,
+            body,
             projectId
         });
 
@@ -418,7 +532,7 @@ define([
                     recipients: recipient,
                     cc: settings.accountingExtraEmails,
                     subject,
-                    lines,
+                    body,
                     projectId
                 });
             });
@@ -432,15 +546,26 @@ define([
         }
 
         const cycleDisplay = format.format({ value: cycleDate, type: format.Type.DATE });
+        const projectUrl = getProjectUrl(projectId);
         sendAccountingNotice(
             projectId,
             `No billing this cycle - ${projectDisplay}`,
-            [
-                `Project: ${projectDisplay}`,
-                `Bill Date: ${cycleDisplay}`,
-                'Status: The PM created a No Billing history entry for this cycle.',
-                `Reason: ${history.noBillReason || '(no reason provided)'}`
-            ]
+            buildEmailBody({
+                heading: 'No Billing This Cycle',
+                intro: 'The project team has confirmed that this project will not be billed for the current cycle.',
+                details: [
+                    { label: 'PROJECT', value: projectDisplay },
+                    { label: 'BILL DATE', value: cycleDisplay },
+                    {
+                        label: 'REASON',
+                        value: history.noBillReason || 'No reason was provided'
+                    }
+                ],
+                actions: [
+                    { label: 'View Project', href: projectUrl }
+                ],
+                footer: 'This is an automated billing notification.'
+            })
         );
 
         record.submitFields({
@@ -463,36 +588,73 @@ define([
         });
     };
 
-    const sendPmPreNotice = (mainPmId, projectId, projectDisplay, cycleDate) => {
+    const sendPmPreNotice = (
+        mainPmId,
+        mainPmName,
+        projectId,
+        projectDisplay,
+        cycleDate
+    ) => {
         const settings = getSettings();
         const cycleDisplay = format.format({ value: cycleDate, type: format.Type.DATE });
+        const billMonth = `${[
+            'January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'
+        ][cycleDate.getMonth()]} ${cycleDate.getFullYear()}`;
+        const projectUrl = getProjectUrl(projectId);
+        const noBillingUrl = getNoBillingEntryUrl(projectId, cycleDate);
 
         sendProjectEmail({
             audience: 'Main PM',
             recipients: mainPmId,
             cc: settings.pmExtraEmails,
-            subject: `Billing due ${cycleDisplay} - ${projectDisplay}`,
-            lines: [
-                `Project: ${projectDisplay}`,
-                `Bill Date: ${cycleDisplay}`,
-                'Status: Billing is coming due and no Billing History entry exists.',
-                'Action Needed: Please prepare billing. If this cycle will not be billed, create a No Billing entry in Project Billing History.'
-            ],
+            subject: `Billing Due: ${cycleDisplay} - ${projectDisplay}`,
+            body: buildEmailBody({
+                heading: 'Billing Is Due',
+                intro: `Billing is due for ${projectDisplay} on ${cycleDisplay}.`,
+                details: [
+                    { label: 'JOB', value: projectDisplay },
+                    { label: 'BILL DATE', value: cycleDisplay },
+                    { label: 'BILL MONTH', value: billMonth }
+                ],
+                message: `Open <strong>JB Progress Billing</strong> to create the bill. ` +
+                    `Remember to update the <strong>Bill Month</strong> to ` +
+                    `<strong>${escapeHtml(billMonth)}</strong>.`,
+                actions: [
+                    { label: 'Open JB Progress Billing', href: projectUrl },
+                    {
+                        label: 'Enter No Billing',
+                        href: noBillingUrl,
+                        secondary: true
+                    }
+                ],
+                footer: 'Use “Enter No Billing” only when this job will not be billed for this cycle. The project, cycle date, and No Billing status will be prefilled.'
+            }),
             projectId
         });
 
         getProjectContactEmails(projectId, POSITIONS.PHASE_PM, 'Phase PM')
             .forEach((recipient) => {
+                const dueToPm = mainPmName || 'the Main PM';
                 sendProjectEmail({
                     audience: 'Phase PM',
                     recipients: recipient,
                     cc: settings.pmExtraEmails,
-                    subject: `Action needed: submit schedule of values - ${projectDisplay}`,
-                    lines: [
-                        `Project: ${projectDisplay}`,
-                        `Bill Date: ${cycleDisplay}`,
-                        'Action Needed: Please submit your schedule of values to the Main PM so billing can be prepared.'
-                    ],
+                    subject: `Phase Billing Due to ${dueToPm} - ${projectDisplay}`,
+                    body: buildEmailBody({
+                        heading: 'Phase Billing Is Due',
+                        intro: `Your phase billing is due to ${dueToPm} by ${cycleDisplay}.`,
+                        details: [
+                            { label: 'JOB', value: projectDisplay },
+                            { label: 'BILL DATE', value: cycleDisplay },
+                            { label: 'DUE TO', value: dueToPm }
+                        ],
+                        message: 'This project is billed through the <strong>Textura Payment Management system</strong>, as required by our customer. The schedule of values for your phase may differ in Textura, and the Main PM may require additional billing breakout.',
+                        actions: [
+                            { label: 'Open Project & SOV Details', href: projectUrl }
+                        ],
+                        footer: 'When requested, supply your job number.'
+                    }),
                     projectId
                 });
             });
@@ -507,24 +669,48 @@ define([
             recipients: mainPmId,
             cc: settings.pmExtraEmails,
             subject: `REMINDER: billing decision required - ${projectDisplay}`,
-            lines: [
-                `Project: ${projectDisplay}`,
-                `Bill Date: ${cycleDisplay}`,
-                'Status: No Project Billing History entry exists for this cycle.',
-                'Action Needed: Submit the invoice or create a No Billing entry in Project Billing History.'
-            ],
+            body: buildEmailBody({
+                heading: 'Billing Decision Required',
+                intro: 'The billing date has arrived and no billing decision has been recorded.',
+                details: [
+                    { label: 'PROJECT', value: projectDisplay },
+                    { label: 'BILL DATE', value: cycleDisplay },
+                    { label: 'STATUS', value: 'Billing history not entered' }
+                ],
+                message: 'Please create the bill now, or enter a No Billing record with the reason this project will not be billed.',
+                actions: [
+                    {
+                        label: 'Open JB Progress Billing',
+                        href: getProjectUrl(projectId)
+                    },
+                    {
+                        label: 'Enter No Billing',
+                        href: getNoBillingEntryUrl(projectId, cycleDate),
+                        secondary: true
+                    }
+                ],
+                footer: 'This reminder will continue until an Invoiced or No Billing history entry exists.'
+            }),
             projectId
         });
 
         sendAccountingNotice(
             projectId,
             `REMINDER: no billing history yet - ${projectDisplay}`,
-            [
-                `Project: ${projectDisplay}`,
-                `Bill Date: ${cycleDisplay}`,
-                'Status: No Invoiced or No Billing history entry exists for this cycle.',
-                'Action Needed: Please follow up with the PM or create the invoice if billing is ready.'
-            ]
+            buildEmailBody({
+                heading: 'Billing History Is Still Outstanding',
+                intro: 'No Invoiced or No Billing history entry has been recorded for this billing cycle.',
+                details: [
+                    { label: 'PROJECT', value: projectDisplay },
+                    { label: 'BILL DATE', value: cycleDisplay },
+                    { label: 'STATUS', value: 'Action required' }
+                ],
+                message: 'Please follow up with the Project Manager, or create the invoice if billing is ready.',
+                actions: [
+                    { label: 'Review Project', href: getProjectUrl(projectId) }
+                ],
+                footer: 'This is an automated billing follow-up.'
+            })
         );
     };
 
@@ -678,6 +864,7 @@ define([
             );
             const mainPmField = values[FIELDS.MAIN_PM];
             const mainPmId = mainPmField && mainPmField.value ? mainPmField.value : null;
+            const mainPmName = getFieldText(mainPmField) || 'Main PM';
             const sameCycle = sameMonth(upcoming, recent);
 
             log.debug('Project billing evaluation', {
@@ -721,7 +908,13 @@ define([
                             projectId,
                             cycleDate: ymd(upcoming)
                         });
-                        sendPmPreNotice(mainPmId, projectId, projectDisplay, upcoming);
+                        sendPmPreNotice(
+                            mainPmId,
+                            mainPmName,
+                            projectId,
+                            projectDisplay,
+                            upcoming
+                        );
                     }
 
                     if (now >= accountingTriggerDate) {
@@ -732,15 +925,29 @@ define([
                         sendAccountingNotice(
                             projectId,
                             `Invoice creation approaching - ${projectDisplay}`,
-                            [
-                                `Project: ${projectDisplay}`,
-                                `Bill Date: ${format.format({
-                                    value: upcoming,
-                                    type: format.Type.DATE
-                                })}`,
-                                'Status: Billing is approaching and no Billing History entry exists.',
-                                'Action Needed: Please review the billing details and create the invoice if billing is ready.'
-                            ]
+                            buildEmailBody({
+                                heading: 'Invoice Creation Is Approaching',
+                                intro: 'The project billing date is approaching and no billing history has been entered.',
+                                details: [
+                                    { label: 'PROJECT', value: projectDisplay },
+                                    {
+                                        label: 'BILL DATE',
+                                        value: format.format({
+                                            value: upcoming,
+                                            type: format.Type.DATE
+                                        })
+                                    },
+                                    { label: 'STATUS', value: 'Ready for review' }
+                                ],
+                                message: 'Please review the billing details and create the invoice when billing is ready.',
+                                actions: [
+                                    {
+                                        label: 'Review Project',
+                                        href: getProjectUrl(projectId)
+                                    }
+                                ],
+                                footer: 'This is an automated advance billing notification.'
+                            })
                         );
                     }
                 }
