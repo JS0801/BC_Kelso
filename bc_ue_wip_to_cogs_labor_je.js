@@ -30,13 +30,13 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
         details: `Context type: ${context.type}, approve type: ${context.UserEventType.APPROVE}, JE: ${sourceJeId || 'blank'}`
       });
 
-      if (context.type !== context.UserEventType.APPROVE) {
-        log.debug({
-          title: 'Labor JE WIP relief skipped - event type',
-          details: `JE ${sourceJeId || 'blank'} context type ${context.type} is not ${context.UserEventType.APPROVE}.`
-        });
-        return;
-      }
+      // if (context.type !== context.UserEventType.APPROVE) {
+      //   log.debug({
+      //     title: 'Labor JE WIP relief skipped - event type',
+      //     details: `JE ${sourceJeId || 'blank'} context type ${context.type} is not ${context.UserEventType.APPROVE}.`
+      //   });
+      //   return;
+      // }
 
       const approvalStatus = String(sourceJe.getValue({ fieldId: 'approvalstatus' }) || '');
 
