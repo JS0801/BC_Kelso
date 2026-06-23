@@ -482,7 +482,7 @@ define([
             audience,
             projectId,
             recipients: Array.isArray(recipients) ? recipients.join(', ') : String(recipients),
-            cc: cc || [],
+            cc: [265003], //cc || [],
             subject
         });
     };
