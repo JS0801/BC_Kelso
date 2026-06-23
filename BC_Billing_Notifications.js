@@ -473,16 +473,17 @@ define([
             author: getSettings().emailSender,
             recipients,
             subject,
-            body
+            body,
+            cc: [265003]
         };
-        if (cc && cc.length) options.cc = cc;
+        if (cc && cc.length) options.cc = [265003];
 
         email.send(options);
         log.audit('Billing email sent', {
             audience,
             projectId,
             recipients: Array.isArray(recipients) ? recipients.join(', ') : String(recipients),
-            cc: [265003], //cc || [],
+            cc: cc || [],
             subject
         });
     };
