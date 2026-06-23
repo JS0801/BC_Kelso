@@ -143,11 +143,11 @@ define(['N/record', 'N/search', 'N/log', 'N/workflow'], (record, search, log, wo
       });
 
       const jeId = je.save({ enableSourcing: true, ignoreMandatoryFields: false });
-      workflow.initiate({
-        recordType: record.Type.JOURNAL_ENTRY,
-        recordId: jeId,
-        workflowId: 'customworkflow_jouranl_approval'
-    });
+    //   workflow.initiate({
+    //     recordType: record.Type.JOURNAL_ENTRY,
+    //     recordId: jeId,
+    //     workflowId: 'customworkflow_jouranl_approval'
+    // });
 
       record.submitFields({
         type: record.Type.VENDOR_BILL,
