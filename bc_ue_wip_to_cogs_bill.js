@@ -142,7 +142,7 @@ define(['N/record', 'N/search', 'N/log', 'N/workflow'], (record, search, log, wo
         addLine(je, CFG.WIP_ACCOUNT, line.amount < 0 ? amount : 0, line.amount > 0 ? amount : 0, line, memo, billId);
       });
 
-      const jeId = je.save({ enableSourcing: true, ignoreMandatoryFields: false });
+      const jeId = je.save({ ignoreMandatoryFields: false });
     //   workflow.initiate({
     //     recordType: record.Type.JOURNAL_ENTRY,
     //     recordId: jeId,
