@@ -42,7 +42,7 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
 
       const billId = bill.id;
       const subsidiary = String(bill.getValue({ fieldId: 'subsidiary' }) || '');
-      if (findSourceJe(billId) || !CFG.SUBSIDIARIES.includes(subsidiary)) return;
+     // if (findSourceJe(billId) || !CFG.SUBSIDIARIES.includes(subsidiary)) return;
 
       const costs = [];
       const billSearch = search.create({
