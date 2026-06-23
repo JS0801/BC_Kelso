@@ -133,6 +133,7 @@ define(['N/record', 'N/search', 'N/log', 'N/workflow'], (record, search, log, wo
 
       je.setValue({ fieldId: 'subsidiary', value: subsidiary });
       if (tranDate) je.setValue({ fieldId: 'trandate', value: tranDate });
+      je.setValue({ fieldId: 'approvalstatus', value: 1 });
       je.setValue({ fieldId: 'memo', value: memo });
       je.setValue({ fieldId: CFG.RELATED_JE, value: billId });
 
