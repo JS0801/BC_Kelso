@@ -1,0 +1,76 @@
+<workflow scriptid="customworkflow_appf_class_activitytype">
+  <description>Rename Class as Activity Type on Transactions Header and Lines</description>
+  <initcontexts>ACTION|BANKCONNECTIVITY|BANKSTATEMENTPARSER|BUNDLEINSTALLATION|CLIENT|CSVIMPORT|CUSTOMGLLINES|CUSTOMMASSUPDATE|RECORDACTION|DATASETBUILDER|DEBUGGER|EMAILCAPTURE|FICONNECTIVITY|FIPARSER|MAPREDUCE|OCRPLUGIN|OFFLINECLIENT|OTHER|PAYMENTPOSTBACK|PAYMENTGATEWAY|PLATFORMEXTENSION|PORTLET|PROMOTIONS|CONSOLRATEADJUSTOR|RESTWEBSERVICES|RESTLET|ADVANCEDREVREC|SCHEDULED|SDFINSTALLATION|SHIPPINGPARTNERS|WEBSERVICES|SUITELET|TAXCALCULATION|USEREVENT|USERINTERFACE|WORKBOOKBUILDER|WORKFLOW</initcontexts>
+  <initeventtypes></initeventtypes>
+  <initlocalizationcontext></initlocalizationcontext>
+  <initoncreate>T</initoncreate>
+  <initonvieworupdate>T</initonvieworupdate>
+  <initsavedsearchcondition></initsavedsearchcondition>
+  <inittriggertype></inittriggertype>
+  <isinactive>F</isinactive>
+  <islogenabled>F</islogenabled>
+  <keephistory>ONLYWHENTESTING</keephistory>
+  <name>Class as Activity Type</name>
+  <recordtypes>ADVINTERCOMPANYJOURNALENTRY|VENDORPAYMENT|CASHREFUND|CASHSALE|CREDITCARDREFUND|CHECK|CREDITCARDCHARGE|CREDITMEMO|CUSTOMERDEPOSIT|CUSTOMERREFUND|DEPOSIT|DEPOSITAPPLICATION|ESTIMATE|EXPENSEREPORT|[scriptid=customtransaction_fam_specialdepr_jrn]|[scriptid=customtransaction_fam_depr_jrn]|[scriptid=customtransaction_fam_disp_jrn]|[scriptid=customtransaction_fam_revaluation_jrn]|[scriptid=customtransaction_fam_transfer_jrn]|INTERCOMPANYTRANSFERORDER|INVENTORYADJUSTMENT|INVENTORYCOUNT|INVENTORYTRANSFER|INVOICE|ITEMFULFILLMENT|ITEMRECEIPT|JOURNALENTRY|[scriptid=customtransaction_fam_leaseproposal]|CUSTOMERPAYMENT|PURCHASEORDER|RETURNAUTHORIZATION|REVENUEARRANGEMENT|SALESORDER|STATISTICALJOURNALENTRY|TRANSFERORDER|VENDORBILL|VENDORCREDIT|VENDORPREPAYMENT|VENDORPREPAYMENTAPPLICATION|VENDORRETURNAUTHORIZATION</recordtypes>
+  <releasestatus>RELEASED</releasestatus>
+  <runasadmin>F</runasadmin>
+  <initcondition>
+    <formula></formula>
+    <type>VISUAL_BUILDER</type>
+  </initcondition>
+  <workflowstates>
+    <workflowstate scriptid="workflowstate317">
+      <description></description>
+      <donotexitworkflow>F</donotexitworkflow>
+      <name>State 1</name>
+      <positionx>533</positionx>
+      <positiony>123</positiony>
+      <workflowactions triggertype="BEFORELOAD">
+        <setdisplaylabelaction scriptid="workflowaction2188">
+          <clienttriggerfields></clienttriggerfields>
+          <conditionsavedsearch></conditionsavedsearch>
+          <contexttypes>ACTION|BANKCONNECTIVITY|BANKSTATEMENTPARSER|BUNDLEINSTALLATION|CLIENT|CSVIMPORT|CUSTOMGLLINES|CUSTOMMASSUPDATE|RECORDACTION|DATASETBUILDER|DEBUGGER|EMAILCAPTURE|FICONNECTIVITY|FIPARSER|MAPREDUCE|OCRPLUGIN|OFFLINECLIENT|OTHER|PAYMENTPOSTBACK|PAYMENTGATEWAY|PLATFORMEXTENSION|PORTLET|PROMOTIONS|CONSOLRATEADJUSTOR|RESTWEBSERVICES|RESTLET|ADVANCEDREVREC|SCHEDULED|SDFINSTALLATION|SHIPPINGPARTNERS|WEBSERVICES|SUITELET|TAXCALCULATION|USEREVENT|USERINTERFACE|WORKBOOKBUILDER|WORKFLOW</contexttypes>
+          <displaylabel>Activity Type</displaylabel>
+          <eventtypes></eventtypes>
+          <field>STDBODYCLASS</field>
+          <isinactive>F</isinactive>
+          <issublistfield>F</issublistfield>
+          <initcondition>
+            <formula></formula>
+            <type>VISUAL_BUILDER</type>
+          </initcondition>
+        </setdisplaylabelaction>
+        <setdisplaylabelaction scriptid="workflowaction2189">
+          <clienttriggerfields></clienttriggerfields>
+          <conditionsavedsearch></conditionsavedsearch>
+          <contexttypes>ACTION|BANKCONNECTIVITY|BANKSTATEMENTPARSER|BUNDLEINSTALLATION|CLIENT|CSVIMPORT|CUSTOMGLLINES|CUSTOMMASSUPDATE|RECORDACTION|DATASETBUILDER|DEBUGGER|EMAILCAPTURE|FICONNECTIVITY|FIPARSER|MAPREDUCE|OCRPLUGIN|OFFLINECLIENT|OTHER|PAYMENTPOSTBACK|PAYMENTGATEWAY|PLATFORMEXTENSION|PORTLET|PROMOTIONS|CONSOLRATEADJUSTOR|RESTWEBSERVICES|RESTLET|ADVANCEDREVREC|SCHEDULED|SDFINSTALLATION|SHIPPINGPARTNERS|WEBSERVICES|SUITELET|TAXCALCULATION|USEREVENT|USERINTERFACE|WORKBOOKBUILDER|WORKFLOW</contexttypes>
+          <displaylabel>Activity Type</displaylabel>
+          <eventtypes></eventtypes>
+          <field>STDCOLCLASS</field>
+          <isinactive>F</isinactive>
+          <issublistfield>T</issublistfield>
+          <sublist>ITEM</sublist>
+          <initcondition>
+            <formula></formula>
+            <type>VISUAL_BUILDER</type>
+          </initcondition>
+        </setdisplaylabelaction>
+        <setdisplaylabelaction scriptid="workflowaction2190">
+          <clienttriggerfields></clienttriggerfields>
+          <conditionsavedsearch></conditionsavedsearch>
+          <contexttypes>ACTION|BANKCONNECTIVITY|BANKSTATEMENTPARSER|BUNDLEINSTALLATION|CLIENT|CSVIMPORT|CUSTOMGLLINES|CUSTOMMASSUPDATE|RECORDACTION|DATASETBUILDER|DEBUGGER|EMAILCAPTURE|FICONNECTIVITY|FIPARSER|MAPREDUCE|OCRPLUGIN|OFFLINECLIENT|OTHER|PAYMENTPOSTBACK|PAYMENTGATEWAY|PLATFORMEXTENSION|PORTLET|PROMOTIONS|CONSOLRATEADJUSTOR|RESTWEBSERVICES|RESTLET|ADVANCEDREVREC|SCHEDULED|SDFINSTALLATION|SHIPPINGPARTNERS|WEBSERVICES|SUITELET|TAXCALCULATION|USEREVENT|USERINTERFACE|WORKBOOKBUILDER|WORKFLOW</contexttypes>
+          <displaylabel>Activity Type</displaylabel>
+          <eventtypes></eventtypes>
+          <field>STDRECORDEREXPLINECLASS</field>
+          <isinactive>F</isinactive>
+          <issublistfield>T</issublistfield>
+          <sublist>EXPENSEREPORT:EXPENSE</sublist>
+          <initcondition>
+            <formula></formula>
+            <type>VISUAL_BUILDER</type>
+          </initcondition>
+        </setdisplaylabelaction>
+      </workflowactions>
+    </workflowstate>
+  </workflowstates>
+</workflow>
