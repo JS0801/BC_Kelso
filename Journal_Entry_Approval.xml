@@ -12,7 +12,7 @@
   <keephistory>ALWAYS</keephistory>
   <name>Journal Entry Approval</name>
   <recordtypes>ADVINTERCOMPANYJOURNALENTRY|JOURNALENTRY|[scriptid=customtransaction_laa_amortization]|STATISTICALJOURNALENTRY</recordtypes>
-  <releasestatus>RELEASED</releasestatus>
+  <releasestatus>NOTINITIATING</releasestatus>
   <runasadmin>T</runasadmin>
   <initcondition>
     <formula><![CDATA["Approval Status" NOT IN ("Approval Status1")]]></formula>
@@ -357,7 +357,7 @@
           <scheduledelay></scheduledelay>
           <scheduletimeunit></scheduletimeunit>
           <tostate>[scriptid=customworkflow_jouranl_approval.workflowstate341]</tostate>
-          <triggertype>AFTERSUBMIT</triggertype>
+          <triggertype></triggertype>
           <waitforworkflow></waitforworkflow>
           <waitforworkflowstate></waitforworkflowstate>
           <initcondition>
@@ -388,7 +388,7 @@
           <scheduledelay></scheduledelay>
           <scheduletimeunit></scheduletimeunit>
           <tostate>[scriptid=customworkflow_jouranl_approval.workflowstate342]</tostate>
-          <triggertype>AFTERSUBMIT</triggertype>
+          <triggertype></triggertype>
           <waitforworkflow></waitforworkflow>
           <waitforworkflowstate></waitforworkflowstate>
           <initcondition>
@@ -419,7 +419,7 @@
           <scheduledelay></scheduledelay>
           <scheduletimeunit></scheduletimeunit>
           <tostate>[scriptid=customworkflow_jouranl_approval.workflowstate366]</tostate>
-          <triggertype>AFTERSUBMIT</triggertype>
+          <triggertype></triggertype>
           <waitforworkflow></waitforworkflow>
           <waitforworkflowstate></waitforworkflowstate>
           <initcondition>
