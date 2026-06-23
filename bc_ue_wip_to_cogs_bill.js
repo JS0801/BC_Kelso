@@ -37,25 +37,12 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
         ? String(context.oldRecord.getValue({ fieldId: 'approvalstatus' }) || '')
         : '';
 
-      if (newStatus !== CFG.APPROVED) return;
-      if (context.type !== context.UserEventType.APPROVE && oldStatus === CFG.APPROVED) return;
+      // if (newStatus !== CFG.APPROVED) return;
+      // if (context.type !== context.UserEventType.APPROVE && oldStatus === CFG.APPROVED) return;
 
       const billId = bill.id;
       const subsidiary = String(bill.getValue({ fieldId: 'subsidiary' }) || '');
       if (findSourceJe(billId) || !CFG.SUBSIDIARIES.includes(subsidiary)) return;
-
-      const activeBillJe = search.create({
-        type: search.Type.VENDOR_BILL,
-        filters: [
-          ['internalid', 'anyof', billId], 'AND',
-          ['mainline', 'is', 'T'], 'AND',
-          [`${CFG.RELATED_JE}.isreversal`, 'is', 'F'], 'AND',
-          [`${CFG.RELATED_JE}.reversaldate`, 'isempty', '']
-        ],
-        columns: ['internalid']
-      }).runPaged({ pageSize: 1000 }).count;
-
-      if (activeBillJe > 0) return;
 
       const costs = [];
       const billSearch = search.create({
