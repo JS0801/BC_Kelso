@@ -10,7 +10,7 @@
   <isinactive>F</isinactive>
   <islogenabled>T</islogenabled>
   <keephistory>ALWAYS</keephistory>
-  <name>Journal Entry Approval</name>
+  <name>Journal Entry Approval (2)</name>
   <recordtypes>ADVINTERCOMPANYJOURNALENTRY|JOURNALENTRY|[scriptid=customtransaction_laa_amortization]|STATISTICALJOURNALENTRY</recordtypes>
   <releasestatus>NOTINITIATING</releasestatus>
   <runasadmin>T</runasadmin>
