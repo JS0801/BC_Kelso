@@ -3,7 +3,7 @@
  * @NScriptType UserEventScript
  * @NModuleScope SameAccount
  */
-define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
+define(['N/record', 'N/search', 'N/log', 'N/workflow'], (record, search, log, workflow) => {
 
   const CFG = {
     WIP_ACCOUNT: '1806',
@@ -143,6 +143,11 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
       });
 
       const jeId = je.save({ enableSourcing: true, ignoreMandatoryFields: false });
+      workflow.initiate({
+        recordType: record.Type.JOURNAL_ENTRY,
+        recordId: jeId,
+        workflowId: 'customworkflow_jouranl_approval'
+    });
 
       record.submitFields({
         type: record.Type.VENDOR_BILL,
