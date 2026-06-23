@@ -4,7 +4,7 @@
   <initeventtypes></initeventtypes>
   <initlocalizationcontext></initlocalizationcontext>
   <initoncreate>T</initoncreate>
-  <initonvieworupdate>T</initonvieworupdate>
+  <initonvieworupdate>F</initonvieworupdate>
   <initsavedsearchcondition></initsavedsearchcondition>
   <inittriggertype></inittriggertype>
   <isinactive>F</isinactive>
@@ -12,22 +12,11 @@
   <keephistory>ALWAYS</keephistory>
   <name>Journal Entry Approval (2)</name>
   <recordtypes>ADVINTERCOMPANYJOURNALENTRY|JOURNALENTRY|[scriptid=customtransaction_laa_amortization]|STATISTICALJOURNALENTRY</recordtypes>
-  <releasestatus>NOTINITIATING</releasestatus>
+  <releasestatus>RELEASED</releasestatus>
   <runasadmin>T</runasadmin>
   <initcondition>
-    <formula><![CDATA["Approval Status" NOT IN ("Approval Status1")]]></formula>
+    <formula></formula>
     <type>VISUAL_BUILDER</type>
-    <parameters>
-      <parameter>
-        <name>Approval Status</name>
-        <value>STDBODYAPPROVALSTATUS</value>
-      </parameter>
-      <parameter>
-        <name>Approval Status1</name>
-        <selectrecordtype>-243</selectrecordtype>
-        <value>2</value>
-      </parameter>
-    </parameters>
   </initcondition>
   <workflowcustomfields>
     <workflowcustomfield scriptid="custworkflow_je_amount_2">
