@@ -22,24 +22,90 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
 
   const afterSubmit = (context) => {
     try {
-      if (context.type !== context.UserEventType.APPROVE) return;
-
       const sourceJe = context.newRecord;
-      const sourceJeId = sourceJe.id;
+      const sourceJeId = sourceJe ? sourceJe.id : '';
+
+      log.audit({
+        title: 'Labor JE WIP relief entered',
+        details: `Context type: ${context.type}, approve type: ${context.UserEventType.APPROVE}, JE: ${sourceJeId || 'blank'}`
+      });
+
+      if (context.type !== context.UserEventType.APPROVE) {
+        log.debug({
+          title: 'Labor JE WIP relief skipped - event type',
+          details: `JE ${sourceJeId || 'blank'} context type ${context.type} is not ${context.UserEventType.APPROVE}.`
+        });
+        return;
+      }
+
       const approvalStatus = String(sourceJe.getValue({ fieldId: 'approvalstatus' }) || '');
 
-      if (approvalStatus !== CFG.APPROVED) return;
+      log.debug({
+        title: 'Labor JE WIP relief approval check',
+        details: `JE ${sourceJeId}, approvalstatus ${approvalStatus || 'blank'}, required ${CFG.APPROVED}.`
+      });
+
+      if (approvalStatus !== CFG.APPROVED) {
+        log.debug({
+          title: 'Labor JE WIP relief skipped - approval status',
+          details: `JE ${sourceJeId} approvalstatus ${approvalStatus || 'blank'} is not approved.`
+        });
+        return;
+      }
 
       // Generated WIP relief JEs point back to their source JE. Do not process them again.
-      if (sourceJe.getValue({ fieldId: CFG.RELATED_JE })) return;
+      const relatedSource = sourceJe.getValue({ fieldId: CFG.RELATED_JE });
+      if (relatedSource) {
+        log.audit({
+          title: 'Labor JE WIP relief skipped - related transaction',
+          details: `JE ${sourceJeId} already has ${CFG.RELATED_JE} = ${relatedSource}.`
+        });
+        return;
+      }
 
       const subsidiary = sourceJe.getValue({ fieldId: 'subsidiary' });
-      if (!CFG.SUBSIDIARIES.includes(String(subsidiary || ''))) return;
+      log.debug({
+        title: 'Labor JE WIP relief subsidiary check',
+        details: `JE ${sourceJeId}, subsidiary ${subsidiary || 'blank'}, allowed ${CFG.SUBSIDIARIES.join(', ')}.`
+      });
+
+      if (!CFG.SUBSIDIARIES.includes(String(subsidiary || ''))) {
+        log.audit({
+          title: 'Labor JE WIP relief skipped - subsidiary',
+          details: `JE ${sourceJeId} subsidiary ${subsidiary || 'blank'} is not in allowed subsidiary list.`
+        });
+        return;
+      }
 
       const lines = getWipLines(sourceJe);
-      if (!lines.length) return;
+      log.audit({
+        title: 'Labor JE WIP relief WIP lines found',
+        details: `JE ${sourceJeId}, WIP account ${CFG.WIP_ACCOUNT}, matching line count ${lines.length}.`
+      });
+
+      if (!lines.length) {
+        log.audit({
+          title: 'Labor JE WIP relief skipped - no WIP lines',
+          details: `JE ${sourceJeId} has no non-zero ${CFG.WIP_ACCOUNT} lines.`
+        });
+        return;
+      }
 
       const projectOffsetAccountById = getProjectOffsetAccountMap(lines);
+      const projectIds = Object.keys(projectOffsetAccountById);
+      const unmappedProjectIds = projectIds.filter((projectId) => !projectOffsetAccountById[projectId]);
+
+      log.audit({
+        title: 'Labor JE WIP relief project map summary',
+        details: `JE ${sourceJeId}, unique projects ${projectIds.length}, mapped ${projectIds.length - unmappedProjectIds.length}, ` +
+          `unmapped ${unmappedProjectIds.length}${unmappedProjectIds.length ? ` (${unmappedProjectIds.join(', ')})` : ''}.`
+      });
+
+      log.debug({
+        title: 'Labor JE WIP relief project account map',
+        details: JSON.stringify(projectOffsetAccountById)
+      });
+
       const reliefLines = [];
       let skippedNoProject = 0;
       let skippedProjectLookup = 0;
@@ -47,12 +113,20 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
       lines.forEach((line) => {
         if (!line.projectId) {
           skippedNoProject += 1;
+          log.debug({
+            title: 'Labor JE WIP relief skipped line - no project',
+            details: `JE ${sourceJeId}, source line ${line.lineId || 'blank'}, amount ${line.amount}.`
+          });
           return;
         }
 
         const offsetAccount = projectOffsetAccountById[String(line.projectId)];
         if (!offsetAccount) {
           skippedProjectLookup += 1;
+          log.debug({
+            title: 'Labor JE WIP relief skipped line - no offset account',
+            details: `JE ${sourceJeId}, source line ${line.lineId || 'blank'}, project ${line.projectId}, amount ${line.amount}.`
+          });
           return;
         }
 
@@ -69,6 +143,12 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
         return;
       }
 
+      log.audit({
+        title: 'Labor JE WIP relief lines ready',
+        details: `JE ${sourceJeId}, relief source lines ${reliefLines.length}, ` +
+          `skipped without Project ${skippedNoProject}, skipped lookup ${skippedProjectLookup}.`
+      });
+
       const tranId = sourceJe.getValue({ fieldId: 'tranid' }) || sourceJeId;
       const tranDate = sourceJe.getValue({ fieldId: 'trandate' });
       const memo = `WIP to COGS relief - Labor JE ${tranId}`;
@@ -82,6 +162,12 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
 
       reliefLines.forEach((line) => {
         const amount = Math.abs(line.amount);
+
+        log.debug({
+          title: 'Labor JE WIP relief adding lines',
+          details: `JE ${sourceJeId}, source line ${line.lineId || 'blank'}, project ${line.projectId}, ` +
+            `amount ${line.amount}, offset account ${line.offsetAccount}.`
+        });
 
         addLine({
           je: reliefJe,
@@ -104,6 +190,11 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
         });
       });
 
+      log.audit({
+        title: 'Labor JE WIP relief saving JE',
+        details: `Source JE ${sourceJeId}, generated line count ${reliefLines.length * 2}.`
+      });
+
       const reliefJeId = reliefJe.save({ enableSourcing: true, ignoreMandatoryFields: false });
 
       log.audit({
@@ -121,16 +212,34 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
     const lines = [];
     const lineCount = sourceJe.getLineCount({ sublistId: 'line' });
 
+    log.debug({
+      title: 'Labor JE WIP relief line scan started',
+      details: `JE ${sourceJe.id}, total line count ${lineCount}.`
+    });
+
     for (let i = 0; i < lineCount; i += 1) {
       const account = String(sourceJe.getSublistValue({ sublistId: 'line', fieldId: 'account', line: i }) || '');
-      if (account !== CFG.WIP_ACCOUNT) continue;
+      if (account !== CFG.WIP_ACCOUNT) {
+        log.debug({
+          title: 'Labor JE WIP relief line ignored - account',
+          details: `JE ${sourceJe.id}, line ${i}, account ${account || 'blank'}.`
+        });
+        continue;
+      }
 
       const debit = Number(sourceJe.getSublistValue({ sublistId: 'line', fieldId: 'debit', line: i }) || 0);
       const credit = Number(sourceJe.getSublistValue({ sublistId: 'line', fieldId: 'credit', line: i }) || 0);
       const amount = round(debit - credit);
-      if (!amount) continue;
+      if (!amount) {
+        log.debug({
+          title: 'Labor JE WIP relief line ignored - zero amount',
+          details: `JE ${sourceJe.id}, line ${i}, debit ${debit}, credit ${credit}.`
+        });
+        continue;
+      }
 
-      lines.push({
+      const lineData = {
+        sourceLineIndex: i,
         amount,
         projectId: sourceJe.getSublistValue({ sublistId: 'line', fieldId: 'entity', line: i }),
         lineId: sourceJe.getSublistValue({ sublistId: 'line', fieldId: 'lineuniquekey', line: i }),
@@ -140,7 +249,15 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
         location: sourceJe.getSublistValue({ sublistId: 'line', fieldId: 'location', line: i }),
         customerType: sourceJe.getSublistValue({ sublistId: 'line', fieldId: CFG.CUSTOMER_TYPE, line: i }),
         serviceType: sourceJe.getSublistValue({ sublistId: 'line', fieldId: CFG.SERVICE_TYPE, line: i })
+      };
+
+      log.debug({
+        title: 'Labor JE WIP relief line captured',
+        details: `JE ${sourceJe.id}, line ${i}, unique key ${lineData.lineId || 'blank'}, ` +
+          `project ${lineData.projectId || 'blank'}, amount ${amount}.`
       });
+
+      lines.push(lineData);
     }
 
     return lines;
@@ -158,6 +275,11 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
       projectIds.push(projectId);
     });
 
+    log.debug({
+      title: 'Labor JE WIP relief project map started',
+      details: `Unique project IDs: ${projectIds.length ? projectIds.join(', ') : 'none'}.`
+    });
+
     if (!projectIds.length) return projectOffsetAccountById;
 
     try {
@@ -167,9 +289,17 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
         columns: [CFG.PROJECT_MAINTENANCE]
       }).run().each((result) => {
         const projectId = String(result.id || '');
-        projectOffsetAccountById[projectId] = isChecked(result.getValue({ name: CFG.PROJECT_MAINTENANCE }))
+        const maintenanceValue = result.getValue({ name: CFG.PROJECT_MAINTENANCE });
+        projectOffsetAccountById[projectId] = isChecked(maintenanceValue)
           ? CFG.MAINTENANCE_OFFSET_ACCOUNT
           : CFG.STANDARD_OFFSET_ACCOUNT;
+
+        log.debug({
+          title: 'Labor JE WIP relief project mapped',
+          details: `Project ${projectId}, ${CFG.PROJECT_MAINTENANCE}=${maintenanceValue}, ` +
+            `offset account ${projectOffsetAccountById[projectId]}.`
+        });
+
         return true;
       });
     } catch (e) {
@@ -197,6 +327,12 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
     setLine(je, CFG.LINE_SOURCE, sourceJeId);
     setLine(je, CFG.LINE_SOURCE_ID, source.lineId);
     je.commitLine({ sublistId: 'line' });
+
+    log.debug({
+      title: 'Labor JE WIP relief line committed',
+      details: `Source JE ${sourceJeId}, source line ${source.lineId || 'blank'}, account ${account}, ` +
+        `debit ${debit || 0}, credit ${credit || 0}, project ${source.projectId}.`
+    });
   };
 
   const setLine = (je, fieldId, value) => {
