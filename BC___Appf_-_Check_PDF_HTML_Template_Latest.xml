@@ -2158,7 +2158,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
     <td>${expense.account}</td>
     <td>${expense.date}</td>
     <td>${expense.description}</td>
-    <td align="center">${expense.amount}</td>
+    <td>${expense.amount}</td>
 </tr>
 </#list>
 <#list check.item as item>
@@ -2257,7 +2257,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
     <td>${expense.account}</td>
     <td>${expense.date}</td>
     <td>${expense.description}</td>
-    <td align="right">${expense.amount}</td>
+    <td>${expense.amount}</td>
 </tr>
 </#list>
 <#list check.item as item>
