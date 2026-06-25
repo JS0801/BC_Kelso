@@ -3,7 +3,7 @@
  * @NScriptType UserEventScript
  * @NModuleScope SameAccount
  */
-define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
+define(['N/record', 'N/search', 'N/log', 'N/https'], (record, search, log, https) => {
 
   const CFG = {
     WIP_ACCOUNT: '1806',
@@ -205,6 +205,17 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
       });
 
       record.submitFields({type: 'journalentry', id: sourceJeId, values: {custbody_bc_related_transaction: reliefJeId}});
+
+      var response = https.requestSuitelet({
+    scriptId: 'customscript_bc_sl_update_cogs_je',
+    deploymentId: 'customdeploy_bc_sl_update_cogs_je',
+    method: https.Method.GET,
+    urlParams: {
+        jeId: reliefJeId
+    }
+});
+
+log.debug('Suitelet Response', response.body);
       
     } catch (e) {
       log.error({ title: 'Labor JE WIP relief failed', details: e.stack || e.message || e });
