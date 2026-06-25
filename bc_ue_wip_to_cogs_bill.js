@@ -3,7 +3,7 @@
  * @NScriptType UserEventScript
  * @NModuleScope SameAccount
  */
-define(['N/record', 'N/search', 'N/log', 'N/workflow'], (record, search, log, workflow) => {
+define(['N/record', 'N/search', 'N/log', 'N/workflow', 'N/https'], (record, search, log, workflow, https) => {
 
   const CFG = {
     WIP_ACCOUNT: '1806',
@@ -144,17 +144,23 @@ define(['N/record', 'N/search', 'N/log', 'N/workflow'], (record, search, log, wo
       });
 
       const jeId = je.save({ ignoreMandatoryFields: false });
-    //   workflow.initiate({
-    //     recordType: record.Type.JOURNAL_ENTRY,
-    //     recordId: jeId,
-    //     workflowId: 'customworkflow_jouranl_approval'
-    // });
 
       record.submitFields({
         type: record.Type.VENDOR_BILL,
         id: billId,
         values: { [CFG.RELATED_JE]: jeId }
       });
+
+      var response = https.requestSuitelet({
+    scriptId: 'customscript_bc_sl_update_cogs_je',
+    deploymentId: 'customdeploy_bc_sl_update_cogs_je',
+    method: https.Method.GET,
+    urlParams: {
+        jeId: jeId
+    }
+});
+
+log.debug('Suitelet Response', response.body);
 
       log.audit({
         title: 'Late Bill WIP relief created',
