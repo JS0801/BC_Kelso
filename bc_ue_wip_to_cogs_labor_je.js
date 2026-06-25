@@ -30,13 +30,24 @@ define(['N/record', 'N/search', 'N/log', 'N/https'], (record, search, log, https
         details: `Context type: ${context.type}, approve type: ${context.UserEventType.APPROVE}, JE: ${sourceJeId || 'blank'}`
       });
 
-      // if (context.type !== context.UserEventType.APPROVE) {
-      //   log.debug({
-      //     title: 'Labor JE WIP relief skipped - event type',
-      //     details: `JE ${sourceJeId || 'blank'} context type ${context.type} is not ${context.UserEventType.APPROVE}.`
-      //   });
-      //   return;
-      // }
+      const oldApprovalStatus = context.oldRecord
+  ? String(context.oldRecord.getValue({ fieldId: 'approvalstatus' }) || '')
+  : '';
+
+const newApprovalStatus = String(sourceJe.getValue({ fieldId: 'approvalstatus' }) || '');
+
+log.debug({
+  title: 'Labor JE WIP relief approval status change',
+  details: `JE ${sourceJeId}, old approvalstatus ${oldApprovalStatus || 'blank'}, new approvalstatus ${newApprovalStatus || 'blank'}, required ${CFG.APPROVED}.`
+});
+
+if (oldApprovalStatus === CFG.APPROVED || newApprovalStatus !== CFG.APPROVED) {
+  log.debug({
+    title: 'Labor JE WIP relief skipped - not newly approved',
+    details: `JE ${sourceJeId} did not change from non-approved to approved.`
+  });
+  return;
+}
 
       const approvalStatus = String(sourceJe.getValue({ fieldId: 'approvalstatus' }) || '');
 
