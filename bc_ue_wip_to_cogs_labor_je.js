@@ -203,6 +203,9 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
           `${reliefLines.length} WIP line(s). Skipped without Project: ${skippedNoProject}. ` +
           `Skipped lookup failures: ${skippedProjectLookup}.`
       });
+
+      record.submitFields({type: 'journalentry', id: sourceJeId, values: {custbody_bc_related_transaction: reliefJeId}});
+      
     } catch (e) {
       log.error({ title: 'Labor JE WIP relief failed', details: e.stack || e.message || e });
     }
