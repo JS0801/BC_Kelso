@@ -213,13 +213,20 @@ define(['N/record', 'N/search', 'N/log', 'N/https'], (record, search, log, https
           name: 'internalid',
           summary: 'GROUP',
           label: 'Internal ID'
-        })
+        }),
+      search.createColumn({
+         name: "currentstate",
+         join: "workflow",
+         summary: "GROUP",
+         label: "Current State"
+      })
       ]
     });
 
     const searchResultCount = journalentrySearchObj.runPaged().count;
     log.debug('journalentrySearchObj result count', searchResultCount);
     journalentrySearchObj.run().each(function(result){
+      log.debug('result', result)
       id = result.getValue({name: 'internalid', summary: 'GROUP'})
      return true;
     });
