@@ -187,6 +187,7 @@ define(['N/record', 'N/search', 'N/log', 'N/https'], (record, search, log, https
 
   const isEligibleApprovedSourceJe = (sourceJeId) => {
     if (!sourceJeId) return false;
+    var id = null;
 
     const journalentrySearchObj = search.create({
       type: 'journalentry',
@@ -213,8 +214,12 @@ define(['N/record', 'N/search', 'N/log', 'N/https'], (record, search, log, https
 
     const searchResultCount = journalentrySearchObj.runPaged().count;
     log.debug('journalentrySearchObj result count', searchResultCount);
+    journalentrySearchObj.run().each(function(result){
+      id = result.getValue({name: 'internalid', summary: 'GROUP'})
+     return true;
+    });
 
-    return searchResultCount > 0;
+    return id;
   };
 
   const getWipLines = (sourceJe) => {
