@@ -22,8 +22,13 @@ define(['N/record', 'N/search', 'N/log', 'N/https'], (record, search, log, https
 
   const afterSubmit = (context) => {
     try {
-      const sourceJe = context.newRecord;
-      const sourceJeId = sourceJe ? sourceJe.id : '';
+      const sourceJeId = context.newRecord.id;
+
+    const sourceJe = record.load({
+      type: record.Type.JOURNAL_ENTRY,
+      id: sourceJeId,
+      isDynamic: false
+    });
 
       log.audit({
         title: 'Labor JE WIP relief entered',
