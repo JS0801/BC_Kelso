@@ -8,11 +8,11 @@
   <initsavedsearchcondition></initsavedsearchcondition>
   <inittriggertype></inittriggertype>
   <isinactive>F</isinactive>
-  <islogenabled>T</islogenabled>
+  <islogenabled>F</islogenabled>
   <keephistory>ALWAYS</keephistory>
   <name>Journal Entry Approval</name>
   <recordtypes>ADVINTERCOMPANYJOURNALENTRY|JOURNALENTRY|[scriptid=customtransaction_laa_amortization]|STATISTICALJOURNALENTRY</recordtypes>
-  <releasestatus>NOTINITIATING</releasestatus>
+  <releasestatus>RELEASED</releasestatus>
   <runasadmin>T</runasadmin>
   <initcondition>
     <formula><![CDATA["Approval Status" NOT IN ("Approval Status1")]]></formula>
@@ -1361,7 +1361,7 @@
           <scheduledelay></scheduledelay>
           <scheduletimeunit></scheduletimeunit>
           <tostate>[scriptid=customworkflow_jouranl_approval.workflowstate339]</tostate>
-          <triggertype></triggertype>
+          <triggertype>AFTERSUBMIT</triggertype>
           <waitforworkflow></waitforworkflow>
           <waitforworkflowstate></waitforworkflowstate>
           <initcondition>
