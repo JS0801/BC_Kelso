@@ -196,8 +196,8 @@ define(['N/record', 'N/search', 'N/log', 'N/https'], (record, search, log, https
         ['type', 'anyof', 'Journal'],
         'AND',
         ['internalid', 'anyof', sourceJeId],
-        'AND',
-        [['approvalstatus', 'anyof', CFG.APPROVED], 'OR', ['workflow.custworkflow_bc_je_approved', 'is', 'T']],
+        // 'AND',
+        // [['approvalstatus', 'anyof', CFG.APPROVED], 'OR', ['workflow.custworkflow_bc_je_approved', 'is', 'T']],
         'AND',
         ['subsidiary', 'anyof'].concat(CFG.SUBSIDIARIES),
         'AND',
@@ -211,6 +211,12 @@ define(['N/record', 'N/search', 'N/log', 'N/https'], (record, search, log, https
         }),
       search.createColumn({
          name: "currentstate",
+         join: "workflow",
+         summary: "GROUP",
+         label: "Current State"
+      }),
+        search.createColumn({
+         name: "custworkflow_bc_je_approved",
          join: "workflow",
          summary: "GROUP",
          label: "Current State"
