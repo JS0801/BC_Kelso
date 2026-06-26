@@ -22,8 +22,13 @@ define(['N/record', 'N/search', 'N/log', 'N/https'], (record, search, log, https
 
   const afterSubmit = (context) => {
     try {
-      const sourceJe = context.newRecord;
-      const sourceJeId = sourceJe ? sourceJe.id : '';
+    //  const sourceJe = context.newRecord;
+      const sourceJeId = context.newRecord.id;
+
+      var sourceJe = record.load({type: 'journalentry', id: sourceJeId});
+      sourceJe.save();
+      var sourceJeNew = record.load({type: 'journalentry', id: sourceJeId});
+      log.debug('Status', sourceJeNew.getValue('approvalstatus'))
 
       log.audit({
         title: 'Labor JE WIP relief entered',
