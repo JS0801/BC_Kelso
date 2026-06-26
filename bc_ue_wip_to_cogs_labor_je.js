@@ -1,10 +1,10 @@
 /**
- * @NApiVersion 2.1
- * @NScriptType UserEventScript
- * @NModuleScope SameAccount
- */
+* @NApiVersion 2.1
+* @NScriptType UserEventScript
+* @NModuleScope SameAccount
+*/
 define(['N/record', 'N/search', 'N/log', 'N/https'], (record, search, log, https) => {
-
+  
   const CFG = {
     WIP_ACCOUNT: '1806',
     MAINTENANCE_OFFSET_ACCOUNT: '1886',
@@ -19,48 +19,51 @@ define(['N/record', 'N/search', 'N/log', 'N/https'], (record, search, log, https
     CUSTOMER_TYPE: 'cseg_kelso_custseg1',
     SERVICE_TYPE: 'cseg1'
   };
-
+  
   const afterSubmit = (context) => {
     try {
       const sourceJeId = context.newRecord.id;
 
-    const sourceJe = record.load({
-      type: record.Type.JOURNAL_ENTRY,
-      id: sourceJeId,
-      isDynamic: false
-    });
-
+      log.debug('Status', context.newRecord.getValue({ fieldId: 'approvalstatus' }))
+      
+      const sourceJe = record.load({
+        type: record.Type.JOURNAL_ENTRY,
+        id: sourceJeId,
+        isDynamic: false
+      });
+      log.debug('Status', sourceJe.getValue({ fieldId: 'approvalstatus' }))
+      
       log.audit({
         title: 'Labor JE WIP relief entered',
         details: `Context type: ${context.type}, approve type: ${context.UserEventType.APPROVE}, JE: ${sourceJeId || 'blank'}`
       });
-
+      
       const oldApprovalStatus = context.oldRecord
-  ? String(context.oldRecord.getValue({ fieldId: 'approvalstatus' }) || '')
-  : '';
-
-const newApprovalStatus = String(sourceJe.getValue({ fieldId: 'approvalstatus' }) || '');
-
-log.debug({
-  title: 'Labor JE WIP relief approval status change',
-  details: `JE ${sourceJeId}, old approvalstatus ${oldApprovalStatus || 'blank'}, new approvalstatus ${newApprovalStatus || 'blank'}, required ${CFG.APPROVED}.`
-});
-
-if (oldApprovalStatus && (oldApprovalStatus === CFG.APPROVED || newApprovalStatus !== CFG.APPROVED)) {
-  log.debug({
-    title: 'Labor JE WIP relief skipped - not newly approved',
-    details: `JE ${sourceJeId} did not change from non-approved to approved.`
-  });
-  return;
-}
-
+      ? String(context.oldRecord.getValue({ fieldId: 'approvalstatus' }) || '')
+      : '';
+      
+      const newApprovalStatus = String(sourceJe.getValue({ fieldId: 'approvalstatus' }) || '');
+      
+      log.debug({
+        title: 'Labor JE WIP relief approval status change',
+        details: `JE ${sourceJeId}, old approvalstatus ${oldApprovalStatus || 'blank'}, new approvalstatus ${newApprovalStatus || 'blank'}, required ${CFG.APPROVED}.`
+      });
+      
+      if (oldApprovalStatus && (oldApprovalStatus === CFG.APPROVED || newApprovalStatus !== CFG.APPROVED)) {
+        log.debug({
+          title: 'Labor JE WIP relief skipped - not newly approved',
+          details: `JE ${sourceJeId} did not change from non-approved to approved.`
+        });
+        return;
+      }
+      
       const approvalStatus = String(sourceJe.getValue({ fieldId: 'approvalstatus' }) || '');
-
+      
       log.debug({
         title: 'Labor JE WIP relief approval check',
         details: `JE ${sourceJeId}, approvalstatus ${approvalStatus || 'blank'}, required ${CFG.APPROVED}.`
       });
-
+      
       if (approvalStatus !== CFG.APPROVED) {
         log.debug({
           title: 'Labor JE WIP relief skipped - approval status',
@@ -68,7 +71,7 @@ if (oldApprovalStatus && (oldApprovalStatus === CFG.APPROVED || newApprovalStatu
         });
         return;
       }
-
+      
       // Generated WIP relief JEs point back to their source JE. Do not process them again.
       const relatedSource = sourceJe.getValue({ fieldId: CFG.RELATED_JE });
       if (relatedSource) {
@@ -78,13 +81,13 @@ if (oldApprovalStatus && (oldApprovalStatus === CFG.APPROVED || newApprovalStatu
         });
         return;
       }
-
+      
       const subsidiary = sourceJe.getValue({ fieldId: 'subsidiary' });
       log.debug({
         title: 'Labor JE WIP relief subsidiary check',
         details: `JE ${sourceJeId}, subsidiary ${subsidiary || 'blank'}, allowed ${CFG.SUBSIDIARIES.join(', ')}.`
       });
-
+      
       if (!CFG.SUBSIDIARIES.includes(String(subsidiary || ''))) {
         log.audit({
           title: 'Labor JE WIP relief skipped - subsidiary',
@@ -92,13 +95,13 @@ if (oldApprovalStatus && (oldApprovalStatus === CFG.APPROVED || newApprovalStatu
         });
         return;
       }
-
+      
       const lines = getWipLines(sourceJe);
       log.audit({
         title: 'Labor JE WIP relief WIP lines found',
         details: `JE ${sourceJeId}, WIP account ${CFG.WIP_ACCOUNT}, matching line count ${lines.length}.`
       });
-
+      
       if (!lines.length) {
         log.audit({
           title: 'Labor JE WIP relief skipped - no WIP lines',
@@ -106,26 +109,26 @@ if (oldApprovalStatus && (oldApprovalStatus === CFG.APPROVED || newApprovalStatu
         });
         return;
       }
-
+      
       const projectOffsetAccountById = getProjectOffsetAccountMap(lines);
       const projectIds = Object.keys(projectOffsetAccountById);
       const unmappedProjectIds = projectIds.filter((projectId) => !projectOffsetAccountById[projectId]);
-
+      
       log.audit({
         title: 'Labor JE WIP relief project map summary',
         details: `JE ${sourceJeId}, unique projects ${projectIds.length}, mapped ${projectIds.length - unmappedProjectIds.length}, ` +
-          `unmapped ${unmappedProjectIds.length}${unmappedProjectIds.length ? ` (${unmappedProjectIds.join(', ')})` : ''}.`
+        `unmapped ${unmappedProjectIds.length}${unmappedProjectIds.length ? ` (${unmappedProjectIds.join(', ')})` : ''}.`
       });
-
+      
       log.debug({
         title: 'Labor JE WIP relief project account map',
         details: JSON.stringify(projectOffsetAccountById)
       });
-
+      
       const reliefLines = [];
       let skippedNoProject = 0;
       let skippedProjectLookup = 0;
-
+      
       lines.forEach((line) => {
         if (!line.projectId) {
           skippedNoProject += 1;
@@ -135,7 +138,7 @@ if (oldApprovalStatus && (oldApprovalStatus === CFG.APPROVED || newApprovalStatu
           });
           return;
         }
-
+        
         const offsetAccount = projectOffsetAccountById[String(line.projectId)];
         if (!offsetAccount) {
           skippedProjectLookup += 1;
@@ -145,46 +148,46 @@ if (oldApprovalStatus && (oldApprovalStatus === CFG.APPROVED || newApprovalStatu
           });
           return;
         }
-
+        
         line.offsetAccount = offsetAccount;
         reliefLines.push(line);
       });
-
+      
       if (!reliefLines.length) {
         log.audit({
           title: 'Labor JE WIP relief skipped',
           details: `JE ${sourceJeId} has WIP lines, but none had a usable line-level Project. ` +
-            `Skipped without Project: ${skippedNoProject}. Skipped lookup failures: ${skippedProjectLookup}.`
+          `Skipped without Project: ${skippedNoProject}. Skipped lookup failures: ${skippedProjectLookup}.`
         });
         return;
       }
-
+      
       log.audit({
         title: 'Labor JE WIP relief lines ready',
         details: `JE ${sourceJeId}, relief source lines ${reliefLines.length}, ` +
-          `skipped without Project ${skippedNoProject}, skipped lookup ${skippedProjectLookup}.`
+        `skipped without Project ${skippedNoProject}, skipped lookup ${skippedProjectLookup}.`
       });
-
+      
       const tranId = sourceJe.getValue({ fieldId: 'tranid' }) || sourceJeId;
       const tranDate = sourceJe.getValue({ fieldId: 'trandate' });
       const memo = `WIP to COGS relief - Labor JE ${tranId}`;
       const reliefJe = record.create({ type: record.Type.JOURNAL_ENTRY, isDynamic: true });
-
+      
       reliefJe.setValue({ fieldId: 'subsidiary', value: subsidiary });
       if (tranDate) reliefJe.setValue({ fieldId: 'trandate', value: tranDate });
       reliefJe.setValue({ fieldId: 'approvalstatus', value: CFG.PENDING_APPROVAL });
       reliefJe.setValue({ fieldId: 'memo', value: memo });
       reliefJe.setValue({ fieldId: CFG.RELATED_JE, value: sourceJeId });
-
+      
       reliefLines.forEach((line) => {
         const amount = Math.abs(line.amount);
-
+        
         log.debug({
           title: 'Labor JE WIP relief adding lines',
           details: `JE ${sourceJeId}, source line ${line.lineId || 'blank'}, project ${line.projectId}, ` +
-            `amount ${line.amount}, offset account ${line.offsetAccount}.`
+          `amount ${line.amount}, offset account ${line.offsetAccount}.`
         });
-
+        
         addLine({
           je: reliefJe,
           account: line.offsetAccount,
@@ -194,7 +197,7 @@ if (oldApprovalStatus && (oldApprovalStatus === CFG.APPROVED || newApprovalStatu
           fallbackMemo: memo,
           sourceJeId
         });
-
+        
         addLine({
           je: reliefJe,
           account: CFG.WIP_ACCOUNT,
@@ -205,48 +208,48 @@ if (oldApprovalStatus && (oldApprovalStatus === CFG.APPROVED || newApprovalStatu
           sourceJeId
         });
       });
-
+      
       log.audit({
         title: 'Labor JE WIP relief saving JE',
         details: `Source JE ${sourceJeId}, generated line count ${reliefLines.length * 2}.`
       });
-
+      
       const reliefJeId = reliefJe.save({ enableSourcing: true, ignoreMandatoryFields: false });
-
+      
       log.audit({
         title: 'Labor JE WIP relief created',
         details: `Source JE ${sourceJeId}, relief JE ${reliefJeId}, ` +
-          `${reliefLines.length} WIP line(s). Skipped without Project: ${skippedNoProject}. ` +
-          `Skipped lookup failures: ${skippedProjectLookup}.`
+        `${reliefLines.length} WIP line(s). Skipped without Project: ${skippedNoProject}. ` +
+        `Skipped lookup failures: ${skippedProjectLookup}.`
       });
-
+      
       record.submitFields({type: 'journalentry', id: sourceJeId, values: {custbody_bc_related_transaction: reliefJeId}});
-
+      
       var response = https.requestSuitelet({
-    scriptId: 'customscript_bc_sl_update_cogs_je',
-    deploymentId: 'customdeploy_bc_sl_update_cogs_je',
-    method: https.Method.GET,
-    urlParams: {
-        jeId: reliefJeId
-    }
-});
-
-log.debug('Suitelet Response', response.body);
+        scriptId: 'customscript_bc_sl_update_cogs_je',
+        deploymentId: 'customdeploy_bc_sl_update_cogs_je',
+        method: https.Method.GET,
+        urlParams: {
+          jeId: reliefJeId
+        }
+      });
+      
+      log.debug('Suitelet Response', response.body);
       
     } catch (e) {
       log.error({ title: 'Labor JE WIP relief failed', details: e.stack || e.message || e });
     }
   };
-
+  
   const getWipLines = (sourceJe) => {
     const lines = [];
     const lineCount = sourceJe.getLineCount({ sublistId: 'line' });
-
+    
     log.debug({
       title: 'Labor JE WIP relief line scan started',
       details: `JE ${sourceJe.id}, total line count ${lineCount}.`
     });
-
+    
     for (let i = 0; i < lineCount; i += 1) {
       const account = String(sourceJe.getSublistValue({ sublistId: 'line', fieldId: 'account', line: i }) || '');
       if (account !== CFG.WIP_ACCOUNT) {
@@ -256,7 +259,7 @@ log.debug('Suitelet Response', response.body);
         });
         continue;
       }
-
+      
       const debit = Number(sourceJe.getSublistValue({ sublistId: 'line', fieldId: 'debit', line: i }) || 0);
       const credit = Number(sourceJe.getSublistValue({ sublistId: 'line', fieldId: 'credit', line: i }) || 0);
       const amount = round(debit - credit);
@@ -267,7 +270,7 @@ log.debug('Suitelet Response', response.body);
         });
         continue;
       }
-
+      
       const lineData = {
         sourceLineIndex: i,
         amount,
@@ -280,38 +283,38 @@ log.debug('Suitelet Response', response.body);
         customerType: sourceJe.getSublistValue({ sublistId: 'line', fieldId: CFG.CUSTOMER_TYPE, line: i }),
         serviceType: sourceJe.getSublistValue({ sublistId: 'line', fieldId: CFG.SERVICE_TYPE, line: i })
       };
-
+      
       log.debug({
         title: 'Labor JE WIP relief line captured',
         details: `JE ${sourceJe.id}, line ${i}, unique key ${lineData.lineId || 'blank'}, ` +
-          `project ${lineData.projectId || 'blank'}, amount ${amount}.`
+        `project ${lineData.projectId || 'blank'}, amount ${amount}.`
       });
-
+      
       lines.push(lineData);
     }
-
+    
     return lines;
   };
-
+  
   const getProjectOffsetAccountMap = (lines) => {
     const projectOffsetAccountById = {};
     const projectIds = [];
-
+    
     lines.forEach((line) => {
       const projectId = String(line.projectId || '');
       if (!projectId || Object.prototype.hasOwnProperty.call(projectOffsetAccountById, projectId)) return;
-
+      
       projectOffsetAccountById[projectId] = '';
       projectIds.push(projectId);
     });
-
+    
     log.debug({
       title: 'Labor JE WIP relief project map started',
       details: `Unique project IDs: ${projectIds.length ? projectIds.join(', ') : 'none'}.`
     });
-
+    
     if (!projectIds.length) return projectOffsetAccountById;
-
+    
     try {
       search.create({
         type: 'job',
@@ -321,15 +324,15 @@ log.debug('Suitelet Response', response.body);
         const projectId = String(result.id || '');
         const maintenanceValue = result.getValue({ name: CFG.PROJECT_MAINTENANCE });
         projectOffsetAccountById[projectId] = isChecked(maintenanceValue)
-          ? CFG.MAINTENANCE_OFFSET_ACCOUNT
-          : CFG.STANDARD_OFFSET_ACCOUNT;
-
+        ? CFG.MAINTENANCE_OFFSET_ACCOUNT
+        : CFG.STANDARD_OFFSET_ACCOUNT;
+        
         log.debug({
           title: 'Labor JE WIP relief project mapped',
           details: `Project ${projectId}, ${CFG.PROJECT_MAINTENANCE}=${maintenanceValue}, ` +
-            `offset account ${projectOffsetAccountById[projectId]}.`
+          `offset account ${projectOffsetAccountById[projectId]}.`
         });
-
+        
         return true;
       });
     } catch (e) {
@@ -338,10 +341,10 @@ log.debug('Suitelet Response', response.body);
         details: e.stack || e.message || e
       });
     }
-
+    
     return projectOffsetAccountById;
   };
-
+  
   const addLine = ({ je, account, debit, credit, source, fallbackMemo, sourceJeId }) => {
     je.selectNewLine({ sublistId: 'line' });
     je.setCurrentSublistValue({ sublistId: 'line', fieldId: 'account', value: account });
@@ -357,23 +360,23 @@ log.debug('Suitelet Response', response.body);
     setLine(je, CFG.LINE_SOURCE, sourceJeId);
     setLine(je, CFG.LINE_SOURCE_ID, source.lineId);
     je.commitLine({ sublistId: 'line' });
-
+    
     log.debug({
       title: 'Labor JE WIP relief line committed',
       details: `Source JE ${sourceJeId}, source line ${source.lineId || 'blank'}, account ${account}, ` +
-        `debit ${debit || 0}, credit ${credit || 0}, project ${source.projectId}.`
+      `debit ${debit || 0}, credit ${credit || 0}, project ${source.projectId}.`
     });
   };
-
+  
   const setLine = (je, fieldId, value) => {
     if (value !== null && value !== undefined && value !== '') {
       je.setCurrentSublistValue({ sublistId: 'line', fieldId, value });
     }
   };
-
+  
   const isChecked = (value) => value === true || value === 'T' || value === 'true';
-
+  
   const round = (value) => Math.round((Number(value) + Number.EPSILON) * 100) / 100;
-
+  
   return { afterSubmit };
 });
