@@ -46,7 +46,7 @@ if (oldApprovalStatus === CFG.APPROVED || newApprovalStatus !== CFG.APPROVED) {
     title: 'Labor JE WIP relief skipped - not newly approved',
     details: `JE ${sourceJeId} did not change from non-approved to approved.`
   });
-  return;
+ // return;
 }
 
       const approvalStatus = String(sourceJe.getValue({ fieldId: 'approvalstatus' }) || '');
