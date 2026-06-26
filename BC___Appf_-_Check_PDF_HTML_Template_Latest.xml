@@ -2166,7 +2166,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 <td>&nbsp;</td>
 <td>${item.date}</td>
 <td>${item.item}, ${item.description}</td>
-<td align="center">${item.amount}</td>
+<td>${item.amount}</td>
 </tr>
         </#list>
         </table>
@@ -2265,7 +2265,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 <td>&nbsp;</td>
 <td>${item.date}</td>
 <td>${item.item}, ${item.description}</td>
-<td align="right">${item.amount}</td>
+<td>${item.amount}</td>
 </tr>
         </#list>
         </table>
