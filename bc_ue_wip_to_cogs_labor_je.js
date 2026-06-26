@@ -41,7 +41,7 @@ log.debug({
   details: `JE ${sourceJeId}, old approvalstatus ${oldApprovalStatus || 'blank'}, new approvalstatus ${newApprovalStatus || 'blank'}, required ${CFG.APPROVED}.`
 });
 
-if (oldApprovalStatus === CFG.APPROVED || newApprovalStatus !== CFG.APPROVED) {
+if (oldApprovalStatus && (oldApprovalStatus === CFG.APPROVED || newApprovalStatus !== CFG.APPROVED)) {
   log.debug({
     title: 'Labor JE WIP relief skipped - not newly approved',
     details: `JE ${sourceJeId} did not change from non-approved to approved.`
