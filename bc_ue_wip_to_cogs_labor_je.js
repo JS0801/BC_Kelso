@@ -22,13 +22,8 @@ define(['N/record', 'N/search', 'N/log', 'N/https'], (record, search, log, https
 
   const afterSubmit = (context) => {
     try {
-    //  const sourceJe = context.newRecord;
-      const sourceJeId = context.newRecord.id;
-
-      var sourceJe = record.load({type: 'journalentry', id: sourceJeId});
-      sourceJe.save();
-      var sourceJeNew = record.load({type: 'journalentry', id: sourceJeId});
-      log.debug('Status', sourceJeNew.getValue('approvalstatus'))
+      const sourceJe = context.newRecord;
+      const sourceJeId = sourceJe.id;
 
       log.audit({
         title: 'Labor JE WIP relief entered',
@@ -201,8 +196,8 @@ define(['N/record', 'N/search', 'N/log', 'N/https'], (record, search, log, https
         ['type', 'anyof', 'Journal'],
         'AND',
         ['internalid', 'anyof', sourceJeId],
-        // 'AND',
-        // ['approvalstatus', 'anyof', CFG.APPROVED],
+        'AND',
+        [['approvalstatus', 'anyof', CFG.APPROVED], 'OR', ['workflow.custworkflow_bc_je_approved', 'is', 'T']],
         'AND',
         ['subsidiary', 'anyof'].concat(CFG.SUBSIDIARIES),
         'AND',
