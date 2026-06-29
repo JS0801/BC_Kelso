@@ -2169,7 +2169,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 <tr>
     <td>${record.trandate}</td>
     <td>Expense</td>
-    <td></td>
+    <td>&nbsp;</td>
     <td align = "right">${expense.amount}</td>
     <td align = "right">${expense.amount}</td>
     <td align = "right">${expense.amount}</td>
