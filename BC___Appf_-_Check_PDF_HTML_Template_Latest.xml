@@ -2153,7 +2153,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 
 <#if check.item?has_content || check.expense?has_content>
 <table style="overflow: hidden;left: 30pt;top: 40pt;width: 580pt;">
-  <#if combinedLength == 0>
+  <#if combinedLength?has_content>
 <thead>
     <tr>
         <th align="center" style="width: 15%"><b>Date</b></th>
