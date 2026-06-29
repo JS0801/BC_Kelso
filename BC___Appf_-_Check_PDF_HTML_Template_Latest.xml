@@ -2153,12 +2153,26 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 
 <#if check.item?has_content || check.expense?has_content>
 <table style="overflow: hidden;left: 30pt;top: 40pt;width: 580pt;">
+  <#if combinedLength == 0>
+<thead>
+    <tr>
+        <th align="center" style="width: 15%"><b>Date</b></th>
+        <th style="width: 10%"><b>Type</b></th>
+        <th align="right" style="width: 18%"><b>Reference</b></th>
+        <th align="right" style="width: 19%"><b>Original Amount</b></th>
+        <th align="right" style="width: 19%"><b>Balance Due</b></th>
+        <th align="right" style="width: 19%"><b>Payment</b></th>
+    </tr>
+</thead>
+</#if>
 <#list check.expense as expense>
 <tr>
-    <td>${expense.account}</td>
-    <td>${expense.date}</td>
-    <td>${expense.description}</td>
-    <td  align = "right" padding-right = "50px">${expense.amount}</td>
+    <td>${record.trandate}</td>
+    <td>Expense</td>
+    <td></td>
+    <td align = "right">${expense.amount}</td>
+    <td align = "right">${expense.amount}</td>
+    <td align = "right">${expense.amount}</td>
 </tr>
 </#list>
 <#list check.item as item>
