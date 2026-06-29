@@ -1,104 +1,3054 @@
-<!doctype html>
+<?xml version="1.0"?>
+<!DOCTYPE pdf PUBLIC "-//big.faceless.org//report" "report-1.1.dtd">
+<pdf>
+    <head>
+        <link name="NotoSans" type="font" subtype="truetype" src="${nsfont.NotoSans_Regular}"
+              src-bold="${nsfont.NotoSans_Bold}" src-italic="${nsfont.NotoSans_Italic}"
+              src-bolditalic="${nsfont.NotoSans_BoldItalic}" bytes="2"/>
+        <#if .locale=="zh_CN">
+        <link name="NotoSansCJKsc" type="font" subtype="opentype" src="${nsfont.NotoSansCJKsc_Regular}"
+              src-bold="${nsfont.NotoSansCJKsc_Bold}" bytes="2"/>
+        <#elseif .locale=="zh_TW">
+        <link name="NotoSansCJKtc" type="font" subtype="opentype" src="${nsfont.NotoSansCJKtc_Regular}"
+              src-bold="${nsfont.NotoSansCJKtc_Bold}" bytes="2"/>
+        <#elseif .locale=="ja_JP">
+        <link name="NotoSansCJKjp" type="font" subtype="opentype" src="${nsfont.NotoSansCJKjp_Regular}"
+              src-bold="${nsfont.NotoSansCJKjp_Bold}" bytes="2"/>
+        <#elseif .locale=="ko_KR">
+        <link name="NotoSansCJKkr" type="font" subtype="opentype" src="${nsfont.NotoSansCJKkr_Regular}"
+              src-bold="${nsfont.NotoSansCJKkr_Bold}" bytes="2"/>
+        <#elseif .locale=="th_TH">
+        <link name="NotoSansThai" type="font" subtype="opentype"
+              src="${nsfont.NotoSansThai_Regular}" src-bold="${nsfont.NotoSansThai_Bold}" bytes="2"/>
+    </#if>
 
-<html>
-<head>
-	<title>NetSuite Login</title>
+    <style type="text/css">
+        * {
+        <#if .locale=="zh_CN">font-family: NotoSans, NotoSansCJKsc, sans-serif;
+        <#elseif .locale=="zh_TW">font-family: NotoSans, NotoSansCJKtc, sans-serif;
+        <#elseif .locale=="ja_JP">font-family: NotoSans, NotoSansCJKjp, sans-serif;
+        <#elseif .locale=="ko_KR">font-family: NotoSans, NotoSansCJKkr, sans-serif;
+        <#elseif .locale=="th_TH">font-family: NotoSans, NotoSansThai, sans-serif;
+        <#else>font-family: NotoSans, sans-serif;
+    </#if>
+            }
 
-<link rel="icon" type="image/png" href="/authentication/ui/loginpage/assets/icon/favicon-96x96.png" sizes="96x96" />
-<link rel="icon" type="image/svg+xml" href="/authentication/ui/loginpage/assets/icon/favicon.svg" />
-<link rel="shortcut icon" href="/authentication/ui/loginpage/assets/icon/favicon.ico" />
-<link rel="apple-touch-icon" sizes="180x180" href="/authentication/ui/loginpage/assets/icon/apple-touch-icon.png" />
-<link rel="manifest" href="/authentication/ui/loginpage/assets/icon/site.webmanifest" />	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-		<meta name="robots" content="noindex, nofollow"/>
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" type="text/css" href="/assets/@uif-js/fonts/1.0.9/css/fonts.css?NS_VER=2026.1&amp;minver=15" />
-    <link rel="stylesheet" type="text/css" href="/assets/redwood_tokens/3366255335.css?NS_VER=2026.1&amp;minver=15" />
-    <link rel="stylesheet" type="text/css" href="/assets/loginpage_redwoodcommon/3247350347.css?NS_VER=2026.1&amp;minver=15" />
-    <link rel="stylesheet" type="text/css" href="/assets/loginpage_redwood/3726434582.css?NS_VER=2026.1&amp;minver=15" />
-    	<script type="text/javascript" nonce="bgM5+cBnco2N0/P2gavvYdWBYbSwAO/0I3rwGQYMu0o=" src="/javascript/NLPortal.jsp?JSP_VER=1&amp;NS_VER=2026.1&amp;minver=15&amp;buildver=30073"></script>
-    	<script type="text/javascript" nonce="bgM5+cBnco2N0/P2gavvYdWBYbSwAO/0I3rwGQYMu0o=" src="/assets/loginpage_redwoodcommon/1850496838.js?NS_VER=2026.1&amp;minver=15" integrity="sha512-SuSCUiNXWCMUY/5xUGP6eFE6lC0fbXJuf/xlTSk87NqQe49queCPdsc5l/gd/4BbWjTWCp0jz7UX1+7hj8FPIw=="></script>
+            td p {
+            align: left;
+            }
+
+            th {
+            padding: 3pt 0;
+            }
+</style>
+
+        </head>
+
+<body padding="0" size="Letter">
+<#list records as check>
+<!-- WALLACE SUBSIDIARY CHECK FORMAT -->
+<!-- WALLACE SUBSIDIARY CHECK FORMAT -->
+<#if check.subsidiary.id == "13">
+
+<#assign applyLength    = check.apply?size>
+<#assign creditLength   = check.credit?size>
+<#assign combinedLength = applyLength + creditLength>
+<#assign otherTotalAmt  = 0>
+<#assign otherTotalDisc = 0>
+
+<#list check.apply as apply>
+<#assign otherTotalAmt  = otherTotalAmt  + nsformat_number(apply.amount)>
+<#assign otherTotalDisc = otherTotalDisc + nsformat_number(apply.disc)>
+</#list>
+
+<#list check.credit as credit>
+<#assign otherTotalAmt  = otherTotalAmt  + nsformat_number(credit.amount)>
+<#assign otherTotalDisc = otherTotalDisc + nsformat_number(credit.discamt)>
+        </#list>
+
+<div style="font-family: Helvetica,sans-serif;height: 240pt;width: 612pt;page-break-inside: avoid;font-size: 8pt;">
+
+<#assign ctr1 = 1>
+
+<#if check.apply?has_content>
+<table class="itemtable" style="position: absolute;overflow: hidden; width: 100%; margin: 30pt 10pt 8pt;">
+    <!-- start apply sublist -->
+    <#list check.apply as apply>
+    <#if ctr1 lt 11>
+    <#if apply_index == 0>
+    <thead>
+        <tr>
+            <th align="center" style="width: 15%">${apply.applydate@label}</th>
+            <th style="width: 10%">${apply.type@label}</th>
+            <th align="right" style="width: 15%">${apply.refnum@label}</th>
+            <th align="right" style="width: 15%">${apply.total@label}</th>
+            <th align="right" style="width: 15%">${apply.due@label}</th>
+            <th align="right" style="width: 15%">${apply.disc@label}</th>
+            <th align="right" style="width: 15%">${apply.amount@label}</th>
+        </tr>
+    </thead>
+</#if>
+<tr>
+    <td align="center" style="width: 15%">${apply.applydate}</td>
+    <td style="width: 10%">${apply.type}</td>
+    <td align="right" style="width: 15%">${apply.refnum}</td>
+    <td align="right" style="width: 15%">${apply.total}</td>
+    <td align="right" style="width: 15%">${apply.due}</td>
+    <td align="right" style="width: 15%">${apply.disc}</td>
+    <td align="right" style="width: 15%">${apply.amount}</td>
+</tr>
+</#if>
+<#assign ctr1 = ctr1 + 1>
+        </#list>
+        <!-- end apply -->
+
+        <!-- start credit sublist -->
+<#list check.credit as credit>
+<#if ctr1 lt 11>
+<tr>
+<td align="center" style="width: 15%">${credit.creditdate}</td>
+<td style="width: 10%">${credit.type}</td>
+<td align="right" style="width: 15%">${credit.refnum}</td>
+<td align="right" style="width: 15%">${credit.description}</td>
+<td align="right" style="width: 15%">(${credit.amount})</td>
+<td align="right" style="width: 15%">${credit.discamt}</td>
+<td align="right" style="width: 15%">(${credit.amount})</td>
+</tr>
+        </#if>
+<#assign ctr1 = ctr1 + 1>
+        </#list>
+        <!-- end credit -->
+
+        <!-- Add Check Total line -->
+<tr>
+<td colspan="5"><strong>CHECK TOTAL:</strong></td>
+<td align="right"><strong>${otherTotalDisc?string.currency}</strong></td>
+<td align="right"><strong>${otherTotalAmt?string.currency}</strong></td>
+</tr>
 
 
-</head>
-<body>
+<tr>
+<td colspan="7">
+    <div style="height:160pt;"></div>
+</td>
+</tr>
 
-<div id="page-wrapper">
-	<div id='div__alert' class="text-align: center"></div>
-<div class="login-page-body" data-page-type="login">
-	<div class="login-page-main">
-		<div class="login-page-box">
-			<div class="login-page-box-logos">
-				<a class="login-page-box-logo-link" href="http://www.netsuite.com/portal/home.shtml?noredirect=T" tabindex="-1">
-					<img class="login-page-box-logo login-page-box-logo--ns"
-						src="/authentication/ui/loginpage/assets/logo/NetSuite-logo-mobius.svg" alt="Oracle NetSuite" />
-				</a>
-			</div>
-			<h2 class="login-page-box-title">Log In</h2>
+<tr>
+<td colspan="7">
+    <div style="font-family: Helvetica,sans-serif;height: 240pt;width: 612pt;page-break-inside: avoid;font-size: 8pt;">
+
+    <#if check.account.id == "984" || check.account.id == "985">
+    <table style="position: absolute;overflow: hidden;left: 489pt;top: 38pt;height: 27pt;width: 85pt;font-size: 8pt;">
+        <#else>
+        <table style="position: absolute;overflow: hidden;left: 489pt;top: 8pt;height: 7pt;width: 85pt;font-size: 8pt;">
+        </#if>
+        <tr>
+            <td align="center">${check.checknumber}</td>
+        </tr>
+    </table>
+
+    <#if check.account.id == "984" || check.account.id == "985">
+    <table style="position: absolute;overflow: hidden;left: 505pt;top: 72pt;height: 18pt;width: 575pt; font-size: 13px;">
+        <#else>
+        <table style="position: absolute;overflow: hidden;left: 505pt;top: 40pt;height: 18pt;width: 575pt;">
+        </#if>
+        <tr>
+            <td>${check.trandate}</td>
+        </tr>
+    </table>
+
+    <#if check.account.id == "984" || check.account.id == "985">
+    <table style="position: absolute;overflow: hidden;left: 70pt;top: 90pt;height: 18pt;width: 393pt; font-size: 13px;">
+    <#else>
+    <table style="position: absolute;overflow: hidden;left: 60pt;top: 78pt;height: 18pt;width: 393pt;">
+    </#if>
+    <tr>
+    <td>
+        <#if (check.entity.companyname?has_content)>
+        ${check.entity.companyname}
+        <#else>
+        ${check.entity}
+    </#if>
+</td>
+</tr>
+        </table>
+
+<#if check.account.id == "984" || check.account.id == "985">
+<table style="position: absolute;overflow: hidden;left: 505pt;top: 90pt;height: 18pt;width: 111pt; font-size: 13px;">
+<#else>
+<table style="position: absolute;overflow: hidden;left: 505pt;top: 78pt;height: 18pt;width: 111pt;">
+</#if>
+<tr>
+    <td>
+        <#if (check.usertotal?length > 0)>
+        ${check.usertotal?string['#,###,##0.00']}
+        <#else>
+        ${check.total?string['#,###,##0.00']}
+    </#if>
+</td>
+</tr>
+        </table>
+
+<#if check.account.id == "984" || check.account.id == "985">
+<table style="position: absolute;overflow: hidden;left: 60pt;top: 120pt;height: 18pt;width:575pt; font-size: 13px;">
+<#else>
+<table style="position: absolute;overflow: hidden;left: 60pt;top: 102pt;height: 18pt;width:575pt;">
+</#if>
+<tr>
+    <td>
+        <#-- ${check.totalwords}********************************************************************* -->
+    </td>
+</tr>
+</table>
+
+<#if check.account.id == "984" || check.account.id == "985">
+<table style="position: absolute;overflow: hidden;left: 60pt;top: 142pt;height: 80pt;width: 575pt; font-size: 13px;">
+<#else>
+<table style="position: absolute;overflow: hidden;left: 60pt;top: 140pt;height: 80pt;width: 575pt;">
+</#if>
+<tr>
+    <td>
+        <#if (check.entity.address?has_content)>
+        ${check.entity.address}
+        <#else>
+        ${check.entity}
+    </#if>
+</td>
+</tr>
+        </table>
+
+        </div>
+        </td>
+        </tr>
+
+        </table>
+        </#if>
+
+        </div>
+
+        <!-- SEGUNDO BLOQUE: SOLO STUB REPETIDO AL FINAL DE LA PÁGINA -->
+<div style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-before: avoid;font-size: 8pt; margin-top: 30pt;">
+
+<#assign ctr2 = 1>
+
+<#if check.apply?has_content>
+<table class="itemtable" style="position: absolute;overflow: hidden; width: 100%; margin: 00pt 10pt 8pt;">
+    <!-- start apply sublist -->
+    <#list check.apply as apply>
+    <#if ctr2 lt 7>
+    <#if apply_index == 0>
+    <thead>
+        <tr>
+            <td colspan="7">
+                <div style="height:420pt;"></div>
+            </td>
+        </tr>
+        <tr>
+            <th align="center" style="width: 15%">${apply.applydate@label}</th>
+            <th style="width: 10%">${apply.type@label}</th>
+            <th align="right" style="width: 15%">${apply.refnum@label}</th>
+            <th align="right" style="width: 15%">${apply.total@label}</th>
+            <th align="right" style="width: 15%">${apply.due@label}</th>
+            <th align="right" style="width: 15%">${apply.disc@label}</th>
+            <th align="right" style="width: 15%">${apply.amount@label}</th>
+        </tr>
+    </thead>
+</#if>
+<tr>
+    <td align="center" style="width: 15%">${apply.applydate}</td>
+    <td style="width: 10%">${apply.type}</td>
+    <td align="right" style="width: 15%">${apply.refnum}</td>
+    <td align="right" style="width: 15%">${apply.total}</td>
+    <td align="right" style="width: 15%">${apply.due}</td>
+    <td align="right" style="width: 15%">${apply.disc}</td>
+    <td align="right" style="width: 15%">${apply.amount}</td>
+</tr>
+<#elseif ctr2 == 8>
+<tr>
+    <td colspan="7" style="text-align:center; font-style:italic;">
+        See Transmittal Sheet for check details.
+    </td>
+</tr>
+<#break>
+</#if>
+
+<#assign ctr2 = ctr2 + 1>
+        </#list>
+        <!-- end apply -->
+
+        <!-- start credit sublist -->
+<#list check.credit as credit>
+<#assign ctr2 = ctr2 + 1>
+
+<#if ctr2 lt 7>
+<tr>
+<td align="center" style="width: 15%">${credit.creditdate}</td>
+<td style="width: 10%">${credit.type}</td>
+<td align="right" style="width: 15%">${credit.refnum}</td>
+<td align="right" style="width: 15%">${credit.description}</td>
+<td align="right" style="width: 15%">(${credit.amount})</td>
+<td align="right" style="width: 15%">${credit.discamt}</td>
+<td align="right" style="width: 15%">(${credit.amount})</td>
+</tr>
+<#elseif ctr2 == 8>
+<tr>
+<td colspan="7" style="text-align:center; font-style:italic;">
+    See Transmittal Sheet for check details.
+</td>
+</tr>
+<#break>
+        </#if>
+        </#list>
+        <!-- end credit -->
+
+        <!-- Add Check Total line (igual que arriba) -->
+<tr>
+<td colspan="5"><strong>CHECK TOTAL:</strong></td>
+<td align="right"><strong>${otherTotalDisc?string.currency}</strong></td>
+<td align="right"><strong>${otherTotalAmt?string.currency}</strong></td>
+</tr>
+
+        </table>
+        </#if>
+
+        </div>
+
+<#elseif check.subsidiary.id == "29">
 
 
-			<form method="post" id="login-form" class="login-page-form" data-validate data-cookie-prefill data-reset-rememberme>
-				<input type="hidden" name="jsenabled" value="F">
-
-					<input type="hidden" name="redirect" value="/app/suiteapp/devframework/xml/datafileexport.nl?recordtype=advancedpdftemplate&amp;amp;name=template&amp;amp;id=435">
-					<input type="hidden" name="c" value="6962009_SB2">
-
-				<div class="login-page-form-field">
-					<input type="text" name="email" id="email" required data-validate-on-blur
-						placeholder="Email address"/>
-					<label for="email">Email address</label>
-					<div class="validation-message">
-						<p>
-							<img src="/uiredwood/img/message/error.svg" alt="" />
-							<span>Valid email is required: name@company.com</span>
-						</p>
-					</div>
-				</div>
-
-				<div class="login-page-form-field">
-					<input type="password" name="password" id="password" autocomplete="off" required data-validate-on-blur
-						placeholder="Password"/>
-					<label for="password">Password</label>
-					<div class="validation-message">
-						<p>
-							<img src="/uiredwood/img/message/error.svg" alt="" />
-							<span>Password is required</span>
-						</p>
-					</div>
-				</div>
-
-				<div class="login-page-form-checkbox">
-					<input type="checkbox" name="rememberme" id="rememberme" class="login-checkbox"/>
-					<label for="rememberme">Remember Me</label>
-				</div>
-
-				<button class="login-page-form-submit" type="submit" name="submitButton" id="login-submit">
-					<svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-						<path d="M11.9982 4C14.2074 4 15.9982 5.79086 15.9982 8V11H7.99823V8C7.99823 5.79086 9.78909 4 11.9982 4ZM17.9982 11V8C17.9982 4.68629 15.3119 2 11.9982 2C8.68452 2 5.99823 4.68629 5.99823 8V11H1.99823V22H21.9982V11H17.9982ZM3.99823 13H19.9982V20H3.99823V13Z"></path>
-					</svg>
-					<span>Log In</span>
-				</button>
 
 
-				<a href="/app/login/preparepwdreset.nl?email=&"
-					class="login-page-form-forgot">Forgot your password?</a>
+<#assign applyLength    = check.apply?size>
+<#assign creditLength   = check.credit?size>
+<#assign combinedLength = applyLength + creditLength>
+<#assign otherTotalAmt  = 0>
+<#assign otherTotalDisc = 0>
 
-			</form>
+<#list check.apply as apply>
+<#assign otherTotalAmt  = otherTotalAmt  + nsformat_number(apply.amount)>
+<#assign otherTotalDisc = otherTotalDisc + nsformat_number(apply.disc)>
+        </#list>
 
-			<div class="login-page-box-footer">
-				By clicking on the Log In button, you understand and agree to
-				<a href="https://www.oracle.com/us/legal/terms/index.html">Oracle Terms of Use</a>
-				and
-				<a href="https://www.oracle.com/us/legal/privacy/privacy-policy/index.html">Oracle Privacy Policy</a>
-			</div>
-		</div>
+<#list check.credit as credit>
+<#assign otherTotalAmt  = otherTotalAmt  + nsformat_number(credit.amount)>
+<#assign otherTotalDisc = otherTotalDisc + nsformat_number(credit.discamt)>
+        </#list>
 
-		<div class="login-page-footer">
-			<a class="link" href="https://www.oracle.com/legal/copyright.html">© Oracle</a>
-			<span class="sep">|</span>
-			<a class="link" href="http://www.netsuite.com/portal/assets/pdf/oracle-terms-use-netsuite-support-portal.pdf">Oracle Terms of Use for NetSuite Support Portal</a>
-		</div>
-	</div>
+        <!-- PRIMER BLOQUE: STUB + CUERPO DEL CHEQUE (ARRIBA) -->
+<div style="font-family: Helvetica,sans-serif;height: 240pt;width: 612pt;page-break-inside: avoid;font-size: 8pt;">
+
+<#assign ctr1 = 1>
+
+<#if check.apply?has_content>
+<table class="itemtable" style="position: absolute;overflow: hidden; width: 100%; margin: 30pt 10pt 8pt;">
+    <!-- start apply sublist -->
+    <#list check.apply as apply>
+    <#if ctr1 lt 11>
+    <#if apply_index == 0>
+    <thead>
+        <tr>
+            <th align="center" style="width: 15%">${apply.applydate@label}</th>
+            <th style="width: 10%">${apply.type@label}</th>
+            <th align="right" style="width: 15%">${apply.refnum@label}</th>
+            <th align="right" style="width: 15%">${apply.total@label}</th>
+            <th align="right" style="width: 15%">${apply.due@label}</th>
+            <th align="right" style="width: 15%">${apply.disc@label}</th>
+            <th align="right" style="width: 15%">${apply.amount@label}</th>
+        </tr>
+    </thead>
+</#if>
+<tr>
+    <td align="center" style="width: 15%">${apply.applydate}</td>
+    <td style="width: 10%">${apply.type}</td>
+    <td align="right" style="width: 15%">${apply.refnum}</td>
+    <td align="right" style="width: 15%">${apply.total}</td>
+    <td align="right" style="width: 15%">${apply.due}</td>
+    <td align="right" style="width: 15%">${apply.disc}</td>
+    <td align="right" style="width: 15%">${apply.amount}</td>
+</tr>
+</#if>
+<#assign ctr1 = ctr1 + 1>
+        </#list>
+        <!-- end apply -->
+
+        <!-- start credit sublist -->
+<#list check.credit as credit>
+<#if ctr1 lt 11>
+<tr>
+<td align="center" style="width: 15%">${credit.creditdate}</td>
+<td style="width: 10%">${credit.type}</td>
+<td align="right" style="width: 15%">${credit.refnum}</td>
+<td align="right" style="width: 15%">${credit.description}</td>
+<td align="right" style="width: 15%">(${credit.amount})</td>
+<td align="right" style="width: 15%">${credit.discamt}</td>
+<td align="right" style="width: 15%">(${credit.amount})</td>
+</tr>
+        </#if>
+<#assign ctr1 = ctr1 + 1>
+        </#list>
+        <!-- end credit -->
+
+        <!-- Add Check Total line -->
+<tr>
+<td colspan="5"><strong>CHECK TOTAL:</strong></td>
+<td align="right"><strong>${otherTotalDisc?string.currency}</strong></td>
+<td align="right"><strong>${otherTotalAmt?string.currency}</strong></td>
+</tr>
+
+
+<tr>
+<td colspan="7">
+    <div style="height:160pt;"></div>
+</td>
+</tr>
+
+        <!-- Cuerpo del cheque dentro de la última fila -->
+<tr>
+<td colspan="7">
+    <div style="font-family: Helvetica,sans-serif;height: 240pt;width: 612pt;page-break-inside: avoid;font-size: 8pt;">
+
+    <#if check.account.id == "984" || check.account.id == "985">
+    <table style="position: absolute;overflow: hidden;left: 489pt;top: 38pt;height: 27pt;width: 85pt;font-size: 8pt;">
+        <#else>
+        <table style="position: absolute;overflow: hidden;left: 489pt;top: 8pt;height: 7pt;width: 85pt;font-size: 8pt;">
+        </#if>
+        <tr>
+            <td align="center">${check.checknumber}</td>
+        </tr>
+    </table>
+
+    <#if check.account.id == "984" || check.account.id == "985">
+    <table style="position: absolute;overflow: hidden;left: 405pt;top: 72pt;height: 18pt;width: 575pt; font-size: 13px;">
+    <#else>
+    <table style="position: absolute;overflow: hidden;left: 405pt;top: 40pt;height: 18pt;width: 575pt;">
+    </#if>
+    <tr>
+    <td>
+        ${check.trandate}
+        <#if (check.usertotal?length > 0)>
+        <span style="margin-left: 50pt;">
+            ${check.usertotal?string['#,###,##0.00']}
+        </span>
+        <#else>
+        <span style="margin-left: 50pt;">
+            ${check.total?string['#,###,##0.00']}
+        </span>
+    </#if>
+</td>
+</tr>
+        </table>
+
+<#if check.account.id == "984" || check.account.id == "985">
+<table style="position: absolute;overflow: hidden;left: 70pt;top: 90pt;height: 18pt;width: 393pt; font-size: 13px;">
+<#else>
+<table style="position: absolute;overflow: hidden;left: 60pt;top: 78pt;height: 18pt;width: 393pt;">
+</#if>
+<tr>
+    <td>
+        <#if (check.entity.companyname?has_content)>
+        ${check.entity.companyname}
+        <#else>
+        ${check.entity}
+    </#if>
+</td>
+</tr>
+        </table>
+<#--
+<#if check.account.id == "984" || check.account.id == "985">
+<table style="position: absolute;overflow: hidden;left: 505pt;top: 90pt;height: 18pt;width: 111pt; font-size: 13px;">
+<#else>
+<table style="position: absolute;overflow: hidden;left: 505pt;top: 78pt;height: 18pt;width: 111pt;">
+</#if>
+<tr>
+    <td>
+        <#if (check.usertotal?length > 0)>
+        ${check.usertotal?string['#,###,##0.00']}
+        <#else>
+        ${check.total?string['#,###,##0.00']}
+    </#if>
+</td>
+</tr>
+        </table>
+        -->
+<#if check.account.id == "984" || check.account.id == "985">
+<table style="position: absolute;overflow: hidden;left: 30pt;top: 120pt;height: 18pt;width:575pt; font-size: 13px;">
+<#else>
+<table style="position: absolute;overflow: hidden;left: 30pt;top: 102pt;height: 18pt;width:575pt;">
+</#if>
+<tr>
+    <td>
+        ${check.totalwords}*********************************************************************
+    </td>
+</tr>
+</table>
+
+<#if check.account.id == "984" || check.account.id == "985">
+<table style="position: absolute;overflow: hidden;left: 60pt;top: 142pt;height: 80pt;width: 575pt; font-size: 13px;">
+<#else>
+<table style="position: absolute;overflow: hidden;left: 60pt;top: 140pt;height: 80pt;width: 575pt;">
+</#if>
+<tr>
+    <td>
+        <#if check.address?contains("United States")>
+        ${check.address?replace("United States","")}
+        <#else>
+        ${check.address}
+    </#if>
+</td>
+</tr>
+        </table>
+
+        </div>
+        </td>
+        </tr>
+
+        </table>
+        </#if>
+
+        </div>
+
+        <!-- SEGUNDO BLOQUE: SOLO STUB REPETIDO AL FINAL DE LA PÁGINA -->
+<div style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-before: avoid;font-size: 8pt; margin-top: 30pt;">
+
+<#assign ctr2 = 1>
+
+<#if check.apply?has_content>
+<table class="itemtable" style="position: absolute;overflow: hidden; width: 100%; margin: 30pt 10pt 8pt;">
+    <!-- start apply sublist -->
+    <#list check.apply as apply>
+    <#if ctr2 lt 11>
+    <#if apply_index == 0>
+    <thead>
+        <tr>
+            <td colspan="7">
+                <div style="height:420pt;"></div>
+            </td>
+        </tr>
+        <tr>
+            <th align="center" style="width: 15%">${apply.applydate@label}</th>
+            <th style="width: 10%">${apply.type@label}</th>
+            <th align="right" style="width: 15%">${apply.refnum@label}</th>
+            <th align="right" style="width: 15%">${apply.total@label}</th>
+            <th align="right" style="width: 15%">${apply.due@label}</th>
+            <th align="right" style="width: 15%">${apply.disc@label}</th>
+            <th align="right" style="width: 15%">${apply.amount@label}</th>
+        </tr>
+    </thead>
+</#if>
+<tr>
+    <td align="center" style="width: 15%">${apply.applydate}</td>
+    <td style="width: 10%">${apply.type}</td>
+    <td align="right" style="width: 15%">${apply.refnum}</td>
+    <td align="right" style="width: 15%">${apply.total}</td>
+    <td align="right" style="width: 15%">${apply.due}</td>
+    <td align="right" style="width: 15%">${apply.disc}</td>
+    <td align="right" style="width: 15%">${apply.amount}</td>
+</tr>
+</#if>
+<#assign ctr2 = ctr2 + 1>
+        </#list>
+        <!-- end apply -->
+
+        <!-- start credit sublist -->
+<#list check.credit as credit>
+<#if ctr2 lt 11>
+<tr>
+<td align="center" style="width: 15%">${credit.creditdate}</td>
+<td style="width: 10%">${credit.type}</td>
+<td align="right" style="width: 15%">${credit.refnum}</td>
+<td align="right" style="width: 15%">${credit.description}</td>
+<td align="right" style="width: 15%">(${credit.amount})</td>
+<td align="right" style="width: 15%">${credit.discamt}</td>
+<td align="right" style="width: 15%">(${credit.amount})</td>
+</tr>
+        </#if>
+<#assign ctr2 = ctr2 + 1>
+        </#list>
+        <!-- end credit -->
+
+        <!-- Add Check Total line (igual que arriba) -->
+<tr>
+<td colspan="5"><strong>CHECK TOTAL:</strong></td>
+<td align="right"><strong>${otherTotalDisc?string.currency}</strong></td>
+<td align="right"><strong>${otherTotalAmt?string.currency}</strong></td>
+</tr>
+
+        </table>
+        </#if>
+
+        </div>
+
+
+
+
+
+
+<#elseif check.subsidiary.id == '19'>
+
+
+
+
+<div style="page-break-after: always;">
+<div style="font-family: Helvetica,sans-serif;height: 260pt;width: 100%;page-break-before: avoid;font-size: 8pt; padding-top: 30px; padding-left: 10px; padding-right: 10px;">
+    <#assign totalAmt = 0>
+    <#assign totalAmtCheck = 0>
+    <#assign totalOrgAmount = 0>
+    <#assign totalDiscTaken = 0>
+    <#assign totalPayment = 0>
+    <#assign totalDisc = 0>
+    <#assign totalCredit = 0>
+    <#assign ctr_main = 0 />
+    <#list check.apply as apply>
+    <#assign ctr_main = ctr_main + 1 />
+    <#assign totalAmt = totalAmt + nsformat_number(apply.amount)>
+    <#assign totalAmtCheck = totalAmtCheck + nsformat_number(apply.amount)>
+    <#assign totalDisc = totalDisc + nsformat_number(apply.disc)>
+</#list>
+<#list check.credit as credit>
+<#assign ctr_main = ctr_main + 1 />
+<#assign totalAmt = totalAmt + nsformat_number(credit.amount)>
+<#assign totalDisc = totalDisc + nsformat_number(credit.discamt)>
+</#list>
+<table
+style="position: absolute;overflow: hidden;left: 500pt;top: 5pt;height: 7pt;width: 80pt;font-size: 8pt;">
+<tr>
+    <td align="center">${check.checknumber}</td>
+</tr>
+</table>
+
+<table style="position: absolute;overflow: hidden;left: 475pt;top: 20pt;height: 13pt;width: 70pt;">
+<tr>
+    <td>${check.trandate}</td>
+</tr>
+</table>
+
+<table style="position: absolute;overflow: hidden;left: 20pt;top: 20pt;height: 13pt;width: 157pt;">
+<tr>
+    <td><#if (check.entity.companyname?has_content)>${check.entity.companyname}<#else>${check.entity}
+    </#if>
+</td>
+</tr>
+        </table>
+<#assign applyLength = check.apply?size>
+<#assign creditLength = check.credit?size>
+<#assign combinedLength = applyLength + creditLength>
+<#assign ctr = 1>
+<#if check.apply?has_content || check.credit?has_content>
+<table class="itemtable"
+       style="position: absolute;overflow: hidden; width: 100%; margin: 30pt 10pt 8pt; padding-top: 5px; padding-bottom: 5px;">
+<#if ctr_main lt 11>
+<!-- start apply sublist -->
+<#list check.apply as apply>
+<#if ctr lt 11>
+<#if apply_index==0>
+<thead>
+    <tr style="border-top: 1px; border-bottom: 1px;">
+        <th align="left" style="width: 12.5%">Date Due</th>
+        <th align="left" style="width: 12%">Type</th>
+        <th align="left" style="width: 12%">Ref No.</th>
+        <th align="left" style="width: 16%">Installment Ref No.</th>
+        <th align="left" style="width: 12%">Orig. Amount</th>
+        <th align="left" style="width: 12%">Disc. Taken</th>
+        <th align="left" style="width: 12%">Credit</th>
+        <th align="left" style="width: 12%">Payment</th>
+    </tr>
+</thead>
+</#if>
+<tr>
+<td align="left" style="width: 12%">${apply.duedate}</td>
+<td align="left" style="width: 12%">${apply.type}</td>
+<td align="left" style="width: 16%">${apply.refnum}</td>
+<td align="left" style="width: 12%">${apply.appliedto}</td>
+<td align="left" style="width: 12%">${apply.total}</td>
+<td align="left" style="width: 12%">${apply.disc}</td>
+<td align="left" style="width: 12%">&nbsp;</td>
+<td align="left" style="width: 12%">${apply.amount}</td>
+</tr>
+<#assign totalOrgAmount = totalOrgAmount + nsformat_number(apply.total)>
+<#assign totalDiscTaken = totalDiscTaken + nsformat_number(apply.disc)>
+<#assign totalPayment = totalPayment + nsformat_number(apply.amount)>
+
+        </#if>
+<#assign ctr = ctr + 1>
+        </#list><!-- end apply -->
+        <!-- start credit sublist -->
+<#list check.credit as credit>
+<#if ctr < 11>
+<tr>
+<td align="left" style="width: 12%">${credit.creditdate}</td>
+<td align="left" style="width: 12%">${credit.type}</td>
+<td align="left" style="width: 16%">${credit.refnum}</td>
+<td align="left" style="width: 12%">${credit.appliedto}</td>
+<td align="left" style="width: 12%">- ${credit.amount}</td>
+<td align="left" style="width: 12%">&nbsp;</td>
+<td align="left" style="width: 12%">${credit.amount}</td>
+<td align="left" style="width: 12%">$0.00</td>
+<#assign totalCredit = totalCredit + nsformat_number(credit.amount)>
+
+
+</tr>
+        </#if>
+<#assign ctr = ctr + 1>
+        </#list>
+        <!-- Add Total Row -->
+<tr>
+<td colspan="3">
+    <strong>CHECK TOTAL:</strong>
+</td>
+<td align="left">
+    <strong></strong>
+</td>
+<td align="left">
+    <strong>${totalOrgAmount?string.currency}</strong>
+</td>
+<td align="left">
+    <strong>${totalDiscTaken?string.currency}</strong>
+</td>
+<td align="left">
+    <strong>${totalCredit?string.currency}</strong>
+</td>
+<td align="left">
+    <strong>${totalPayment?string.currency}</strong>
+</td>
+
+
+
+</tr>
+<#else>
+<tr>
+<td align="left" style="width: 60%">See Continuation Sheet</td>
+<td colspan="2" align="right">
+    <strong>CHECK TOTAL: ${totalAmtCheck?string.currency}</strong>
+</td>
+</tr>
+        </#if>
+        </table>
+        </#if>
+        </div>
+        <!-- Main Check Body for Wallace -->
+<div
+style="font-family: Helvetica,sans-serif;height: 240pt;width: 612pt;page-break-inside: avoid;font-size: 8pt; padding-top: 20px;">
+<table
+        style="position: absolute;overflow: hidden;left: 489pt;top: 38pt;height: 7pt;width: 85pt;font-size: 8pt;">
+    <tr>
+        <td align="center">${check.checknumber}</td>
+    </tr>
+</table>
+
+<table style="position: absolute;overflow: hidden;left: 400pt;top: 85pt;height: 18pt;width: 575pt;">
+    <tr>
+        <td>${check.trandate}</td>
+    </tr>
+</table>
+
+<table style="position: absolute;overflow: hidden;left: 522pt;top: 85pt;height: 18pt;width: 111pt;">
+    <tr>
+        <td>
+            <#if (check.usertotal?length> 0)>${check.usertotal}<#else>${check.total}
+        </#if>
+    </td>
+</tr>
+</table>
+
+<table style="position: absolute;overflow: hidden;left: 30pt;top: 82pt;height: 18pt;width:575pt;">
+<tr>
+    <td>${check.totalwords}
+    </td>
+</tr>
+</table>
+
+<table style="position: absolute;overflow: hidden;left: 60pt;top: 130pt;height: 80pt;width: 575pt;">
+<tr>
+    <td><#if check.address?contains("United States")>${check.address?replace("United States","")}<#else>${check.address}
+    </#if>
+</td>
+</tr>
+        </table>
+        </div>
+        <!-- 2nd List of Records Wallace -->
+<div
+style="font-family: Helvetica,sans-serif;height: 260pt;width: 100%;page-break-before: avoid;font-size: 8pt; padding-top: 30px; padding-left: 10px; padding-right: 10px;">
+<table
+        style="position: absolute;overflow: hidden;left: 500pt;top: 5pt;height: 7pt;width: 80pt;font-size: 8pt;">
+    <tr>
+        <td align="center">${check.checknumber}</td>
+    </tr>
+</table>
+
+<table style="position: absolute;overflow: hidden;left: 475pt;top: 20pt;height: 13pt;width: 70pt;">
+    <tr>
+        <td>${check.trandate}</td>
+    </tr>
+</table>
+
+<table style="position: absolute;overflow: hidden;left: 20pt;top: 20pt;height: 13pt;width: 157pt;">
+    <tr>
+        <td><#if (check.entity.companyname?has_content)>${check.entity.companyname}<#else>${check.entity}
+        </#if>
+    </td>
+</tr>
+</table>
+
+<#assign applyLength = check.apply?size>
+<#assign creditLength = check.credit?size>
+<#assign combinedLength = applyLength + creditLength>
+<#assign ctr = 1>
+<#if check.apply?has_content || check.credit?has_content>
+<table class="itemtable"
+       style="position: absolute;overflow: hidden; width: 100%; margin: 30pt 10pt 8pt; padding-top: 5px; padding-bottom: 5px;">
+<#if ctr_main lt 11>
+<!-- start apply sublist -->
+<#list check.apply as apply>
+<#if ctr lt 11>
+<#if apply_index==0>
+<thead>
+    <tr style="border-top: 1px; border-bottom: 1px;">
+        <th align="left" style="width: 12.5%">Date Due</th>
+        <th align="left" style="width: 12%">Type</th>
+        <th align="left" style="width: 12%">Ref No.</th>
+        <th align="left" style="width: 16%">Installment Ref No.</th>
+        <th align="left" style="width: 12%">Orig. Amount</th>
+        <th align="left" style="width: 12%">Disc. Taken</th>
+        <th align="left" style="width: 12%">Credit</th>
+        <th align="left" style="width: 12%">Payment</th>
+    </tr>
+</thead>
+</#if>
+<tr>
+<td align="left" style="width: 12%">${apply.duedate}</td>
+<td align="left" style="width: 12%">${apply.type}</td>
+<td align="left" style="width: 16%">${apply.refnum}</td>
+<td align="left" style="width: 12%">${apply.appliedto}</td>
+<td align="left" style="width: 12%">${apply.total}</td>
+<td align="left" style="width: 12%">${apply.disc}</td>
+<td align="left" style="width: 12%">&nbsp;</td>
+<td align="left" style="width: 12%">${apply.amount}</td>
+</tr>
+
+        </#if>
+<#assign ctr = ctr + 1>
+        </#list><!-- end apply -->
+        <!-- start credit sublist -->
+<#list check.credit as credit>
+<#if ctr < 11>
+<tr>
+<td align="left" style="width: 12%">${credit.creditdate}</td>
+<td align="left" style="width: 12%">${credit.type}</td>
+<td align="left" style="width: 16%">${credit.refnum}</td>
+<td align="left" style="width: 12%">${credit.appliedto}</td>
+<td align="left" style="width: 12%">- ${credit.amount}</td>
+<td align="left" style="width: 12%">&nbsp;</td>
+<td align="left" style="width: 12%">${credit.amount}</td>
+<td align="left" style="width: 12%">$0.00</td>
+
+
+</tr>
+        </#if>
+<#assign ctr = ctr + 1>
+        </#list>
+        <!-- Add Total Row -->
+<tr>
+<td colspan="3">
+    <strong>CHECK TOTAL:</strong>
+</td>
+<td align="left">
+    <strong></strong>
+</td>
+<td align="left">
+    <strong>${totalOrgAmount?string.currency}</strong>
+</td>
+<td align="left">
+    <strong>${totalDiscTaken?string.currency}</strong>
+</td>
+<td align="left">
+    <strong>${totalCredit?string.currency}</strong>
+</td>
+<td align="left">
+    <strong>${totalPayment?string.currency}</strong>
+</td>
+
+
+
+</tr>
+<#else>
+<tr>
+<td align="left" style="width: 60%">See Continuation Sheet</td>
+<td colspan="2" align="right">
+    <strong>CHECK TOTAL: ${totalAmtCheck?string.currency}</strong>
+</td>
+</tr>
+        </#if>
+        </table>
+        </#if>
+        </div>
+        </div>
+
+
+
+        <!-- Start of Four Star subsidiary -->
+<#elseif check.subsidiary.id == '20'>
+
+
+
+
+
+
+
+
+
+<div style="position: relative;font-family: Helvetica,sans-serif;height: 250pt;width: 612pt;page-break-before: avoid;font-size: 8pt;">
+
+<#assign lines = check.address?split("\n")>
+<#assign newAddress = "">
+<#list lines as l>
+<#if l_index != 0>
+<#if newAddress == "">
+<#assign newAddress = l>
+<#else>
+<#assign newAddress = newAddress + "\n" + l>
+</#if>
+        </#if>
+        </#list>
+
+<table style="width:100%; margin-top:70px; font-size:10pt;">
+<tr>
+    <td style="width:120px; padding-left:35px; vertical-align:bottom;">
+        <table style="font-size:7pt; font-weight:bold; line-height:9px;">
+        </table>
+    </td>
+
+    <td style="padding-left:10px; padding-top:18px; height:25px; font-size:10pt; vertical-align:bottom;">
+        <#--    ${check.entity.printoncheckas} -->
+    </td>
+</tr>
+</table>
+
+<table style="position: absolute;overflow: hidden;left: 542pt;top: 45pt;height: 7pt;width: 85pt;">
+<tr>
+    <td align="left"> <#--   ${check.checknumber} --></td>
+</tr>
+</table>
+
+<table style="position: absolute;overflow: hidden;left: 420pt;top: 70pt;height: 18pt;width: 111pt;">
+<tr>
+    <td>${check.trandate}</td>
+</tr>
+</table>
+
+<table style="position: absolute;overflow: hidden;left: 60pt;top: 75pt;height: 40pt;width: 537pt;">
+<tr>
+    <td>
+        ${check.entity.printoncheckas}<br/>
+
+    </td>
+</tr>
+</table>
+
+<table style="position: absolute;overflow: hidden;left: 60pt;top: 115pt;height: 18pt;width: 572pt;">
+<tr>
+    <td>${check.totalwords?capitalize}**************************************************</td>
+</tr>
+</table>
+
+<table style="position: absolute;overflow: hidden;left: 60pt;top: 145pt;height: 40pt;width: 537pt;">
+<tr>
+    <td>
+        <#if check.address?contains("United States")>${check.address?replace("United States","")}
+        <#else>${check.address}
+
+    </#if>
+</td>
+</tr>
+        </table>
+
+
+
+<table style="position: absolute;overflow: hidden;left: 542pt;top: 75pt;height: 18pt;width: 111pt;">
+<tr>
+    <td align="left">
+        <#if (check.usertotal?length > 0)>
+        ${check.usertotal}
+        <#else>
+        ${check.total}
+    </#if>
+</td>
+</tr>
+        </table>
+
+        </div>
+
+
+
+
+
+
+<div style="position: relative;font-family: Helvetica,sans-serif;height: 250pt;width: 612pt;page-break-before: avoid;font-size: 8pt;">
+<#assign applyLength = check.apply?size>
+<#assign creditLength = check.credit?size>
+<#assign combinedLength = applyLength + creditLength>
+<#assign stubTotalAmt = 0>
+<#assign stubTotalDisc = 0>
+<#assign applyTotal = 0>
+<#assign creditTotal = 0>
+<#list check.apply as apply>
+<#assign stubTotalAmt = stubTotalAmt + nsformat_number(apply.amount)>
+<#assign stubTotalDisc = stubTotalDisc + nsformat_number(apply.disc)>
+<#assign applyTotal += apply.amount>
+</#list>
+<#list check.credit as credit>
+<#assign stubTotalAmt = stubTotalAmt + nsformat_number(credit.amount)>
+<#assign stubTotalDisc = stubTotalDisc + nsformat_number(credit.discamt)>
+<#assign creditTotal += credit.amount>
+        </#list>
+
+<#if check.apply?has_content>
+<table class="itemtable" style="position: absolute;overflow: hidden; width: 90%; top: 40pt; left: 40pt;">
+<#if combinedLength lt 8>
+<!-- start apply sublist -->
+<#list check.apply as apply>
+<#if apply_index==0>
+<thead>
+    <tr>
+        <th align="left" colspan="3">${apply.applydate@label}</th>
+        <th colspan="3">${apply.type@label}</th>
+        <th align="center" colspan="5">${apply.refnum@label}</th>
+        <th align="right" colspan="5">Amount</th>
+        <!--<th align="right" colspan="3">${apply.due@label}</th>-->
+        <th align="right" colspan="5">${apply.disc@label}</th>
+        <th align="right" colspan="5">Due After Discount</th>
+    </tr>
+</thead>
+</#if>
+<tr>
+<td align="left" colspan="3">${apply.applydate}</td>
+<td colspan="3">${apply.type}</td>
+<td align="center" colspan="5">${apply.refnum}</td>
+<td align="right" colspan="5">${apply.total}</td>
+<!--<td align="right" colspan="5">${apply.due}</td>-->
+<td align="right" colspan="5">${apply.disc}</td>
+<td align="right" colspan="5">${apply.amount}</td>
+</tr>
+        </#list>
+        <!-- Add Apply Total line -->
+<tr>
+<td align="left" colspan="3">
+    <strong>BILL TOTAL:</strong>
+</td>
+<td colspan="18">&nbsp;</td>
+<td align="right" colspan="5">
+    <strong>${applyTotal?string.currency}</strong>
+</td>
+</tr>
+
+        <!-- end apply -->
+<tr>
+<td colspan="26">&nbsp;</td>
+</tr>
+        <!-- start credit sublist -->
+
+<#list check.credit as credit>
+<#if credit_index == 0>
+<tr>
+<th align="left" colspan="6">${credit.creditdate@label}</th>
+<th colspan="6">${credit.type@label}</th>
+<th align="right" colspan="6">${credit.refnum@label}</th>
+<th align="right" colspan="8">Open CM Amount</th>
+</tr>
+        </#if>
+<tr>
+<td align="left" colspan="6">${credit.creditdate}</td>
+<td colspan="6">${credit.type}</td>
+<td align="right" colspan="6">${credit.refnum}</td>
+<td align="right" colspan="8">(${credit.amount})</td>
+</tr>
+        </#list><!-- end credit -->
+        <!-- Add Check Total line -->
+<tr>
+<td align="left" colspan="6">
+    <strong>CREDIT MEMO TOTAL:</strong>
+</td>
+<td colspan="12">
+    <strong>&nbsp;</strong>
+</td>
+<td align="right" colspan="8">
+    <strong>${creditTotal?string.currency}</strong>
+</td>
+</tr>
+<tr>
+<td align="left" colspan="6">
+    <strong>CHECK AMOUNT ROW:</strong>
+</td>
+<td colspan="12">
+    <strong>&nbsp;</strong>
+</td>
+<td align="right" colspan="8">
+    <strong>${(applyTotal-creditTotal)?string.currency}</strong>
+</td>
+</tr>
+<#else>
+<tr>
+<td colspan="18">Please see next page for complete list of bills</td>
+<td colspan="8" align="right">
+    <strong>CHECK TOTAL:</strong>
+</td>
+</tr>
+        </#if>
+        </table>
+        </#if>
+
+<#if check.item?has_content || check.expense?has_content>
+<table style="position: absolute;overflow: hidden;left: 36pt;top: 90pt;width: 436pt;">
+<#list check.expense as expense>
+<tr>
+    <td>${expense.account}</td>
+    <td>${expense.date}</td>
+    <td>${expense.description}</td>
+    <td align="right">${expense.amount}</td>
+</tr>
+</#list>
+<#list check.item as item>
+<tr>
+<td></td>
+<td>${item.date}</td>
+<td>${item.item}, ${item.description}</td>
+<td align="right">${item.amount}</td>
+</tr>
+        </#list>
+        </table>
+        </#if>
+<table style="position: absolute;overflow: hidden;left: 30pt;top: 235pt;height: 13pt;width: 134pt;">
+<tr>
+    <td></td>
+</tr>
+</table>
+        </div>
+        <!-- End of Four Star subsidiary -->
+        <!-- START OF LLR SUBSIDIARY -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<#elseif check.subsidiary.id == "21">
+
+
+
+
+
+<div style="font-family: Helvetica,sans-serif;height: 240pt;width: 612pt;page-break-inside: avoid; font-size: 12pt;">
+
+<table style="position: absolute;overflow: hidden;left: 505pt;top: 45pt;height: 18pt;width: 575pt;">
+    <tr>
+        <td>${check.trandate}</td>
+    </tr>
+</table>
+
+<table style="position: absolute;overflow: hidden;left: 70pt;top: 84pt;height: 18pt;width: 393pt;">
+    <tr>
+        <td><#if (check.entity.companyname?has_content)>${check.entity.companyname}<#else>${check.entity}
+        </#if>
+    </td>
+</tr>
+</table>
+
+<table style="position: absolute;overflow: hidden;left: 505pt;top: 84pt;height: 18pt;width: 111pt;">
+<tr>
+    <td>
+        <#if (check.usertotal?length> 0)>${check.usertotal?string['#,###,##0.00']}
+        <#else>${check.total?string['#,###,##0.00']}
+    </#if>
+</td>
+</tr>
+        </table>
+
+<table style="position: absolute;overflow: hidden;left: 30pt;top: 108pt;height: 18pt;width:575pt;">
+
+<tr>
+    <td>${check.totalwords}<#if check.totalwords?length lt 30>***************************************<#elseif
+        check.totalwords?length gt 30 && check.totalwords?length lt 40 >*************************************
+        <#else>*****************************
+    </#if>
+</td>
+</tr>
+
+
+        </table>
+
+<table style="position: absolute;overflow: hidden;left: 60pt;top: 150pt;height: 80pt;width: 575pt;">
+<tr>
+    <td><#if check.address?contains("United States")>${check.address?replace("United States","")}<#else>${check.address}
+    </#if>
+</td>
+</tr>
+        </table>
+        </div>
+
+<div
+style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-before: avoid; font-size: 12pt; margin-top: 20pt;">
+
+<table style="position: absolute;overflow: hidden;left: 412pt;top: 20pt;height: 13pt;width: 70pt;">
+    <tr>
+        <td>${check.trandate}</td>
+    </tr>
+</table>
+
+<table style="position: absolute;overflow: hidden;left: 20pt;top: 20pt;height: 13pt;width: 157pt;">
+    <tr>
+        <td><#if (check.entity.companyname?has_content)>${check.entity.companyname}<#else>${check.entity}
+        </#if>
+    </td>
+</tr>
+</table>
+
+<#assign applyLength = check.apply?size>
+<#assign creditLength = check.credit?size>
+<#assign combinedLength = applyLength + creditLength>
+<#assign ctr = 1>
+<#assign llrTotalAmt = 0>
+<#assign llrTotalDisc = 0>
+<#list check.apply as apply>
+<#assign llrTotalAmt = llrTotalAmt + nsformat_number(apply.amount)>
+<#assign llrTotalDisc = llrTotalDisc + nsformat_number(apply.disc)>
+        </#list>
+<#list check.credit as credit>
+<#assign llrTotalAmt = llrTotalAmt + nsformat_number(credit.amount)>
+<#assign llrTotalDisc = llrTotalDisc + nsformat_number(credit.discamt)>
+        </#list>
+
+<#if check.apply?has_content>
+<table class="itemtable" style="position: absolute;overflow: hidden; width: 100%; margin: 30pt 10pt 8pt;">
+<!-- start apply sublist -->
+<#list check.apply as apply>
+<#if ctr lt 11>
+<#if apply_index==0>
+<thead>
+    <tr>
+        <th align="center" style="width: 15%">${apply.applydate@label}</th>
+        <th style="width: 10%">${apply.type@label}</th>
+        <th align="right" style="width: 15%">${apply.refnum@label}</th>
+        <th align="right" style="width: 15%">${apply.total@label}</th>
+        <th align="right" style="width: 15%">${apply.due@label}</th>
+        <th align="right" style="width: 15%">${apply.disc@label}</th>
+        <th align="right" style="width: 15%">${apply.amount@label}</th>
+    </tr>
+</thead>
+</#if>
+<tr>
+<td align="center" style="width: 15%">${apply.applydate}</td>
+<td style="width: 10%">${apply.type}</td>
+<td align="right" style="width: 15%">${apply.refnum}</td>
+<td align="right" style="width: 15%">${apply.total}</td>
+<td align="right" style="width: 15%">${apply.due}</td>
+<td align="right" style="width: 15%">${apply.disc}</td>
+<td align="right" style="width: 15%">${apply.amount}</td>
+</tr>
+        </#if>
+<#assign ctr = ctr + 1>
+        </#list>
+        <!-- end apply -->
+        <!-- start credit sublist -->
+<#list check.credit as credit>
+<#if ctr lt 11>
+<tr>
+<td align="center" style="width: 15%">${credit.creditdate}</td>
+<td style="width: 10%">${credit.type}</td>
+<td align="right" style="width: 15%">${credit.refnum}</td>
+<td align="right" style="width: 15%">${credit.description}</td>
+<td align="right" style="width: 15%">(${credit.amount})</td>
+<td align="right" style="width: 15%">${credit.discamt}</td>
+<td align="right" style="width: 15%">(${credit.amount})</td>
+</tr>
+        </#if>
+<#assign ctr = ctr + 1>
+        </#list>
+        <!-- end credit -->
+        <!-- Add Check Total line -->
+<tr>
+<td colspan="5">
+    <strong>CHECK TOTAL:</strong>
+</td>
+<td align="right">
+    <strong>${llrTotalDisc?string.currency}</strong>
+</td>
+<td align="right">
+    <strong>${llrTotalAmt?string.currency}</strong>
+</td>
+</tr>
+<#if combinedLength gt 20>
+<tr>
+<td colspan="9" align="center">Please see vendor remittance for complete list of bills</td>
+</tr>
+        </#if>
+        </table>
+        </#if>
+
+<#if check.item?has_content || check.expense?has_content>
+<table style="overflow: hidden;left: 30pt;top: 40pt;width: 580pt;">
+<#list check.expense as expense>
+<tr>
+    <td>${expense.account}</td>
+    <td>${expense.date}</td>
+    <td>${expense.description}</td>
+    <td align="right">${expense.amount}</td>
+</tr>
+</#list>
+<#list check.item as item>
+<tr>
+<td>&nbsp;</td>
+<td>${item.date}</td>
+<td>${item.item}, ${item.description}</td>
+<td align="right">${item.amount}</td>
+</tr>
+        </#list>
+        </table>
+        </#if>
+        </div>
+<div
+style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-before: avoid;font-size: 8pt; margin-top: 10pt;">
+
+<table style="position: absolute;overflow: hidden;left: 412pt;top: 20pt;height: 13pt;width: 70pt;">
+    <tr>
+        <td>${check.trandate}</td>
+    </tr>
+</table>
+
+<table style="position: absolute;overflow: hidden;left: 20pt;top: 20pt;height: 13pt;width: 157pt;">
+    <tr>
+        <td><#if (check.entity.companyname?has_content)>${check.entity.companyname}<#else>${check.entity}
+        </#if>
+    </td>
+</tr>
+</table>
+
+<#assign applyLength = check.apply?size>
+<#assign creditLength = check.credit?size>
+<#assign combinedLength = applyLength + creditLength>
+<#assign ctr = 1>
+<#if check.apply?has_content>
+<table class="itemtable" style="position: absolute;overflow: hidden; width: 100%; margin: 30pt 10pt 8pt;">
+<!-- start apply sublist -->
+<#list check.apply as apply>
+<#if ctr lt 11>
+<#if apply_index==0>
+<thead>
+    <tr>
+        <th align="center" style="width: 15%">${apply.applydate@label}</th>
+        <th style="width: 10%">${apply.type@label}</th>
+        <th align="right" style="width: 15%">${apply.refnum@label}</th>
+        <th align="right" style="width: 15%">${apply.total@label}</th>
+        <th align="right" style="width: 15%">${apply.due@label}</th>
+        <th align="right" style="width: 15%">${apply.disc@label}</th>
+        <th align="right" style="width: 15%">${apply.amount@label}</th>
+    </tr>
+</thead>
+</#if>
+<tr>
+<td align="center" style="width: 15%">${apply.applydate}</td>
+<td style="width: 10%">${apply.type}</td>
+<td align="right" style="width: 15%">${apply.refnum}</td>
+<td align="right" style="width: 15%">${apply.total}</td>
+<td align="right" style="width: 15%">${apply.due}</td>
+<td align="right" style="width: 15%">${apply.disc}</td>
+<td align="right" style="width: 15%">${apply.amount}</td>
+</tr>
+        </#if>
+<#assign ctr = ctr + 1>
+        </#list><!-- end apply -->
+        <!-- start credit sublist -->
+<#list check.credit as credit>
+<#if ctr < 11>
+<tr>
+<td align="center" style="width: 15%">${credit.creditdate}</td>
+<td style="width: 10%">${credit.type}</td>
+<td align="right" style="width: 15%">${credit.refnum}</td>
+<td align="right" style="width: 15%">${credit.description}</td>
+<td align="right" style="width: 15%">(${credit.amount})</td>
+<td align="right" style="width: 15%">${credit.discamt}</td>
+<td align="right" style="width: 15%">(${credit.amount})</td>
+</tr>
+        </#if>
+<#assign ctr = ctr + 1>
+        </#list>
+        <!-- end credit -->
+        <!-- Add Check Total line -->
+<tr>
+<td colspan="5">
+    <strong>CHECK TOTAL:</strong>
+</td>
+<td align="right">
+    <strong>${llrTotalDisc?string.currency}</strong>
+</td>
+<td align="right">
+    <strong>${llrTotalAmt?string.currency}</strong>
+</td>
+</tr>
+<#if combinedLength gt 20>
+<tr>
+<td colspan="9" align="center">Please see vendor remittance for complete list of bills</td>
+</tr>
+        </#if>
+        </table>
+        </#if>
+
+<#if check.item?has_content || check.expense?has_content>
+<table style="overflow: hidden;left: 30pt;top: 40pt;width: 580pt;">
+<#list check.expense as expense>
+<tr>
+    <td>${expense.account}</td>
+    <td>${expense.date}</td>
+    <td>${expense.description}</td>
+    <td align="right">${expense.amount}</td>
+</tr>
+</#list>
+<#list check.item as item>
+<tr>
+<td>&nbsp;</td>
+<td>${item.date}</td>
+<td>${item.item}, ${item.description}</td>
+<td align="right">${item.amount}</td>
+</tr>
+        </#list>
+        </table>
+        </#if>
+        </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<#elseif check.subsidiary.id == "45" || check.subsidiary.id == "46" || check.subsidiary.id == "47" || check.subsidiary.id == "48">
+
+
+<#-- PRINT ON PAGE 1 AND PAGE 2 (NO MACROS). SAME LAYOUT TWICE. -->
+<#-- PAGE 1 -->
+<div style="font-family: Helvetica,sans-serif;height: 240pt;width: 612pt;page-break-inside: avoid; font-size: 10pt;">
+
+
+
+
+<table style="position: absolute;overflow: hidden;left: 508pt;top: 27pt;height: 18pt;width: 575pt;">
+    <tr>
+        <td>${check.trandate}</td>
+    </tr>
+</table>
+
+<table style="position: absolute;overflow: hidden;left: 70pt;top: 76pt;height: 18pt;width: 393pt;">
+    <tr>
+        <td><#if (check.entity.companyname?has_content)>${check.entity.companyname}<#else>${check.entity}
+        </#if>
+    </td>
+</tr>
+</table>
+
+<table style="position: absolute;overflow: hidden;left: 505pt;top: 75pt;height: 18pt;width: 111pt;">
+<tr>
+    <td>
+        <#if (check.usertotal?length> 0)>${check.usertotal?string['#,###,##0.00']}
+        <#else>${check.total?string['#,###,##0.00']}
+    </#if>
+</td>
+</tr>
+        </table>
+
+<table style="position: absolute;overflow: hidden;left: 28pt;top: 105pt;height: 18pt;width:575pt;">
+<tr>
+    <td>${check.totalwords}<#if check.totalwords?length lt 30>***************************************<#elseif
+        check.totalwords?length gt 30 && check.totalwords?length lt 40 >*************************************<#else>*****************************
+    </#if>
+</td>
+</tr>
+        </table>
+
+<table style="position: absolute;overflow: hidden;left: 58pt;top: 145pt;height: 80pt;width: 575pt;">
+<tr>
+    <td><#if check.address?contains("United States")>${check.address?replace("United States","")}<#else>${check.address}
+    </#if>
+</td>
+</tr>
+        </table>
+        </div>
+
+<div
+style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-before: avoid; font-size: 10pt; margin-top: 20pt;">
+
+<table style="position: absolute;overflow: hidden;left: 412pt;top: 18pt;height: 13pt;width: 70pt;">
+    <tr>
+        <td>${check.trandate}</td>
+    </tr>
+</table>
+
+<table style="position: absolute;overflow: hidden;left: 20pt;top: 18pt;height: 13pt;width: 157pt;">
+    <tr>
+        <td><#if (check.entity.companyname?has_content)>${check.entity.companyname}<#else>${check.entity}
+        </#if>
+    </td>
+</tr>
+</table>
+
+<#assign applyLength = check.apply?size>
+<#assign creditLength = check.credit?size>
+<#assign combinedLength = applyLength + creditLength>
+<#assign ctr = 1>
+<#assign llrTotalAmt = 0>
+<#assign llrTotalDisc = 0>
+<#list check.apply as apply>
+<#assign llrTotalAmt = llrTotalAmt + nsformat_number(apply.amount)>
+<#assign llrTotalDisc = llrTotalDisc + nsformat_number(apply.disc)>
+        </#list>
+<#list check.credit as credit>
+<#assign llrTotalDisc = llrTotalDisc + nsformat_number(credit.discamt)>
+        </#list>
+
+<#if check.apply?has_content>
+<table class="itemtable" style="position: absolute;overflow: hidden; width: 100%; margin: 30pt 10pt 8pt;">
+<!-- start apply sublist -->
+<#list check.apply as apply>
+<#if ctr lt 11>
+<#if apply_index==0>
+<thead>
+    <tr>
+        <th align="center" style="width: 15%">${apply.applydate@label}</th>
+        <th style="width: 10%">${apply.type@label}</th>
+        <th align="right" style="width: 15%">${apply.refnum@label}</th>
+        <th align="right" style="width: 15%">${apply.total@label}</th>
+        <th align="right" style="width: 15%">${apply.due@label}</th>
+        <th align="right" style="width: 15%">${apply.disc@label}</th>
+        <th align="right" style="width: 15%">${apply.amount@label}</th>
+    </tr>
+</thead>
+</#if>
+<tr>
+<td align="center" style="width: 15%">${apply.applydate}</td>
+<td style="width: 10%">${apply.type}</td>
+<td align="right" style="width: 15%">${apply.refnum}</td>
+<td align="right" style="width: 15%">${apply.total}</td>
+<td align="right" style="width: 15%">${apply.due}</td>
+<td align="right" style="width: 15%">${apply.disc}</td>
+<td align="right" style="width: 15%">${apply.amount}</td>
+</tr>
+        </#if>
+<#assign ctr = ctr + 1>
+        </#list>
+        <!-- end apply -->
+        <!-- start credit sublist -->
+<#list check.credit as credit>
+<#if ctr lt 11>
+<tr>
+<td align="center" style="width: 15%">${credit.creditdate}</td>
+<td style="width: 10%">${credit.type}</td>
+<td align="right" style="width: 15%">${credit.refnum}</td>
+<td align="right" style="width: 15%">${credit.description}</td>
+<td align="right" style="width: 15%">(${credit.amount})</td>
+<td align="right" style="width: 15%">${credit.discamt}</td>
+<td align="right" style="width: 15%">(${credit.amount})</td>
+</tr>
+        </#if>
+<#assign ctr = ctr + 1>
+        </#list>
+        <!-- end credit -->
+        <!-- Add Check Total line -->
+<tr>
+<td colspan="5">
+    <strong>CHECK TOTAL:</strong>
+</td>
+<td align="right">
+    <strong>${llrTotalDisc?string.currency}</strong>
+</td>
+<td align="right">
+    <strong>${llrTotalAmt?string.currency}</strong>
+</td>
+</tr>
+<#if combinedLength gt 10>
+<tr>
+<td colspan="9" align="center">Please see vendor remittance for complete list of bills</td>
+</tr>
+        </#if>
+        </table>
+        </#if>
+
+<#if check.item?has_content || check.expense?has_content>
+<table style="overflow: hidden;left: 30pt;top: 40pt;width: 580pt;">
+<#list check.expense as expense>
+<tr>
+    <td>${expense.account}</td>
+    <td>${expense.date}</td>
+    <td>${expense.description}</td>
+    <td align="right">${expense.amount}</td>
+</tr>
+</#list>
+<#list check.item as item>
+<tr>
+<td>&nbsp;</td>
+<td>${item.date}</td>
+<td>${item.item}, ${item.description}</td>
+<td align="right">${item.amount}</td>
+</tr>
+        </#list>
+        </table>
+        </#if>
+        </div>
+<div
+style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-before: avoid;font-size: 10pt; margin-top: 10pt;">
+
+<table style="position: absolute;overflow: hidden;left: 412pt;top: 18pt;height: 13pt;width: 70pt;">
+    <tr>
+        <td>${check.trandate}</td>
+    </tr>
+</table>
+
+<table style="position: absolute;overflow: hidden;left: 20pt;top: 20pt;height: 13pt;width: 157pt;">
+    <tr>
+        <td><#if (check.entity.companyname?has_content)>${check.entity.companyname}<#else>${check.entity}
+        </#if>
+    </td>
+</tr>
+</table>
+
+<#assign applyLength = check.apply?size>
+<#assign creditLength = check.credit?size>
+<#assign combinedLength = applyLength + creditLength>
+<#assign ctr = 1>
+<#if check.apply?has_content>
+<table class="itemtable" style="position: absolute;overflow: hidden; width: 100%; margin: 30pt 10pt 8pt;">
+<!-- start apply sublist -->
+<#list check.apply as apply>
+<#if ctr lt 11>
+<#if apply_index==0>
+<thead>
+    <tr>
+        <th align="center" style="width: 15%">${apply.applydate@label}</th>
+        <th style="width: 10%">${apply.type@label}</th>
+        <th align="right" style="width: 15%">${apply.refnum@label}</th>
+        <th align="right" style="width: 15%">${apply.total@label}</th>
+        <th align="right" style="width: 15%">${apply.due@label}</th>
+        <th align="right" style="width: 15%">${apply.disc@label}</th>
+        <th align="right" style="width: 15%">${apply.amount@label}</th>
+    </tr>
+</thead>
+</#if>
+<tr>
+<td align="center" style="width: 15%">${apply.applydate}</td>
+<td style="width: 10%">${apply.type}</td>
+<td align="right" style="width: 15%">${apply.refnum}</td>
+<td align="right" style="width: 15%">${apply.total}</td>
+<td align="right" style="width: 15%">${apply.due}</td>
+<td align="right" style="width: 15%">${apply.disc}</td>
+<td align="right" style="width: 15%">${apply.amount}</td>
+</tr>
+        </#if>
+<#assign ctr = ctr + 1>
+        </#list><!-- end apply -->
+        <!-- start credit sublist -->
+<#list check.credit as credit>
+<#if ctr < 11>
+<tr>
+<td align="center" style="width: 15%">${credit.creditdate}</td>
+<td style="width: 10%">${credit.type}</td>
+<td align="right" style="width: 15%">${credit.refnum}</td>
+<td align="right" style="width: 15%">${credit.description}</td>
+<td align="right" style="width: 15%">(${credit.amount})</td>
+<td align="right" style="width: 15%">${credit.discamt}</td>
+<td align="right" style="width: 15%">(${credit.amount})</td>
+</tr>
+        </#if>
+<#assign ctr = ctr + 1>
+        </#list>
+        <!-- end credit -->
+        <!-- Add Check Total line -->
+<tr>
+<td colspan="5">
+    <strong>CHECK TOTAL:</strong>
+</td>
+<td align="right">
+    <strong>${llrTotalDisc?string.currency}</strong>
+</td>
+<td align="right">
+    <strong>${llrTotalAmt?string.currency}</strong>
+</td>
+</tr>
+<#if combinedLength gt 10>
+<tr>
+<td colspan="9" align="center">Please see vendor remittance for complete list of bills</td>
+</tr>
+        </#if>
+        </table>
+        </#if>
+
+<#if check.item?has_content || check.expense?has_content>
+<table style="overflow: hidden;left: 30pt;top: 40pt;width: 580pt;">
+<#list check.expense as expense>
+<tr>
+    <td>${expense.account}</td>
+    <td>${expense.date}</td>
+    <td>${expense.description}</td>
+    <td align="right">${expense.amount}</td>
+</tr>
+</#list>
+<#list check.item as item>
+<tr>
+<td>&nbsp;</td>
+<td>${item.date}</td>
+<td>${item.item}, ${item.description}</td>
+<td align="right">${item.amount}</td>
+</tr>
+        </#list>
+        </table>
+        </#if>
+        </div>
+        <!-- End of LLR subsidiary -->
+        <!-- ALL OTHER SUBSIDIARIES -->
+
+<div style="page-break-after: always; height: 1pt;">&nbsp;</div>
+
+<#-- PAGE 2 -->
+<div style="font-family: Helvetica,sans-serif;height: 240pt;width: 612pt;page-break-inside: avoid; font-size: 10pt;">
+
+<table style="position: absolute;overflow: hidden;left: 508pt;top: 27pt;height: 18pt;width: 575pt;">
+    <tr>
+        <td>${check.trandate}</td>
+    </tr>
+</table>
+
+<table style="position: absolute;overflow: hidden;left: 70pt;top: 76pt;height: 18pt;width: 393pt;">
+    <tr>
+        <td><#if (check.entity.companyname?has_content)>${check.entity.companyname}<#else>${check.entity}
+        </#if>
+    </td>
+</tr>
+</table>
+
+<table style="position: absolute;overflow: hidden;left: 505pt;top: 75pt;height: 18pt;width: 111pt;">
+<tr>
+    <td>
+        <#if (check.usertotal?length> 0)>${check.usertotal?string['#,###,##0.00']}
+        <#else>${check.total?string['#,###,##0.00']}
+    </#if>
+</td>
+</tr>
+        </table>
+
+<table style="position: absolute;overflow: hidden;left: 28pt;top: 105pt;height: 18pt;width:575pt;">
+<tr>
+    <td>${check.totalwords}<#if check.totalwords?length lt 30>***************************************<#elseif
+        check.totalwords?length gt 30 && check.totalwords?length lt 40 >*************************************<#else>*****************************
+    </#if>
+</td>
+</tr>
+        </table>
+
+<table style="position: absolute;overflow: hidden;left: 58pt;top: 145pt;height: 80pt;width: 575pt;">
+<tr>
+    <td><#if check.address?contains("United States")>${check.address?replace("United States","")}<#else>${check.address}
+    </#if>
+</td>
+</tr>
+        </table>
+        </div>
+
+<div
+style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-before: avoid; font-size: 10pt; margin-top: 20pt;">
+
+<table style="position: absolute;overflow: hidden;left: 412pt;top: 20pt;height: 13pt;width: 70pt;">
+    <tr>
+        <td>${check.trandate}</td>
+    </tr>
+</table>
+
+<table style="position: absolute;overflow: hidden;left: 20pt;top: 20pt;height: 13pt;width: 157pt;">
+    <tr>
+        <td><#if (check.entity.companyname?has_content)>${check.entity.companyname}<#else>${check.entity}
+        </#if>
+    </td>
+</tr>
+</table>
+
+<#assign applyLength = check.apply?size>
+<#assign creditLength = check.credit?size>
+<#assign combinedLength = applyLength + creditLength>
+<#assign ctr = 1>
+<#assign llrTotalAmt = 0>
+<#assign llrTotalDisc = 0>
+<#list check.apply as apply>
+<#assign llrTotalAmt = llrTotalAmt + nsformat_number(apply.amount)>
+<#assign llrTotalDisc = llrTotalDisc + nsformat_number(apply.disc)>
+        </#list>
+<#list check.credit as credit>
+<#assign llrTotalDisc = llrTotalDisc + nsformat_number(credit.discamt)>
+        </#list>
+
+<#if check.apply?has_content>
+<table class="itemtable" style="position: absolute;overflow: hidden; width: 100%; margin: 30pt 10pt 8pt;">
+<!-- start apply sublist -->
+<#list check.apply as apply>
+<#if ctr lt 11>
+<#if apply_index==0>
+<thead>
+    <tr>
+        <th align="center" style="width: 15%">${apply.applydate@label}</th>
+        <th style="width: 10%">${apply.type@label}</th>
+        <th align="right" style="width: 15%">${apply.refnum@label}</th>
+        <th align="right" style="width: 15%">${apply.total@label}</th>
+        <th align="right" style="width: 15%">${apply.due@label}</th>
+        <th align="right" style="width: 15%">${apply.disc@label}</th>
+        <th align="right" style="width: 15%">${apply.amount@label}</th>
+    </tr>
+</thead>
+</#if>
+<tr>
+<td align="center" style="width: 15%">${apply.applydate}</td>
+<td style="width: 10%">${apply.type}</td>
+<td align="right" style="width: 15%">${apply.refnum}</td>
+<td align="right" style="width: 15%">${apply.total}</td>
+<td align="right" style="width: 15%">${apply.due}</td>
+<td align="right" style="width: 15%">${apply.disc}</td>
+<td align="right" style="width: 15%">${apply.amount}</td>
+</tr>
+        </#if>
+<#assign ctr = ctr + 1>
+        </#list>
+        <!-- end apply -->
+        <!-- start credit sublist -->
+<#list check.credit as credit>
+<#if ctr lt 11>
+<tr>
+<td align="center" style="width: 15%">${credit.creditdate}</td>
+<td style="width: 10%">${credit.type}</td>
+<td align="right" style="width: 15%">${credit.refnum}</td>
+<td align="right" style="width: 15%">${credit.description}</td>
+<td align="right" style="width: 15%">(${credit.amount})</td>
+<td align="right" style="width: 15%">${credit.discamt}</td>
+<td align="right" style="width: 15%">(${credit.amount})</td>
+</tr>
+        </#if>
+<#assign ctr = ctr + 1>
+        </#list>
+        <!-- end credit -->
+        <!-- Add Check Total line -->
+<tr>
+<td colspan="5">
+    <strong>CHECK TOTAL:</strong>
+</td>
+<td align="right">
+    <strong>${llrTotalDisc?string.currency}</strong>
+</td>
+<td align="right">
+    <strong>${llrTotalAmt?string.currency}</strong>
+</td>
+</tr>
+<#if combinedLength gt 10>
+<tr>
+<td colspan="9" align="center">Please see vendor remittance for complete list of bills</td>
+</tr>
+        </#if>
+        </table>
+        </#if>
+
+<#if check.item?has_content || check.expense?has_content>
+<table style="overflow: hidden;left: 30pt;top: 40pt;width: 580pt;">
+<#list check.expense as expense>
+<tr>
+    <td>${expense.account}</td>
+    <td>${expense.date}</td>
+    <td>${expense.description}</td>
+    <td align="right">${expense.amount}</td>
+</tr>
+</#list>
+<#list check.item as item>
+<tr>
+<td>&nbsp;</td>
+<td>${item.date}</td>
+<td>${item.item}, ${item.description}</td>
+<td align="right">${item.amount}</td>
+</tr>
+        </#list>
+        </table>
+        </#if>
+        </div>
+<div
+style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-before: avoid;font-size: 10pt; margin-top: 10pt;">
+
+<table style="position: absolute;overflow: hidden;left: 412pt;top: 18pt;height: 13pt;width: 70pt;">
+    <tr>
+        <td>${check.trandate}</td>
+    </tr>
+</table>
+
+<table style="position: absolute;overflow: hidden;left: 20pt;top: 20pt;height: 13pt;width: 157pt;">
+    <tr>
+        <td><#if (check.entity.companyname?has_content)>${check.entity.companyname}<#else>${check.entity}
+        </#if>
+    </td>
+</tr>
+</table>
+
+<#assign applyLength = check.apply?size>
+<#assign creditLength = check.credit?size>
+<#assign combinedLength = applyLength + creditLength>
+<#assign ctr = 1>
+<#if check.apply?has_content>
+<table class="itemtable" style="position: absolute;overflow: hidden; width: 100%; margin: 30pt 10pt 8pt;">
+<!-- start apply sublist -->
+<#list check.apply as apply>
+<#if ctr lt 11>
+<#if apply_index==0>
+<thead>
+    <tr>
+        <th align="center" style="width: 15%">${apply.applydate@label}</th>
+        <th style="width: 10%">${apply.type@label}</th>
+        <th align="right" style="width: 15%">${apply.refnum@label}</th>
+        <th align="right" style="width: 15%">${apply.total@label}</th>
+        <th align="right" style="width: 15%">${apply.due@label}</th>
+        <th align="right" style="width: 15%">${apply.disc@label}</th>
+        <th align="right" style="width: 15%">${apply.amount@label}</th>
+    </tr>
+</thead>
+</#if>
+<tr>
+<td align="center" style="width: 15%">${apply.applydate}</td>
+<td style="width: 10%">${apply.type}</td>
+<td align="right" style="width: 15%">${apply.refnum}</td>
+<td align="right" style="width: 15%">${apply.total}</td>
+<td align="right" style="width: 15%">${apply.due}</td>
+<td align="right" style="width: 15%">${apply.disc}</td>
+<td align="right" style="width: 15%">${apply.amount}</td>
+</tr>
+        </#if>
+<#assign ctr = ctr + 1>
+        </#list><!-- end apply -->
+        <!-- start credit sublist -->
+<#list check.credit as credit>
+<#if ctr < 11>
+<tr>
+<td align="center" style="width: 15%">${credit.creditdate}</td>
+<td style="width: 10%">${credit.type}</td>
+<td align="right" style="width: 15%">${credit.refnum}</td>
+<td align="right" style="width: 15%">${credit.description}</td>
+<td align="right" style="width: 15%">(${credit.amount})</td>
+<td align="right" style="width: 15%">${credit.discamt}</td>
+<td align="right" style="width: 15%">(${credit.amount})</td>
+</tr>
+        </#if>
+<#assign ctr = ctr + 1>
+        </#list>
+        <!-- end credit -->
+        <!-- Add Check Total line -->
+<tr>
+<td colspan="5">
+    <strong>CHECK TOTAL:</strong>
+</td>
+<td align="right">
+    <strong>${llrTotalDisc?string.currency}</strong>
+</td>
+<td align="right">
+    <strong>${llrTotalAmt?string.currency}</strong>
+</td>
+</tr>
+<#if combinedLength gt 10>
+<tr>
+<td colspan="9" align="center">Please see vendor remittance for complete list of bills</td>
+</tr>
+        </#if>
+        </table>
+        </#if>
+
+<#if check.item?has_content || check.expense?has_content>
+<table style="overflow: hidden;left: 30pt;top: 40pt;width: 580pt;">
+<#list check.expense as expense>
+<tr>
+    <td>${expense.account}</td>
+    <td>${expense.date}</td>
+    <td>${expense.description}</td>
+    <td align="right">${expense.amount}</td>
+</tr>
+</#list>
+<#list check.item as item>
+<tr>
+<td>&nbsp;</td>
+<td>${item.date}</td>
+<td>${item.item}, ${item.description}</td>
+<td align="right">${item.amount}</td>
+</tr>
+        </#list>
+        </table>
+        </#if>
+        </div>
+        <!-- End of LLR subsidiary -->
+        <!-- ALL OTHER SUBSIDIARIES -->
+
+
+  <#elseif check.subsidiary.id == "39"
+    || check.subsidiary.id == "57"
+    || check.subsidiary.id == "11"
+    || check.subsidiary.id == "53"
+    || check.subsidiary.id == "59"
+    || check.subsidiary.id == "6">
+
+<div style="font-family: Helvetica,sans-serif;height: 255pt;width: 612pt;page-break-inside: avoid;font-size: 8pt;">
+  <!-- <img src="https://6962009-sb2.app.netsuite.com/core/media/media.nl?id=593529&amp;c=6962009_SB2&amp;h=ruq3IWb_SAV9tjpGIhKgqgTHlJB3218ghKZzqpTCheCv8Qcg" style="position: absolute;left: 0pt;top: 0pt;" />
+ -->
+<table style="position: absolute;overflow: hidden;left: 505pt;top: 62pt;height: 18pt;width: 575pt;">
+    <tr>
+        <td>${check.trandate}</td>
+    </tr>
+</table>
+
+<table style="position: absolute;overflow: hidden;left: 82pt;top: 97pt;height: 18pt;width: 393pt;">
+    <tr>
+        <td><#if (check.entity.companyname?has_content)>${check.entity.companyname}<#else>${check.entity}
+        </#if>
+    </td>
+</tr>
+</table>
+          
+<table style="position: absolute;overflow: hidden;left: 500pt;top: 97pt;height: 18pt;width: 111pt;">
+<tr>
+    <td>**
+        <#if (check.usertotal?length> 0)>${check.usertotal?string['#,###,##0.00']}
+        <#else>${check.total?string['#,###,##0.00']}
+    </#if>
+</td>
+</tr>
+        </table>
+
+<table style="position: absolute;overflow: hidden;left: 35pt;top: 120pt;height: 18pt;width:575pt;">
+<tr>
+    <td>${check.totalwords}*********************************************************************
+    </td>
+</tr>
+</table>
+
+<table style="position: absolute;overflow: hidden;left: 70pt;top: 145pt;height: 80pt;width: 575pt;">
+<tr>
+    <td><#if check.address?contains("United States")>${check.address?replace("United States","")}<#else>${check.address}
+    </#if>
+</td>
+</tr>
+        </table>
+        </div>
+
+
+<div style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-before: avoid;font-size: 8pt;">
+
+<table style="position: absolute;overflow: hidden;left: 412pt;top: 20pt;height: 13pt;width: 150pt;">
+    <tr>
+        <td>
+          <b><#if (check.entity.companyname?has_content)>${check.entity.companyname}<#else>${check.entity}</#if></b>
+            </td>
+    </tr>
+</table>
+
+<table style="position: absolute;overflow: hidden;left: 70pt;top: 20pt;height: 13pt;width: 55pt;">
+    <tr>
+        <td><b>${check.trandate}</b>
+        
+    </td>
+</tr>
+</table>
+
+<#assign applyLength = check.apply?size>
+<#assign creditLength = check.credit?size>
+<#assign combinedLength = applyLength + creditLength>
+<#assign ctr = 1>
+<#assign otherTotalAmt = 0>
+<#assign otherTotalDisc = 0>
+<#list check.apply as apply>
+<#assign otherTotalAmt = otherTotalAmt + nsformat_number(apply.total)>
+<#assign otherTotalDisc = otherTotalDisc + nsformat_number(apply.disc)>
+        </#list>
+<#list check.credit as credit>
+<#assign otherTotalAmt = otherTotalAmt - nsformat_number(credit.amount)>
+<#assign otherTotalDisc = otherTotalDisc + nsformat_number(credit.discamt)>
+        </#list>
+
+<#if check.apply?has_content>
+<table class="itemtable" style="position: absolute;overflow: hidden; width: 100%; margin: 30pt 10pt 8pt;">
+<!-- start apply sublist -->
+<#list check.apply as apply>
+<#if ctr lt 11>
+<#if apply_index==0>
+<thead>
+    <tr>
+        <th align="center" style="width: 15%"><b>Date</b></th>
+        <th style="width: 10%"><b>${apply.type@label}</b></th>
+        <th align="right" style="width: 18%"><b>Reference</b></th>
+        <th align="right" style="width: 19%"><b>Original Amount</b></th>
+        <th align="right" style="width: 19%"><b>Balance Due</b></th>
+        <th align="right" style="width: 19%"><b>Payment</b></th>
+    </tr>
+</thead>
+</#if>
+<tr>
+<td align="center" style="width: 15%">${apply.applydate}</td>
+<td style="width: 10%">${apply.type}</td>
+<td align="right" style="width: 18%">${apply.refnum}</td>
+<td align="right" style="width: 19%">${apply.total}</td>
+<td align="right" style="width: 19%">${apply.due}</td>
+<td align="right" style="width: 19%">${(apply.total - apply.disc)?string.currency}</td>
+</tr>
+        </#if>
+<#assign ctr = ctr + 1>
+        </#list>
+          
+<#list check.credit as credit>
+<#if ctr lt 11>
+<tr>
+<td align="center" style="width: 15%">${credit.creditdate}</td>
+<td style="width: 10%">${credit.type}</td>
+<td align="center" style="width: 18%">${credit.refnum}</td>
+<td align="right" style="width: 19%">${credit.description}</td>
+<td align="right" style="width: 19%">(${credit.amount})</td>
+<td align="right" style="width: 19%">(${credit.amount})</td>
+</tr>
+</#if>
+<#assign ctr = ctr + 1>
+</#list>
+
+    
+<tr>
+<td colspan="4" align = "center"><strong>Check Amount:</strong></td>
+<td align="right"></td>
+<td align="right"><strong>${(otherTotalAmt - otherTotalDisc)?string.currency}</strong></td>
+</tr>
+<#if combinedLength gt 20>
+<tr>
+<td colspan="7" align="center">Please see vendor remittance for complete list of bills</td>
+</tr>
+        </#if>
+        </table>
+        </#if>
+
+<#if check.item?has_content || check.expense?has_content>
+<table style="overflow: hidden;left: 30pt;top: 40pt;width: 580pt;">
+<#list check.expense as expense>
+<tr>
+    <td>${expense.account}</td>
+    <td>${expense.date}</td>
+    <td>${expense.description}</td>
+    <td  align = "right" padding-right = "50px">${expense.amount}</td>
+</tr>
+</#list>
+<#list check.item as item>
+<tr>
+<td>&nbsp;</td>
+<td>${item.date}</td>
+<td>${item.item}, ${item.description}</td>
+<td>${item.amount}</td>
+</tr>
+        </#list>
+        </table>
+        </#if>
+        </div>
+
+<div style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-before: avoid;font-size: 8pt;">  
+<table style="position: absolute;overflow: hidden;left: 412pt;top: 20pt;height: 13pt;width: 150pt;">
+    <tr>
+        <td>
+          <b><#if (check.entity.companyname?has_content)>${check.entity.companyname}<#else>${check.entity}</#if></b>
+        </td>
+    </tr>
+</table>
+
+<table style="position: absolute;overflow: hidden;left: 70pt;top: 20pt;height: 13pt;width: 40pt;">
+    <tr>
+        <td><b>${check.trandate}</b></td>
+</tr>
+</table>
+
+<#assign applyLength = check.apply?size>
+<#assign creditLength = check.credit?size>
+<#assign combinedLength = applyLength + creditLength>
+<#assign ctr = 1>
+<#if check.apply?has_content>
+<table class="itemtable" style="position: absolute;overflow: hidden; width: 100%; margin: 30pt 10pt 8pt;">
+<!-- start apply sublist -->
+<#list check.apply as apply>
+<#if ctr lt 11>
+<#if apply_index==0>
+<thead>
+    <tr>
+        <th align="center" style="width: 15%"><b>Date</b></th>
+        <th style="width: 10%"><b>${apply.type@label}</b></th>
+        <th align="center" style="width: 18%"><b>Reference</b></th>
+        <th align="right" style="width: 19%"><b>Original Amount</b></th>
+        <th align="right" style="width: 19%"><b>Balance Due</b></th>
+        <th align="right" style="width: 19%"><b>Payment</b></th>
+    </tr>
+</thead>
+</#if>
+  
+<tr>
+<td align="center" style="width: 15%">${apply.applydate}</td>
+<td style="width: 10%">${apply.type}</td>
+<td align="center" style="width: 18%">${apply.refnum}</td>
+<td align="right" style="width: 19%">${apply.total}</td>
+<td align="right" style="width: 19%">${apply.due}</td>
+<td align="right" style="width: 19%">${(apply.total - apply.disc)?string.currency}</td>
+</tr>
+</#if>
+<#assign ctr = ctr + 1>
+</#list>
+  
+<#list check.credit as credit>
+<#if ctr < 11>
+<tr>
+<td align="center" style="width: 15%">${credit.creditdate}</td>
+<td style="width: 10%">${credit.type}</td>
+<td align="right" style="width: 18%">${credit.refnum}</td>
+<td align="right" style="width: 19%">${credit.description}</td>
+<td align="right" style="width: 19%">(${credit.amount})</td>
+<td align="right" style="width: 19%">(${credit.amount})</td>
+</tr>
+</#if>
+<#assign ctr = ctr + 1>
+</#list>
+  
+<tr>
+<td colspan="4" align = "center"><strong>Check Amount:</strong></td>
+<td align="right"></td>
+<td align="right"><strong>${(otherTotalAmt - otherTotalDisc)?string.currency}</strong></td>
+</tr>
+  
+<#if combinedLength gt 20>
+<tr>
+<td colspan="7" align="center">Please see vendor remittance for complete list of bills</td>
+</tr>
+        </#if>
+        </table>
+        </#if>
+
+<#if check.item?has_content || check.expense?has_content>
+<table style="overflow: hidden;left: 30pt;top: 40pt;width: 580pt;">
+<#list check.expense as expense>
+<tr>
+    <td>${expense.account}</td>
+    <td>${expense.date}</td>
+    <td>${expense.description}</td>
+    <td align = "right" padding-right = "50px">${expense.amount}</td>
+</tr>
+</#list>
+<#list check.item as item>
+<tr>
+<td>&nbsp;</td>
+<td>${item.date}</td>
+<td>${item.item}, ${item.description}</td>
+<td>${item.amount}</td>
+</tr>
+        </#list>
+        </table>
+        </#if>
+        </div>
+
+  
+<#else>
+<div style="font-family: Helvetica,sans-serif;height: 240pt;width: 612pt;page-break-inside: avoid;font-size: 8pt;">
+<#if check.account.id == "984" || check.account.id == "985">
+<table
+        style="position: absolute;overflow: hidden;left: 489pt;top: 38pt;height: 27pt;width: 85pt;font-size: 8pt;">
+    <#else>
+    <table
+            style="position: absolute;overflow: hidden;left: 489pt;top: 8pt;height: 7pt;width: 85pt;font-size: 8pt;">
+    </#if>
+    <tr>
+        <td align="center">${check.checknumber}</td>
+    </tr>
+</table>
+
+<#if check.account.id == "984" || check.account.id == "985">
+<table style="position: absolute;overflow: hidden;left: 505pt;top: 72pt;height: 18pt;width: 575pt; font-size: 13px;">
+    <#else>
+    <table style="position: absolute;overflow: hidden;left: 505pt;top: 40pt;height: 18pt;width: 575pt;">
+    </#if>
+    <tr>
+        <td>${check.trandate}</td>
+    </tr>
+</table>
+
+<#if check.account.id == "984" || check.account.id == "985">
+<table style="position: absolute;overflow: hidden;left: 70pt;top: 90pt;height: 18pt;width: 393pt; font-size: 13px;">
+    <#else>
+    <table style="position: absolute;overflow: hidden;left: 60pt;top: 78pt;height: 18pt;width: 393pt;">
+    </#if>
+    <tr>
+        <td><#if (check.entity.companyname?has_content)>${check.entity.companyname}<#else>${check.entity}
+        </#if>
+    </td>
+</tr>
+</table>
+<#if check.account.id == "984" || check.account.id == "985">
+<table style="position: absolute;overflow: hidden;left: 505pt;top: 90pt;height: 18pt;width: 111pt; font-size: 13px;">
+<#else>
+<table style="position: absolute;overflow: hidden;left: 505pt;top: 78pt;height: 18pt;width: 111pt;">
+</#if>
+<tr>
+    <td>
+        <#if (check.usertotal?length> 0)>${check.usertotal?string['#,###,##0.00']}
+        <#else>${check.total?string['#,###,##0.00']}
+    </#if>
+</td>
+</tr>
+        </table>
+
+<#if check.account.id == "984" || check.account.id == "985">
+<table style="position: absolute;overflow: hidden;left: 30pt;top: 120pt;height: 18pt;width:575pt; font-size: 13px;">
+<#else>
+<table style="position: absolute;overflow: hidden;left: 30pt;top: 102pt;height: 18pt;width:575pt;">
+</#if>
+<tr>
+    <td>${check.totalwords}*********************************************************************
+    </td>
+</tr>
+</table>
+
+<#if check.account.id == "984" || check.account.id == "985">
+<table style="position: absolute;overflow: hidden;left: 60pt;top: 142pt;height: 80pt;width: 575pt; font-size: 13px;">
+<#else>
+<table style="position: absolute;overflow: hidden;left: 60pt;top: 140pt;height: 80pt;width: 575pt;">
+</#if>
+<tr>
+    <td><#if check.address?contains("United States")>${check.address?replace("United States","")}<#else>${check.address}
+    </#if>
+</td>
+</tr>
+        </table>
+        </div>
+
+<#if check.account.id == "984" || check.account.id == "985">
+<div
+style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-before: avoid;font-size: 8pt; padding-top: 50px; font-size: 13px;">
+<#else>
+<div style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-before: avoid;font-size: 8pt;">
+</#if>
+<table
+        style="position: absolute;overflow: hidden;left: 403pt;top: 5pt;height: 7pt;width: 80pt;font-size: 8pt;">
+    <tr>
+        <td align="center">${check.checknumber}</td>
+    </tr>
+</table>
+
+<table style="position: absolute;overflow: hidden;left: 412pt;top: 20pt;height: 13pt;width: 70pt;">
+    <tr>
+        <td>${check.trandate}</td>
+    </tr>
+</table>
+
+<table style="position: absolute;overflow: hidden;left: 20pt;top: 20pt;height: 13pt;width: 157pt;">
+    <tr>
+        <td><#if (check.entity.companyname?has_content)>${check.entity.companyname}<#else>${check.entity}
+        </#if>
+    </td>
+</tr>
+</table>
+
+<#assign applyLength = check.apply?size>
+<#assign creditLength = check.credit?size>
+<#assign combinedLength = applyLength + creditLength>
+<#assign ctr = 1>
+<#assign otherTotalAmt = 0>
+<#assign otherTotalDisc = 0>
+<#list check.apply as apply>
+<#assign otherTotalAmt = otherTotalAmt + nsformat_number(apply.total)>
+<#assign otherTotalDisc = otherTotalDisc + nsformat_number(apply.disc)>
+        </#list>
+<#list check.credit as credit>
+<#assign otherTotalAmt = otherTotalAmt - nsformat_number(credit.amount)>
+<#assign otherTotalDisc = otherTotalDisc + nsformat_number(credit.discamt)>
+        </#list>
+
+<#if check.apply?has_content>
+<table class="itemtable" style="position: absolute;overflow: hidden; width: 100%; margin: 30pt 10pt 8pt;">
+<!-- start apply sublist -->
+<#list check.apply as apply>
+<#if ctr lt 11>
+<#if apply_index==0>
+<thead>
+    <#if check.subsidiary.id == '15'>
+    <tr>
+        <th align="center" style="width: 18%">${apply.applydate@label}</th>
+        <th style="width: 13%">${apply.type@label}</th>
+        <th align="right" style="width: 18%">${apply.refnum@label}</th>
+        <th align="right" style="width: 17%">${apply.total@label}</th>
+        <th align="right" style="width: 17%">${apply.disc@label}</th>
+        <th align="right" style="width: 17%">${apply.amount@label}</th>
+    </tr>
+    <#else>
+    <tr>
+        <th align="center" style="width: 15%">${apply.applydate@label}</th>
+        <th style="width: 10%">${apply.type@label}</th>
+        <th align="right" style="width: 15%">${apply.refnum@label}</th>
+        <th align="right" style="width: 15%">${apply.total@label}</th>
+        <th align="right" style="width: 15%">${apply.due@label}</th>
+        <th align="right" style="width: 15%">${apply.disc@label}</th>
+        <th align="right" style="width: 15%">${apply.amount@label}</th>
+    </tr>
+    </#if>
+</thead>
+</#if>
+<tr>
+<td align="center" style="width: 15%">${apply.applydate}</td>
+<td style="width: 10%">${apply.type}</td>
+<td align="right" style="width: 15%">${apply.refnum}</td>
+<td align="right" style="width: 15%">${apply.total}</td>
+<#if check.subsidiary.id != '15'>
+<td align="right" style="width: 15%">
+    <#if check.subsidiary.id = '8'> ${apply.due}  <#else>
+  ${(apply.total - apply.disc)?string.currency} </#if>
+  </td>
+</#if>
+<td align="right" style="width: 15%">${apply.disc}</td>
+<td align="right" style="width: 15%">
+  ${(apply.total - apply.disc)?string.currency}</td>
+</tr>
+        </#if>
+<#assign ctr = ctr + 1>
+        </#list>
+        <!-- end apply -->
+        <!-- start credit sublist -->
+
+  <#if check.subsidiary.id = '15' || check.subsidiary.id = '8'>
+
+<#-- Insert missing bill rows: remove "Bill #" before validating -->
+<#assign appliedRefnums = []>
+
+<#list check.apply as a>
+    <#assign applyRef = (a.refnum!"")?string?trim?replace("^Bill\\s*#\\s*", "", "ri")>
+
+    <#if applyRef?has_content>
+        <#assign appliedRefnums = appliedRefnums + [applyRef]>
+    </#if>
+</#list>
+
+<#assign missingBillAgg = {}>
+<#assign missingBillDateMap = {}>
+
+<#list check.credit as credit>
+    <#assign creditAppliedTo = (credit.appliedto!"")?string?trim?replace("^Bill\\s*#\\s*", "", "ri")>
+
+    <#if creditAppliedTo?has_content && !appliedRefnums?seq_contains(creditAppliedTo)>
+        <#assign missingBillAmt = nsformat_number(credit.amount)>
+
+        <#if missingBillAmt < 0>
+            <#assign missingBillAmt = missingBillAmt * -1>
+        </#if>
+
+        <#if missingBillAgg?keys?seq_contains(creditAppliedTo)>
+            <#assign missingBillAgg = missingBillAgg + {creditAppliedTo: missingBillAgg[creditAppliedTo] + missingBillAmt}>
+        <#else>
+            <#assign missingBillAgg = missingBillAgg + {creditAppliedTo: missingBillAmt}>
+            <#assign missingBillDateMap = missingBillDateMap + {creditAppliedTo: credit.creditdate}>
+        </#if>
+    </#if>
+</#list>
+
+<#list missingBillAgg?keys as billRef>
+    <tr>
+        <td align="center" style="width: 15%">${missingBillDateMap[billRef]}</td>
+        <td style="width: 10%">Bill</td>
+        <td align="right" style="width: 15%">${billRef}</td>
+        <#if check.subsidiary.id != '15'><td align="right" style="width: 15%">${nsformat_currency(missingBillAgg[billRef])}</td></#if>
+        <td align="right" style="width: 15%">${nsformat_currency(missingBillAgg[billRef])}</td>
+        <td align="right" style="width: 15%"></td>
+        <#assign otherTotalAmt = otherTotalAmt + missingBillAgg[billRef]>
+        <td align="right" style="width: 15%">${nsformat_currency(missingBillAgg[billRef])}</td>
+    </tr>
+
+    <#assign appliedRefnums = appliedRefnums + [billRef]>
+    <#assign ctr = ctr + 1>
+</#list>
+
+          <#list check.credit as credit>
+<#if ctr < 11>
+<tr>
+<td align="center" style="width: 15%">${credit.creditdate}</td>
+<td style="width: 10%">${credit.type}</td>
+<td align="right" style="width: 15%">${credit.refnum}</td>
+<td align="right" style="width: 15%">${credit.description}</td>
+<#if check.subsidiary.id != '15'><td align="right" style="width: 15%">(${credit.amount})</td></#if>
+<td align="right" style="width: 15%">${credit.discamt}</td>
+<td align="right" style="width: 15%">(${credit.amount})</td>
+</tr>
+        </#if>
+<#assign ctr = ctr + 1>
+        </#list>
+<#else>
+<#list check.credit as credit>
+<#if ctr lt 11>
+<tr>
+<td align="center" style="width: 15%">${credit.creditdate}</td>
+<td style="width: 10%">${credit.type}</td>
+<td align="right" style="width: 15%">${credit.refnum}</td>
+<td align="right" style="width: 15%">${credit.description}</td>
+<td align="right" style="width: 15%">(${credit.amount})</td>
+<td align="right" style="width: 15%">${credit.discamt}</td>
+<td align="right" style="width: 15%">(${credit.amount})</td>
+</tr>
+        </#if>
+<#assign ctr = ctr + 1>
+        </#list> </#if>
+        <!-- end credit -->
+        <!-- Add Check Total line JS Test-->
+
+    
+<tr>
+<td colspan="<#if check.subsidiary.id == '15'>4<#else>5</#if>">
+    <strong>CHECK TOTAL:</strong>
+</td>
+<td align="right">
+    <strong>${otherTotalDisc?string.currency}</strong>
+</td>
+<td align="right">
+    <strong>${(otherTotalAmt - otherTotalDisc)?string.currency}</strong>
+</td>
+</tr>
+<#if combinedLength gt 20>
+<tr>
+<td colspan="<#if check.subsidiary.id == '15'>7<#else>8</#if>" align="center">Please see vendor remittance for complete list of bills</td>
+</tr>
+        </#if>
+        </table>
+        </#if>
+
+<#if check.item?has_content || check.expense?has_content>
+<table style="overflow: hidden;left: 30pt;top: 40pt;width: 580pt;">
+<#list check.expense as expense>
+<tr>
+    <td>${expense.account}</td>
+    <td>${expense.date}</td>
+    <td>${expense.description}</td>
+    <td align="right">${expense.amount}</td>
+</tr>
+</#list>
+<#list check.item as item>
+<tr>
+<td>&nbsp;</td>
+<td>${item.date}</td>
+<td>${item.item}, ${item.description}</td>
+<td align="right">${item.amount}</td>
+</tr>
+        </#list>
+        </table>
+        </#if>
+        </div>
+<#if check.account.id == "984" || check.account.id == "985">
+<div
+style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-before: avoid;font-size: 8pt; padding-top: 50px; font-size: 13px;">
+<#else>
+<div style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-before: avoid;font-size: 8pt;">
+</#if>
+<table
+        style="position: absolute;overflow: hidden;left: 403pt;top: 5pt;height: 7pt;width: 80pt;font-size: 8pt;">
+    <tr>
+        <td align="center">${check.checknumber}</td>
+    </tr>
+</table>
+
+<table style="position: absolute;overflow: hidden;left: 412pt;top: 20pt;height: 13pt;width: 70pt;">
+    <tr>
+        <td>${check.trandate}</td>
+    </tr>
+</table>
+
+<table style="position: absolute;overflow: hidden;left: 20pt;top: 20pt;height: 13pt;width: 157pt;">
+    <tr>
+        <td><#if (check.entity.companyname?has_content)>${check.entity.companyname}<#else>${check.entity}
+        </#if>
+    </td>
+</tr>
+</table>
+
+<#assign applyLength = check.apply?size>
+<#assign creditLength = check.credit?size>
+<#assign combinedLength = applyLength + creditLength>
+<#assign ctr = 1>
+<#if check.apply?has_content>
+<table class="itemtable" style="position: absolute;overflow: hidden; width: 100%; margin: 30pt 10pt 8pt;">
+<!-- start apply sublist -->
+<#list check.apply as apply>
+<#if ctr lt 11>
+<#if apply_index==0>
+<thead>
+    <#if check.subsidiary.id == '15'>
+    <tr>
+        <th align="center" style="width: 18%">${apply.applydate@label}</th>
+        <th style="width: 13%">${apply.type@label}</th>
+        <th align="right" style="width: 18%">${apply.refnum@label}</th>
+        <th align="right" style="width: 17%">${apply.total@label}</th>
+        <th align="right" style="width: 17%">${apply.disc@label}</th>
+        <th align="right" style="width: 17%">${apply.amount@label}</th>
+    </tr>
+    <#else>
+    <tr>
+        <th align="center" style="width: 15%">${apply.applydate@label}</th>
+        <th style="width: 10%">${apply.type@label}</th>
+        <th align="right" style="width: 15%">${apply.refnum@label}</th>
+        <th align="right" style="width: 15%">${apply.total@label}</th>
+        <th align="right" style="width: 15%">${apply.due@label}</th>
+        <th align="right" style="width: 15%">${apply.disc@label}</th>
+        <th align="right" style="width: 15%">${apply.amount@label}</th>
+    </tr>
+    </#if>
+</thead>
+</#if>
+<tr>
+<td align="center" style="width: 15%">${apply.applydate}</td>
+<td style="width: 10%">${apply.type}</td>
+<td align="right" style="width: 15%">${apply.refnum}</td>
+<td align="right" style="width: 15%">${apply.total}</td>
+<#if check.subsidiary.id != '15'>
+<td align="right" style="width: 15%">
+      <#if check.subsidiary.id = '8'> ${apply.due}  <#else>
+  ${(apply.total - apply.disc)?string.currency} </#if>
+</td>
+</#if>
+<td align="right" style="width: 15%">${apply.disc}</td>
+<td align="right" style="width: 15%">${(apply.total - apply.disc)?string.currency}</td>
+</tr>
+        </#if>
+<#assign ctr = ctr + 1>
+        </#list><!-- end apply -->
+        <!-- start credit sublist -->
+<#if check.subsidiary.id = '15' || check.subsidiary.id = '8'>
+  <#-- Insert missing bill rows: remove "Bill #" before validating -->
+<#assign appliedRefnums = []>
+
+<#list check.apply as a>
+    <#assign applyRef = (a.refnum!"")?string?trim?replace("^Bill\\s*#\\s*", "", "ri")>
+
+    <#if applyRef?has_content>
+        <#assign appliedRefnums = appliedRefnums + [applyRef]>
+    </#if>
+</#list>
+
+<#assign missingBillAgg = {}>
+<#assign missingBillDateMap = {}>
+
+<#list check.credit as credit>
+    <#assign creditAppliedTo = (credit.appliedto!"")?string?trim?replace("^Bill\\s*#\\s*", "", "ri")>
+
+    <#if creditAppliedTo?has_content && !appliedRefnums?seq_contains(creditAppliedTo)>
+        <#assign missingBillAmt = nsformat_number(credit.amount)>
+
+        <#if missingBillAmt < 0>
+            <#assign missingBillAmt = missingBillAmt * -1>
+        </#if>
+
+        <#if missingBillAgg?keys?seq_contains(creditAppliedTo)>
+            <#assign missingBillAgg = missingBillAgg + {creditAppliedTo: missingBillAgg[creditAppliedTo] + missingBillAmt}>
+        <#else>
+            <#assign missingBillAgg = missingBillAgg + {creditAppliedTo: missingBillAmt}>
+            <#assign missingBillDateMap = missingBillDateMap + {creditAppliedTo: credit.creditdate}>
+        </#if>
+    </#if>
+</#list>
+
+<#list missingBillAgg?keys as billRef>
+    <tr>
+        <td align="center" style="width: 15%">${missingBillDateMap[billRef]}</td>
+        <td style="width: 10%">Bill</td>
+        <td align="right" style="width: 15%">${billRef}</td>
+        <#if check.subsidiary.id != '15'><td align="right" style="width: 15%">${nsformat_currency(missingBillAgg[billRef])}</td></#if>
+        <td align="right" style="width: 15%">${nsformat_currency(missingBillAgg[billRef])}</td>
+        <td align="right" style="width: 15%"></td>
+        <td align="right" style="width: 15%">${nsformat_currency(missingBillAgg[billRef])}</td>
+    </tr>
+
+    <#assign appliedRefnums = appliedRefnums + [billRef]>
+    <#assign ctr = ctr + 1>
+</#list>
+
+
+          <#list check.credit as credit>
+<#if ctr < 11>
+<tr>
+<td align="center" style="width: 15%">${credit.creditdate}</td>
+<td style="width: 10%">${credit.type}</td>
+<td align="right" style="width: 15%">${credit.refnum}</td>
+<td align="right" style="width: 15%">${credit.description}</td>
+<#if check.subsidiary.id != '15'><td align="right" style="width: 15%">(${credit.amount})</td></#if>
+<td align="right" style="width: 15%">${credit.discamt}</td>
+<td align="right" style="width: 15%">(${credit.amount})</td>
+</tr>
+        </#if>
+<#assign ctr = ctr + 1>
+        </#list>
+  
+<#else>          
+<#list check.credit as credit>
+<#if ctr < 11>
+<tr>
+<td align="center" style="width: 15%">${credit.creditdate}</td>
+<td style="width: 10%">${credit.type}</td>
+<td align="right" style="width: 15%">${credit.refnum}</td>
+<td align="right" style="width: 15%">${credit.description}</td>
+<td align="right" style="width: 15%">(${credit.amount})</td>
+<td align="right" style="width: 15%">${credit.discamt}</td>
+<td align="right" style="width: 15%">(${credit.amount})</td>
+</tr>
+        </#if>
+<#assign ctr = ctr + 1>
+        </#list></#if>
+        <!-- end credit -->
+        <!-- Add Check Total line -->
+<tr>
+<td colspan="<#if check.subsidiary.id == '15'>4<#else>5</#if>">
+
+    <strong>CHECK TOTAL:</strong>
+</td>
+<td align="right">
+    <strong>${otherTotalDisc?string.currency}</strong>
+</td>
+<td align="right">
+    <strong>${(otherTotalAmt - otherTotalDisc)?string.currency}</strong>
+</td>
+</tr>
+<#if combinedLength gt 20>
+<tr>
+<td colspan="<#if check.subsidiary.id == '15'>7<#else>8</#if>" align="center">Please see vendor remittance for complete list of bills</td>
+</tr>
+        </#if>
+        </table>
+        </#if>
+
+<#if check.item?has_content || check.expense?has_content>
+<table style="overflow: hidden;left: 30pt;top: 40pt;width: 580pt;">
+<#list check.expense as expense>
+<tr>
+    <td>${expense.account}</td>
+    <td>${expense.date}</td>
+    <td>${expense.description}</td>
+    <td align="right">${expense.amount}</td>
+</tr>
+</#list>
+<#list check.item as item>
+<tr>
+<td>&nbsp;</td>
+<td>${item.date}</td>
+<td>${item.item}, ${item.description}</td>
+<td align="right">${item.amount}</td>
+</tr>
+        </#list>
+        </table>
+        </#if>
+        </div>
+        </#if>
+        </#list>
+
+        <!-- Print Excess Records Page -->
+<#list records as check>
+<#if check.subsidiary.id == '19'>
+
+
+
+<#assign ctr = 0 />
+<#list check.apply as apply>
+<#assign ctr = ctr + 1 />
+        </#list>
+<#list check.credit as credit>
+<#assign ctr = ctr + 1 />
+        </#list>
+
+<#if ctr gt 10>
+<div style="font-family: Helvetica,sans-serif; width: 100%; font-size: 8pt; padding-left: 10px; padding-right: 10px;">
+<table style="position: absolute;overflow: hidden;left: 500pt;top: 5pt;height: 7pt;width: 80pt;font-size: 8pt;">
+    <tr>
+        <td align="center">${check.checknumber}</td>
+    </tr>
+</table>
+
+<table style="position: absolute;overflow: hidden;left: 475pt;top: 20pt;height: 13pt;width: 70pt;">
+    <tr>
+        <td>${check.trandate}</td>
+    </tr>
+</table>
 </div>
-</div> <!-- #page-wrapper -->
-<script type="text/javascript" nonce="e21f64fd288290f2a471404be6567723" src="/Rgrg/iLVa/lZj6/JYiRMA/OYYirJhziOGwS6Qu/C0FERU8/WFwZQw/8zQiAB"></script></body>
-</html>
+
+<#assign applyLength = check.apply?size>
+<#assign creditLength = check.credit?size>
+<#assign combinedLength = applyLength + creditLength>
+
+<#assign totalCheckAmt = 0>
+<#assign totalCredits = 0>
+<#assign totalDisc = 0>
+
+<#if check.apply?has_content || check.credit?has_content>
+<table
+style="page-break-inside: auto;page-break-after: always; width: 100%; margin: 30pt 10pt 8pt; padding-top: 5px; padding-bottom: 5px; height: 100%; border-collapse: collapse; font-family: Helvetica,sans-serif; font-size: 8pt;">
+
+<!-- start apply sublist -->
+<#list check.apply?sort_by('refnum') as apply>
+<#if apply_index==0>
+<thead>
+    <tr style="border-top: 1px; border-bottom: 1px;">
+        <th align="left" style="width: 10%">TRX No</th>
+        <th align="left" style="width: 20%">Invoice No</th>
+        <th align="left" style="width: 30%">Inv Date Job/Description</th>
+        <th align="left" style="width: 15%">Applied To</th>
+        <th align="left" style="width: 10%">Discount</th>
+        <th align="left" style="width: 7.5%">Credits</th>
+        <th align="left" style="width: 7.5%">Check Amount</th>
+    </tr>
+</thead>
+</#if>
+
+<tr style="page-break-inside: avoid;">
+<td align="left" style="width: 10%">${apply.doc}</td>
+<td align="left" style="width: 20%">${apply.refnum}</td>
+<td align="left" style="width: 30%">
+    ${apply.applydate}
+    <#if apply.installmentnumber?has_content>-${apply.installmentnumber}</#if>
+</td>
+<td align="left" style="width: 15%">&nbsp;</td>
+<td align="left" style="width: 10%">${apply.disc}</td>
+<td align="right" style="width: 7.5%">&nbsp;</td>
+<td align="right" style="width: 7.5%">${apply.amount}</td>
+
+<#assign totalCheckAmt = totalCheckAmt + nsformat_number(apply.amount)>
+<#assign totalDisc = totalDisc + nsformat_number(apply.disc)>
+        </tr>
+        </#list>
+        <!-- end apply -->
+
+        <!-- start credit sublist -->
+<#list check.credit?sort_by('appliedto') as credit>
+<tr style="page-break-inside: avoid;">
+<td align="left" style="width: 10%">${credit.doc}</td>
+<td align="left" style="width: 20%">${credit.refnum}</td>
+<td align="left" style="width: 30%">${credit.creditdate} ${credit.memo}</td>
+<td align="left" style="width: 15%">${credit.appliedto}</td>
+<td align="left" style="width: 10%">${credit.discamt}</td>
+
+<!-- Credits column (ONLY credits go here) -->
+<td align="right" style="width: 7.5%">
+    <#if nsformat_number(credit.amount) gt 0>-</#if>${credit.amount}
+</td>
+
+        <!-- Check Amount blank for credits -->
+<td align="right" style="width: 7.5%">&nbsp;</td>
+
+<#assign totalCredits = totalCredits + nsformat_number(credit.amount)>
+<#assign totalDisc = totalDisc + nsformat_number(credit.discamt)>
+        </tr>
+        </#list>
+
+        <!-- Add Total Row to Continuation Sheet -->
+<tr style="border-top: 1px solid black;">
+<td colspan="4">
+    <strong>CONTINUATION SHEET TOTAL:</strong>
+</td>
+<td align="right">
+    <strong>${totalDisc?string.currency}</strong>
+</td>
+<td align="right">
+    <strong>${totalCredits?string.currency}</strong>
+</td>
+<td align="right">
+    <strong>${(totalCheckAmt)?string.currency}</strong>
+</td>
+</tr>
+        </table>
+        </#if>
+        </#if><!-- subsidiary id 19-->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<#elseif check.subsidiary.id == '20'>
+
+
+
+
+
+
+
+
+
+<#assign ctr = 0 />
+<#assign applyTotal = 0>
+<#assign creditTotal = 0>
+<#list check.apply as apply>
+<#assign ctr = ctr + 1 />
+<#assign applyTotal += apply.amount>
+        </#list>
+<#list check.credit as credit>
+<#assign ctr = ctr + 1 />
+<#assign creditTotal += credit.amount>
+        </#list>
+<#if ctr gt 8>
+<div style="font-family: Helvetica,sans-serif; width: 100%; font-size: 8pt; padding-left: 10px; padding-right: 10px;">
+<table
+        style="position: absolute;overflow: hidden;left: 500pt;top: 5pt;height: 7pt;width: 80pt;font-size: 8pt;">
+    <tr>
+        <td align="center">${check.tranid}</td>
+    </tr>
+</table>
+
+<table style="position: absolute;overflow: hidden;left: 475pt;top: 20pt;height: 13pt;width: 70pt;">
+    <tr>
+        <td>${check.trandate}</td>
+    </tr>
+</table>
+
+<table style="position: absolute; overflow: hidden;left: 20pt;top: 20pt;height: 13pt;width: 157pt;">
+    <tr>
+        <td><#if (check.entity.companyname?has_content)>${check.entity.companyname}<#else>${check.entity}
+        </#if>
+    </td>
+</tr>
+</table>
+        </div>
+<#assign applyLength = check.apply?size>
+<#assign creditLength = check.credit?size>
+<#assign combinedLength = applyLength + creditLength>
+<#assign totalAmt = 0>
+<#assign totalDisc = 0>
+
+<#if check.apply?has_content || check.credit?has_content>
+<table
+style="page-break-inside: auto;page-break-after: always; width: 100%; margin: 30pt 10pt 8pt; padding-top: 15px; padding-bottom: 15px; height: 100%; border-collapse: collapse; font-family: Helvetica,sans-serif; font-size: 8pt;">
+<!-- start apply sublist -->
+<#list check.apply as apply>
+<#if apply_index==0>
+<thead>
+    <tr style="border-top: 1px; border-bottom: 1px;">
+        <th align="left" colspan="3">${apply.applydate@label}</th>
+        <th colspan="3">${apply.type@label}</th>
+        <th align="center" colspan="5">${apply.refnum@label}</th>
+        <th align="right" colspan="5">Amount</th>
+        <!--<th align="right" colspan="3">${apply.due@label}</th>-->
+        <th align="right" colspan="5">${apply.disc@label}</th>
+        <th align="right" colspan="5">Due After Discount</th>
+    </tr>
+</thead>
+</#if>
+<tr style="page-break-inside: avoid;">
+<td align="left" colspan="3">${apply.applydate}</td>
+<td colspan="3">${apply.type}</td>
+<td align="center" colspan="5">${apply.refnum}</td>
+<td align="right" colspan="5">${apply.total}</td>
+<!--<td align="right" colspan="5">${apply.due}</td>-->
+<td align="right" colspan="5">${apply.disc}</td>
+<td align="right" colspan="5">${apply.amount}</td>
+</tr>
+        </#list><!-- end apply -->
+
+<tr>
+<td align="left" colspan="3">
+    <strong>BILL TOTAL:</strong>
+</td>
+<td colspan="18">&nbsp;</td>
+<td align="right" colspan="5">
+    <strong>${applyTotal?string.currency}</strong>
+</td>
+</tr>
+
+        <!-- start credit sublist -->
+<#list check.credit as credit>
+<#if credit_index == 0>
+<tr>
+<th align="left" colspan="6">${credit.creditdate@label}</th>
+<th colspan="6">${credit.type@label}</th>
+<th align="right" colspan="6">${credit.refnum@label}</th>
+<th align="right" colspan="8">Open CM Amount</th>
+</tr>
+        </#if>
+<tr style="page-break-inside: avoid;">
+<td align="left" colspan="6">${credit.creditdate}</td>
+<td colspan="6">${credit.type}</td>
+<td align="right" colspan="6">${credit.refnum}</td>
+<td align="right" colspan="8">(${credit.amount})</td>
+</tr>
+        </#list>
+        <!-- Add Total Row to Continuation Sheet -->
+<tr style="border-top: 1px solid black;">
+<td colspan="5">
+    <strong>CONTINUATION SHEET TOTAL:</strong>
+</td>
+<td align="right">
+    <strong>${totalDisc?string.currency}</strong>
+</td>
+<td align="right">
+    <strong>${totalAmt?string.currency}</strong>
+</td>
+</tr>
+<tr>
+<td align="left" colspan="6">
+    <strong>CREDIT MEMO TOTAL:</strong>
+</td>
+<td colspan="12">
+    <strong>&nbsp;</strong>
+</td>
+<td align="right" colspan="8">
+    <strong>${creditTotal?string.currency}</strong>
+</td>
+</tr>
+<tr>
+<td align="left" colspan="6">
+    <strong>CHECK AMOUNT ROW:</strong>
+</td>
+<td colspan="12">
+    <strong>&nbsp;</strong>
+</td>
+<td align="right" colspan="8">
+    <strong>${(applyTotal-creditTotal)?string.currency}</strong>
+</td>
+</tr>
+        </table>
+        </#if>
+        </#if><!-- subsidiary id 20-->
+
+
+
+
+
+        </#if>
+        </#list>
+        </body>
+        </pdf>
