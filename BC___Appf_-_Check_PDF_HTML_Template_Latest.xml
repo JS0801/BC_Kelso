@@ -2177,10 +2177,12 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 </#list>
 <#list check.item as item>
 <tr>
-<td>&nbsp;</td>
 <td>${item.date}</td>
+<td>&nbsp;</td>
 <td>${item.item}, ${item.description}</td>
-<td>${item.amount}</td>
+<td align = "right">${item.amount}</td>
+<td align = "right">${item.amount}</td>
+<td align = "right">${item.amount}</td>
 </tr>
         </#list>
         </table>
