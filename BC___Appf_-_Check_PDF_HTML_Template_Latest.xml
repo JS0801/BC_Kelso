@@ -2063,7 +2063,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 
 <div style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-before: avoid;font-size: 8pt;">
 
-<table style="position: absolute;overflow: hidden;left: 150pt;top: 20pt;height: 13pt;width: 150pt;">
+<table style="position: absolute;overflow: hidden;left: 140pt;top: 20pt;height: 13pt;width: 150pt;">
     <tr>
         <td>
           <b><#if (check.entity.companyname?has_content)>${check.entity.companyname}<#else>${check.entity}</#if></b>
