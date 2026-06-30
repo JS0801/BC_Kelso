@@ -2103,7 +2103,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 <thead>
     <tr>
         <th align="center" style="width: 15%"><b>Date</b></th>
-        <th style="width: 10%"><b>${apply.type@label}</b></th>
+        <th style="width: 5%"><b>${apply.type@label}</b></th>
         <th align="center" style="width: 15%"><b>Reference</b></th>
         <th align="right" style="width: 19%"><b>Original Amount</b></th>
         <th align="right" style="width: 19%"><b>Balance Due</b></th>
@@ -2113,7 +2113,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 </#if>
 <tr>
 <td align="center" style="width: 15%">${apply.applydate}</td>
-<td style="width: 10%">${apply.type}</td>
+<td style="width: 5%">${apply.type}</td>
 <td align="center" style="width: 15%">${apply.refnum}</td>
 <td align="right" style="width: 19%">${apply.total}</td>
 <td align="right" style="width: 19%">${apply.due}</td>
