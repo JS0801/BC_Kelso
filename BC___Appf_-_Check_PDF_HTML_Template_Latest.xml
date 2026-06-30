@@ -2177,9 +2177,9 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 </#list>
 <#list check.item as item>
 <tr>
-<td>${item.date}</td>
+<td align="center">${item.date}</td>
 <td>&nbsp;</td>
-<td>${item.item}, ${item.description}</td>
+<td align="center">${item.item}, ${item.description}</td>
 <td align = "right">${item.amount}</td>
 <td align = "right">${item.amount}</td>
 <td align = "right">${item.amount}</td>
@@ -2267,21 +2267,37 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
         </#if>
 
 <#if check.item?has_content || check.expense?has_content>
-<table style="overflow: hidden;left: 30pt;top: 40pt;width: 580pt;">
+<table style="overflow: hidden;left: 20pt;top: 40pt;width: 570pt;">
+  <#if (combinedLength!0) == 0>
+<thead>
+    <tr>
+        <th align="center" style="width: 15%"><b>Date</b></th>
+        <th align="center" style="width: 10%"><b>Type</b></th>
+        <th align="center" style="width: 18%"><b>Reference</b></th>
+        <th align="right" style="width: 19%"><b>Original Amount</b></th>
+        <th align="right" style="width: 19%"><b>Balance Due</b></th>
+        <th align="right" style="width: 19%"><b>Payment</b></th>
+    </tr>
+</thead>
+</#if>
 <#list check.expense as expense>
 <tr>
-    <td>${expense.account}</td>
-    <td>${expense.date}</td>
-    <td>${expense.description}</td>
-    <td align = "right" padding-right = "50px">${expense.amount}</td>
+    <td align="center">${check.trandate}</td>
+    <td align="center">Expense</td>
+    <td align="center">&nbsp;</td>
+    <td align = "right">${expense.amount}</td>
+    <td align = "right">${expense.amount}</td>
+    <td align = "right">${expense.amount}</td>
 </tr>
 </#list>
 <#list check.item as item>
 <tr>
+<td align="center">${item.date}</td>
 <td>&nbsp;</td>
-<td>${item.date}</td>
-<td>${item.item}, ${item.description}</td>
-<td>${item.amount}</td>
+<td align="center">${item.item}, ${item.description}</td>
+<td align = "right">${item.amount}</td>
+<td align = "right">${item.amount}</td>
+<td align = "right">${item.amount}</td>
 </tr>
         </#list>
         </table>
