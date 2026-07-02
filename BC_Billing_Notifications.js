@@ -903,6 +903,8 @@ const billingQualificationFilter = openChangeProjectFilter
                 'AND',
                 [FIELDS.BILL_DATE, 'noneof', '@NONE@'],
                 'AND',
+                [FIELDS.CONTRACT_SALES_ORDER, 'noneof', '@NONE@'],
+                'AND',
                 billingQualificationFilter
             ],
             columns: [
