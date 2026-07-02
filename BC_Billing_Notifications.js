@@ -473,10 +473,9 @@ define([
             author: getSettings().emailSender,
             recipients,
             subject,
-            body,
-            cc: [265003]
+            body
         };
-        if (cc && cc.length) options.cc = [265003];
+        if (cc && cc.length) options.cc = cc;
 
         email.send(options);
         log.audit('Billing email sent', {
