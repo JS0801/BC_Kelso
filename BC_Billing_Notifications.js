@@ -35,20 +35,35 @@ define([
         PROJECT: 'customrecord_cseg_bc_project',
         PROJECT_CONTACT: 'customrecord_bc_project_contact_list',
         HOLIDAY: 'customrecord_bc_holiday_list',
-        BILLING_HISTORY: 'customrecord_bc_project_billing_history'
+        BILLING_HISTORY: 'customrecord_bc_project_billing_history',
+        CHANGE_REQUEST: 'customrecord_bc_change_req'
     };
 
     const FIELDS = {
         PROJECT_DISPLAY: 'name',
         MAIN_PM: 'custrecord_bc_proj_manager',
         BILL_DATE: 'custrecord_bill_date',
+        CONTRACT_SALES_ORDER: 'custrecord_bc_proj_contract',
         PROJECT_SEGMENT: 'cseg_bc_project',
         HISTORY_PROJECT: 'custrecord_bc_bh_project',
         HISTORY_CYCLE_DATE: 'custrecord_bc_bh_cycle_date',
         HISTORY_STATUS: 'custrecord_bc_bh_status',
         HISTORY_NO_BILL_REASON: 'custrecord_bc_bh_no_bill_reason',
         HISTORY_RELATED_INVOICES: 'custrecord_bc_bh_related_invoices',
-        HISTORY_ACCOUNTING_NOTIFIED: 'custrecord_bc_bh_accounting_notified'
+        HISTORY_ACCOUNTING_NOTIFIED: 'custrecord_bc_bh_accounting_notified',
+        CHANGE_PROJECT: 'custrecord_bc_blue_collar_proj',
+        CHANGE_RELATED_TRANSACTIONS: 'custrecord_bc_related_transactions',
+        CHANGE_REQUEST_STATUS: 'custrecord_bc_request_status'
+    };
+
+
+    const SUBSIDIARIES = {
+        BLUECOLLAR: '23'
+    };
+
+    const SALES_ORDER_STATUSES = {
+        BILLED: 'SalesOrd:G',
+        CLOSED: 'SalesOrd:H'
     };
 
     // Create the custom-list values in this order and verify these IDs.
@@ -175,6 +190,55 @@ define([
     // -----------------------------------------------------------------
     // DATE AND CYCLE HELPERS
     // -----------------------------------------------------------------
+
+    const getOpenChangeOrderProjectIds = () => {
+    const projectIds = new Set();
+
+    const pagedResults = search.create({
+        type: RECORDS.CHANGE_REQUEST,
+        filters: [
+            [`${FIELDS.CHANGE_PROJECT}.${FIELDS.BILL_DATE}`, 'noneof', '@NONE@'],
+            'AND',
+            [`${FIELDS.CHANGE_RELATED_TRANSACTIONS}.subsidiary`, 'anyof', SUBSIDIARIES.BLUECOLLAR],
+            'AND',
+            [FIELDS.CHANGE_REQUEST_STATUS, 'anyof', '2', '@NONE@']
+        ],
+        columns: [
+            search.createColumn({
+                name: FIELDS.CHANGE_PROJECT,
+                summary: search.Summary.GROUP
+            })
+        ]
+    }).runPaged({ pageSize: 1000 });
+
+    pagedResults.pageRanges.forEach((pageRange) => {
+        const page = pagedResults.fetch({ index: pageRange.index });
+        page.data.forEach((result) => {
+            const projectId = result.getValue({
+                name: FIELDS.CHANGE_PROJECT,
+                summary: search.Summary.GROUP
+            });
+
+            if (projectId) projectIds.add(String(projectId));
+        });
+    });
+
+    return Array.from(projectIds);
+};
+
+const buildAnyOfFilterExpression = (fieldId, values) => {
+    const chunks = [];
+
+    for (let index = 0; index < values.length; index += 1000) {
+        chunks.push(values.slice(index, index + 1000));
+    }
+
+    return chunks.reduce((expression, chunk) => {
+        const chunkFilter = [fieldId, 'anyof', chunk];
+        return expression ? [expression, 'OR', chunkFilter] : chunkFilter;
+    }, null);
+};
+  
     const stripTime = (date) => new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
     const getCurrentDate = () => {
@@ -811,22 +875,42 @@ define([
             });
         }
 
+      const openChangeProjectIds = getOpenChangeOrderProjectIds();
+
+const openChangeProjectFilter = buildAnyOfFilterExpression(
+    'internalid',
+    openChangeProjectIds
+);
+
+const contractNotBilledFilter = [
+    `${FIELDS.CONTRACT_SALES_ORDER}.status`,
+    'noneof',
+    [SALES_ORDER_STATUSES.BILLED, SALES_ORDER_STATUSES.CLOSED]
+];
+
+const billingQualificationFilter = openChangeProjectFilter
+    ? [contractNotBilledFilter, 'OR', openChangeProjectFilter]
+    : contractNotBilledFilter;
+
         return search.create({
             type: RECORDS.PROJECT,
             filters: [
                 ['internalid', 'anyof', '67126'],
                 'AND',
-                ['custrecord_bc_proj_subsidiary', 'anyof', '23'],
+                ['custrecord_bc_proj_subsidiary', 'anyof', SUBSIDIARIES.BLUECOLLAR],
                 'AND',
                 ['isinactive', 'is', 'F'],
                 'AND',
-                [FIELDS.BILL_DATE, 'noneof', '@NONE@']
+                [FIELDS.BILL_DATE, 'noneof', '@NONE@'],
+                'AND',
+                billingQualificationFilter
             ],
             columns: [
                 'internalid',
                 FIELDS.PROJECT_DISPLAY,
                 FIELDS.BILL_DATE,
-                FIELDS.MAIN_PM
+                FIELDS.MAIN_PM,
+                FIELDS.CONTRACT_SALES_ORDER
             ]
         });
     };
