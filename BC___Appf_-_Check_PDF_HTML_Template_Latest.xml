@@ -2048,7 +2048,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 </tr>
         </table>
 
-<table style="position: absolute;overflow: hidden;left: 40pt;top: 100pt;height: 18pt;width:575pt;">
+<table style="position: absolute;overflow: hidden;left: 50pt;top: 100pt;height: 18pt;width:575pt;">
 <tr>
     <td>${check.totalwords}*********************************************************************
     </td>
