@@ -2111,7 +2111,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
         <th align="center" style="width: 15%"><b>Reference</b></th>
         <th align="right" style="width: 19%"><b>Original Amount</b></th>
         <th align="right" style="width: 19%"><b>Balance Due</b></th>
-        <#if showDiscountColumn><th align="right" style="width: 8%"><b>Discount</b></th></#if>
+        <#if showDiscountColumn><th align="right" style="width: 10%"><b>Discount</b></th></#if>
         <th align="right" style="width: 19%"><b>Payment</b></th>
     </tr>
 </thead>
@@ -2173,7 +2173,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
         <th align="center" style="width: 15%"><b>Reference</b></th>
         <th align="right" style="width: 19%"><b>Original Amount</b></th>
         <th align="right" style="width: 19%"><b>Balance Due</b></th>
-        <#if showDiscountColumn><th align="right" style="width: 8%"><b>Discount</b></th></#if>
+        <#if showDiscountColumn><th align="right" style="width: 10%"><b>Discount</b></th></#if>
         <th align="right" style="width: 19%"><b>Payment</b></th>
     </tr>
 </thead>
@@ -2236,7 +2236,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
         <th align="center" style="width: 15%"><b>Reference</b></th>
         <th align="right" style="width: 19%"><b>Original Amount</b></th>
         <th align="right" style="width: 19%"><b>Balance Due</b></th>
-        <#if showDiscountColumn><th align="right" style="width: 13%"><b>Discount</b></th></#if>
+        <#if showDiscountColumn><th align="right" style="width: 10%"><b>Discount</b></th></#if>
         <th align="right" style="width: 19%"><b>Payment</b></th>
     </tr>
 </thead>
@@ -2299,7 +2299,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
         <th align="center" style="width: 15%"><b>Reference</b></th>
         <th align="right" style="width: 19%"><b>Original Amount</b></th>
         <th align="right" style="width: 19%"><b>Balance Due</b></th>
-        <#if showDiscountColumn><th align="right" style="width: 13%"><b>Discount</b></th></#if>
+        <#if showDiscountColumn><th align="right" style="width: 10%"><b>Discount</b></th></#if>
         <th align="right" style="width: 19%"><b>Payment</b></th>
     </tr>
 </thead>
