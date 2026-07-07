@@ -2181,23 +2181,33 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 <table style="overflow: hidden;left: 20pt;top: 40pt;width: 570pt;">
   <#if (combinedLength!0) == 0>
 <thead>
+  <#if showDiscountColumn>
     <tr>
         <th align="center" style="width: 15%"><b>Date</b></th>
         <th align="center" style="width: 5%"><b>Type</b></th>
         <th align="center" style="width: 15%"><b>Reference</b></th>
         <th align="right" style="width: 19%"><b>Original Amount</b></th>
         <th align="right" style="width: 19%"><b>Balance Due</b></th>
-        <#if showDiscountColumn>
-          <th align="right" style="width: 10%"><b>Discount</b></th>
-          <th align="right" style="width: 13%"><b>Payment</b></th>
-          <#else>
-          <th align="right" style="width: 19%"><b>Payment</b></th>
-        </#if>
-        
+        <th align="right" style="width: 10%"><b>Discount</b></th>
+        <th align="right" style="width: 13%"><b>Payment</b></th>
     </tr>
+      <#else>
+        <tr>
+        <th align="center" style="width: 15%"><b>Date</b></th>
+        <th align="center" style="width: 5%"><b>Type</b></th>
+        <th align="center" style="width: 15%"><b>Reference</b></th>
+        <th align="right" style="width: 19%"><b>Original Amount</b></th>
+        <th align="right" style="width: 19%"><b>Balance Due</b></th>
+        <th align="right" style="width: 19%"><b>Payment</b></th>
+    </tr>
+      </#if>
+        
+        
+
 </thead>
 </#if>
 <#list check.expense as expense>
+
 <tr>
     <td align="center">${check.trandate}</td>
     <td align="center">Expense</td>
