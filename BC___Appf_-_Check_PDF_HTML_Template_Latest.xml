@@ -2111,8 +2111,12 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
         <th align="center" style="width: 15%"><b>Reference</b></th>
         <th align="right" style="width: 19%"><b>Original Amount</b></th>
         <th align="right" style="width: 19%"><b>Balance Due</b></th>
-        <#if showDiscountColumn><th align="right" style="width: 10%"><b>Discount</b></th></#if>
+        <#if showDiscountColumn>
+          <th align="right" style="width: 10%"><b>Discount</b></th>
+          <th align="right" style="width: 10%"><b>Payment</b></th>
+        <#else>
         <th align="right" style="width: 19%"><b>Payment</b></th>
+          </#if>
     </tr>
 </thead>
 </#if>
@@ -2122,10 +2126,15 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 <td align="center" style="width: 15%">${apply.refnum}</td>
 <td align="right" style="width: 19%">${apply.total}</td>
 <td align="right" style="width: 19%">${apply.due}</td>
-<#if showDiscountColumn><td align="right" style="width: 8%">${apply.disc}</td></#if>
-<td align="right" style="width: 19%">${(apply.total - apply.disc)?string.currency}</td>
+<#if showDiscountColumn>
+  <td align="right" style="width: 10%">${apply.disc}</td>
+  <td align="right" style="width: 10%">${(apply.total - apply.disc)?string.currency}</td>
+  <#else>
+    <td align="right" style="width: 19%">${(apply.total - apply.disc)?string.currency}</td>
+</#if>
+
 </tr>
-        </#if>
+        </#if>d
 <#assign ctr = ctr + 1>
         </#list>
           
@@ -2137,8 +2146,13 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 <td align="center" style="width: 15%">${credit.refnum}</td>
 <td align="right" style="width: 19%">${credit.description}</td>
 <td align="right" style="width: 19%">(${credit.amount})</td>
-<#if showDiscountColumn><td align="right" style="width: 8%">${credit.discamt}</td></#if>
-<td align="right" style="width: 19%">(${credit.amount})</td>
+<#if showDiscountColumn>
+  <td align="right" style="width: 10%">${credit.discamt}</td>
+  <td align="right" style="width: 10%">(${credit.amount})</td>
+   <#else>
+  <td align="right" style="width: 19%">(${credit.amount})</td>
+</#if>
+
 </tr>
 </#if>
 <#assign ctr = ctr + 1>
@@ -2173,8 +2187,13 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
         <th align="center" style="width: 15%"><b>Reference</b></th>
         <th align="right" style="width: 19%"><b>Original Amount</b></th>
         <th align="right" style="width: 19%"><b>Balance Due</b></th>
-        <#if showDiscountColumn><th align="right" style="width: 10%"><b>Discount</b></th></#if>
-        <th align="right" style="width: 19%"><b>Payment</b></th>
+        <#if showDiscountColumn>
+          <th align="right" style="width: 10%"><b>Discount</b></th>
+          <th align="right" style="width: 10%"><b>Payment</b></th>
+          <#else>
+          <th align="right" style="width: 19%"><b>Payment</b></th>
+        </#if>
+        
     </tr>
 </thead>
 </#if>
@@ -2185,7 +2204,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
     <td align="center">&nbsp;</td>
     <td align = "right">${expense.amount}</td>
     <td align = "right">${expense.amount}</td>
-    <#if showDiscountColumn><td align="right" style="width: 8%"></td></#if>
+    <#if showDiscountColumn><td align="right" style="width: 10%"></td></#if>
     <td align = "right">${expense.amount}</td>
 </tr>
 </#list>
@@ -2196,7 +2215,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 <td align="center">${item.item}, ${item.description}</td>
 <td align = "right">${item.amount}</td>
 <td align = "right">${item.amount}</td>
-  <#if showDiscountColumn><td align="right" style="width: 8%"></td></#if>
+  <#if showDiscountColumn><td align="right" style="width: 10%"></td></#if>
 <td align = "right">${item.amount}</td>
 </tr>
         </#list>
