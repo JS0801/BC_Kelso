@@ -2214,7 +2214,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
     <td align="center">&nbsp;</td>
     <td align = "right">${expense.amount}</td>
     <td align = "right">${expense.amount}</td>
-    <#if showDiscountColumn><td align="right" style="width: 10%"></td></#if>
+    <#if showDiscountColumn><td></td></#if>
     <td align = "right">${expense.amount}</td>
 </tr>
 </#list>
@@ -2225,7 +2225,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 <td align="center">${item.item}, ${item.description}</td>
 <td align = "right">${item.amount}</td>
 <td align = "right">${item.amount}</td>
-  <#if showDiscountColumn><td align="right" style="width: 10%"></td></#if>
+  <#if showDiscountColumn><td></td></#if>
 <td align = "right">${item.amount}</td>
 </tr>
         </#list>
