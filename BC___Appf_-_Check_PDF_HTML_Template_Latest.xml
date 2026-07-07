@@ -2189,7 +2189,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
         <th align="right" style="width: 15%"><b>Original Amount</b></th>
         <th align="right" style="width: 15%"><b>Balance Due</b></th>
         <th align="right" style="width: 5%"><b>Discount</b></th>
-        <th align="right" style="width: 12%"><b>Payment</b></th>
+        <th align="right" style="width: 10%"><b>Payment</b></th>
     </tr>
       <#else>
         <tr>
