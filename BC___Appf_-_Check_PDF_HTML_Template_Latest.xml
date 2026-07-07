@@ -2112,7 +2112,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
         <th align="right" style="width: 19%"><b>Original Amount</b></th>
         <th align="right" style="width: 19%"><b>Balance Due</b></th>
         <#if showDiscountColumn><th align="right" style="width: 10%"><b>Discount</b></th></#if>
-        <th align="right" style="width: 10%"><b>Payment</b></th>
+        <th align="right" style="width: 10%" padding-left = "10px"><b>Payment</b></th>
     </tr>
 </thead>
 </#if>
