@@ -2209,7 +2209,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 <thead>
   <#if showDiscountColumn>
     <tr>
-        <th align="center" style="width: 5%"><b>Date</b></th>
+        <th align="center" style="width: 15%"><b>Date</b></th>
         <th align="center" style="width: 5%"><b>Type</b></th>
         <th align="center" style="width: 5%"><b>Reference</b></th>
         <th align="right" style="width: 5%"><b>Original Amount</b></th>
