@@ -2216,7 +2216,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
         <th align="right" style="width: 15%"><b>Balance Due</b></th>
         <th align="right" style="width: 15%"><b>Discount</b></th>
         <th align="right" style="width: 15%"><b>Payment</b></th>
-        <th style="width: 10%">Test</th>
+        <th style="width: 8%"></th>
     </tr>
       <#else>
         <tr>
