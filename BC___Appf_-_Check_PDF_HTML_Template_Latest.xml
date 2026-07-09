@@ -2209,13 +2209,13 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 <thead>
   <#if showDiscountColumn>
     <tr>
-        <th align="center" ><b>Date</b></th>
+        <th align="center" style="width: 5%"><b>Date</b></th>
         <th align="center" style="width: 5%"><b>Type</b></th>
-        <th align="center"><b>Reference</b></th>
-        <th align="right" ><b>Original Amount</b></th>
-        <th align="right" ><b>Balance Due</b></th>
-        <th align="right" ><b>Discount</b></th>
-        <th align="right" ><b>Payment</b></th>
+        <th align="center" style="width: 5%"><b>Reference</b></th>
+        <th align="right" style="width: 5%"><b>Original Amount</b></th>
+        <th align="right" style="width: 5%"><b>Balance Due</b></th>
+        <th align="right" style="width: 5%"><b>Discount</b></th>
+        <th align="right" style="width: 5%"><b>Payment</b></th>
     </tr>
       <#else>
         <tr>
