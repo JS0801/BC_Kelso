@@ -2030,7 +2030,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
     </tr>
 </table>
 
-<table style="position: absolute;overflow: hidden;left: 82pt;top: 75pt;height: 18pt;width: 393pt;">
+<table style="position: absolute;overflow: hidden;left: 82pt;top: 78pt;height: 18pt;width: 393pt;">
     <tr>
         <td><#if (check.entity.companyname?has_content)>${check.entity.companyname}<#else>${check.entity}
         </#if>
@@ -2038,7 +2038,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 </tr>
 </table>
           
-<table style="position: absolute;overflow: hidden;left: 510pt;top: 80pt;height: 18pt;width: 111pt;">
+<table style="position: absolute;overflow: hidden;left: 510pt;top: 83pt;height: 18pt;width: 111pt;">
 <tr>
     <td>**
         <#if (check.usertotal?length> 0)>${check.usertotal?string['#,###,##0.00']}
@@ -2048,14 +2048,14 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 </tr>
         </table>
 
-<table style="position: absolute;overflow: hidden;left: 50pt;top: 100pt;height: 18pt;width:575pt;">
+<table style="position: absolute;overflow: hidden;left: 50pt;top: 103pt;height: 18pt;width:575pt;">
 <tr>
     <td>${check.totalwords}*********************************************************************
     </td>
 </tr>
 </table>
 
-<table style="position: absolute;overflow: hidden;left: 70pt;top: 125pt;height: 80pt;width: 575pt;">
+<table style="position: absolute;overflow: hidden;left: 70pt;top: 128pt;height: 80pt;width: 575pt;">
 <tr>
     <td><#if check.address?contains("United States")>${check.address?replace("United States","")}<#else>${check.address}
     </#if>
