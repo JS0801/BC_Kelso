@@ -2210,7 +2210,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
   <#if showDiscountColumn>
     <tr>
         <th align="center" ><b>Date</b></th>
-        <th align="center" width = "5%"><b>Type</b></th>
+        <th align="center" style="width: 5%"><b>Type</b></th>
         <th align="center"><b>Reference</b></th>
         <th align="right" ><b>Original Amount</b></th>
         <th align="right" ><b>Balance Due</b></th>
