@@ -2225,7 +2225,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
         <th align="center" style="width: 15%"><b>Reference</b></th>
         <th align="right" style="width: 19%"><b>Original Amount</b></th>
         <th align="right" style="width: 19%"><b>Balance Due</b></th>
-        <th align="right" style="width: 19%;  padding-right: 15px;"><b>Payment</b></th>
+        <th align="right" style="width: 19%;"><b>Payment</b></th>
     </tr>
       </#if>
 
@@ -2239,8 +2239,12 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
     <td align="center">&nbsp;</td>
     <td align = "right">${expense.amount}</td>
     <td align = "right">${expense.amount}</td>
-    <#if showDiscountColumn><td></td></#if>
-    <td align = "right" style = "padding-right: 20px;">${expense.amount}</td>
+    <#if showDiscountColumn>
+      <td></td>
+      <td align = "right" style = "padding-right: 15px;">${expense.amount}</td>
+      <#else> 
+        <td align = "right">${expense.amount}</td>
+    </#if>
 </tr>
 </#list>
 <#list check.item as item>
@@ -2250,8 +2254,12 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 <td align="center">${item.item}, ${item.description}</td>
 <td align = "right">${item.amount}</td>
 <td align = "right">${item.amount}</td>
-  <#if showDiscountColumn><td></td></#if>
-<td align = "right">${item.amount}</td>
+<#if showDiscountColumn>
+      <td></td>
+      <td align = "right" style = "padding-right: 15px;">${item.amount}</td>
+      <#else> 
+        <td align = "right">${item.amount}</td>
+    </#if>
 </tr>
         </#list>
         </table>
