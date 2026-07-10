@@ -234,7 +234,7 @@
                     The foregoing instrument was acknowledged before me by physical presence this
                     <span class="blank">&#160;{{NOTARY_DAY}}</span> day of 
                   <span class="blank">&#160;{{NOTARY_MONTH}}</span> 
-                  <span class="blank">&#160{{NOTARY_YEAR}}</span>
+                  <span class="blank">&#160;{{NOTARY_YEAR}}</span>
                    , by
                     <span class="blank">&#160;{{NOTARY_PERSON_NAME}</span>
                     , as <span class="blank">&#160;{{NOTARY_PERSON_TITLE}}</span> 
