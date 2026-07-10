@@ -14,7 +14,7 @@ define(['N/record', 'N/log'],
 
     const beforeSubmit = (scriptContext) => {
         try {
-            if (scriptContext.type !== scriptContext.UserEventType.CREATE) return;
+           // if (scriptContext.type !== scriptContext.UserEventType.CREATE) return;
 
             const rec = scriptContext.newRecord;
 
@@ -72,7 +72,7 @@ define(['N/record', 'N/log'],
                         sublistId: 'item',
                         fieldId:   'custcol_bc_sov_dollars_billed',
                         line:      i,
-                        value:     parseFloat(match.amount)
+                        value:     parseFloat(match.amount).toFixed(2)
                     });
                     log.audit({
                         title:   `Invoice Line ${i} Set`,
@@ -90,6 +90,7 @@ define(['N/record', 'N/log'],
             log.error({ title: 'FATAL ERROR', details: `${e.name}: ${e.message}\n${e.stack}` });
         }
     };
+  
 
     return { beforeSubmit };
 });
