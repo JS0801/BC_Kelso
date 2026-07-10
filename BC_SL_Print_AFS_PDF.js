@@ -8,7 +8,7 @@ define(['N/file', 'N/log', 'N/render', 'N/runtime', 'N/search'], (file, log, ren
     function onRequest(context) {
         try {
             const request = context.request;
-            const invoiceId = request.parameters.recordId || request.parameters.invoiceId || request.parameters.id || '';
+            const invoiceId = request.parameters.id || '';
             const xmlFileId = getXmlFileId(request);
 
             if (!xmlFileId) {
