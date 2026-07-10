@@ -282,7 +282,7 @@
 
         <table>
         <tr><td class="center" style="height:110pt; padding-top:4pt; padding-bottom:4pt;">
-            <img src="https://6962009.app.netsuite.com/core/media/media.nl?id=738102&amp;c=6962009&amp;h=94MHjulKXW4KLp5IYxcnCvbX2_VcSGAgGGWSYntAEBr2-BrF" style="width:80pt; height:80pt;"/>
+            <img src="https://6962009.app.netsuite.com/core/media/media.nl?id=738102&amp;c=6962009&amp;h=94MHjulKXW4KLp5IYxcnCvbX2_VcSGAgGGWSYntAEBr2-BrF" style="width:70pt; height:70pt;"/>
         </td>
     </tr>
 </table>
@@ -359,7 +359,7 @@
             <tr>
                 <td class="afs-text" width="4%">2)</td>
                 <td class="afs-text" width="96%">
-                    I acknowledge that the following is a complete list of all open, unapproved, and/or disputed change orders and all unresolved financial issues and claims against CGU Homes, LLC, the Owner, or the Surety which exist on the <span class="yellow-blank" width="52%">&#160;{{AFS_ISSUE_PROJECT}}&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span> project through &#160; <span class="yellow-blank" width="18%">&#160;{{AFS_ISSUE_THROUGH_DATE}}&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span> .
+                    I acknowledge that the following is a complete list of all open, unapproved, and/or disputed change orders and all unresolved financial issues and claims against CGU Homes, LLC, the Owner, or the Surety which exist on the <span class="yellow-blank" width="52%">&#160;{{AFS_ISSUE_PROJECT}}</span> project through &#160; <span class="yellow-blank" width="18%">{{AFS_ISSUE_THROUGH_DATE}}</span> .
                 </td>
             </tr>
         </table>
@@ -370,10 +370,10 @@
             <tr>
                 <td width="8%">&#160;</td>
                 <td class="afs-text label" width="20%">Company Name:</td>
-                <td class="yellow-blank" width="34%">&#160;{{AFS_ISSUE_COMPANY_NAME}}</td>
+                <td class="yellow-blank" width="34%" align = "center">{{AFS_ISSUE_COMPANY_NAME}}</td>
                 <td width="12%">&#160;</td>
                 <td class="afs-text label" width="8%">Date:</td>
-                <td class="yellow-blank" width="18%">&#160;{{AFS_ISSUE_DATE}}</td>
+                <td class="yellow-blank" width="18%" align = "center">{{AFS_ISSUE_DATE}}</td>
             </tr>
         </table>
 
