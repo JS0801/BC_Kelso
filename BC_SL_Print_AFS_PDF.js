@@ -2,7 +2,7 @@
  * @NApiVersion 2.1
  * @NScriptType Suitelet
  */
-define(['N/file', 'N/log', 'N/render', 'N/runtime'], (file, log, render, runtime) => {
+define(['N/file', 'N/log', 'N/render', 'N/runtime', 'N/search'], (file, log, render, runtime, search) => {
     const PARAM_XML_FILE_ID = 'custscript_kelso_afs_xml_file_id';
 
     function onRequest(context) {
@@ -16,7 +16,7 @@ define(['N/file', 'N/log', 'N/render', 'N/runtime'], (file, log, render, runtime
             }
 
             const templateXml = file.load({ id: xmlFileId }).getContents();
-            const xmlString = buildXml(templateXml, getBlankValues());
+            const xmlString = buildXml(templateXml, getBlankValues(invoiceId));
             const pdfFile = render.xmlToPdf({ xmlString });
 
             pdfFile.name = 'Kelso_AFS_Forms_' + (invoiceId || 'Blank') + '.pdf';
@@ -58,7 +58,67 @@ define(['N/file', 'N/log', 'N/render', 'N/runtime'], (file, log, render, runtime
             .replace(/<img\b([^>]*?)\bsrc=(["'])\s*\2([^>]*?)>\s*<\/img>/gi, '');
     }
 
-    function getBlankValues() {
+    function getBlankValues(invoiceId) {
+
+      var openAR = false;
+      var projectName = null;
+      var dateInv = null;
+      var InvAmount = null;
+
+const invoiceSearchObj = search.create({
+   type: "invoice",
+   settings:[{"name":"consolidationtype","value":"ACCTTYPE"}],
+   filters:
+   [
+      ["internalid","anyof",invoiceId], 
+      "AND", 
+      ["mainline","is","T"],
+      "AND",
+      ["cseg_bc_project", "noneof", "@NONE@"]
+   ],
+   columns:
+   [
+      search.createColumn({name: "total", label: "Amount (Transaction Total)"}),
+      search.createColumn({name: "trandate", label: "Date"}),
+      search.createColumn({name: "cseg_bc_project", label: "Blue Collar Project"})
+   ]
+});
+const searchResultCount = invoiceSearchObj.runPaged().count;
+log.debug("invoiceSearchObj result count",searchResultCount);
+invoiceSearchObj.run().each(function(result){
+   var projId = result.getValue({name: "cseg_bc_project"});
+   projectName = result.getText({name: "cseg_bc_project"});
+   dateInv = result.getValue({name: "trandate"});
+   InvAmount = result.getValue({name: "total"});
+
+
+
+const invoiceSearchObj1 = search.create({
+   type: "invoice",
+   settings:[{"name":"consolidationtype","value":"ACCTTYPE"}],
+   filters:
+   [
+      ["mainline","is","T"], 
+      "AND", 
+      ["posting","is","T"], 
+      "AND", 
+      ["cseg_bc_project","anyof", projId], 
+      "AND", 
+      ["amountremainingisabovezero","is","T"]
+   ],
+   columns:
+   [
+      search.createColumn({name: "internalid"})
+   ]
+});
+const searchResultCount1 = invoiceSearchObj1.runPaged().count;
+log.debug("invoiceSearchObj result count",searchResultCount1);
+
+  if (searchResultCount > 0) openAR = true;
+  
+   return true;
+});
+      
         return {
             AFS_AMOUNT_1: '',
             AFS_AMOUNT_2: '',
@@ -85,12 +145,12 @@ define(['N/file', 'N/log', 'N/render', 'N/runtime'], (file, log, render, runtime
             NOTARY_PERSON_TITLE: '',
             NOTARY_PRINTED_NAME: '',
             NOTARY_YEAR: '',
-            WAIVER_APPLICATION_DATE: '',
+            WAIVER_APPLICATION_DATE: dateInv,
             WAIVER_COUNTY: '',
             WAIVER_DATE: '',
-            WAIVER_PAYMENT_AMOUNT: '',
+            WAIVER_PAYMENT_AMOUNT: InvAmount,
             WAIVER_PRINT_NAME: '',
-            WAIVER_PROPERTY_ADDRESS: '',
+            WAIVER_PROPERTY_ADDRESS: projectName ,
             WAIVER_SIGNED_BY: '',
             WAIVER_SUBCONTRACTOR: '',
             WAIVER_TITLE: ''
