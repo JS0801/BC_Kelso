@@ -183,7 +183,7 @@
         <table>
             <tr>
                 <td class="waiver-text" width="16%">DATED on</td>
-                <td class="line-cell waiver-text" width="30%">&#160;{{WAIVER_DATE}}</td>
+                <td class="line-cell waiver-text" width="10%">&#160;{{WAIVER_DATE}}</td>
                 <td width="54%">&#160;</td>
             </tr>
         </table>
@@ -267,7 +267,7 @@
 
           <tr>
                 <td width="48%">&#160;</td>
-                <td class="line-cell" width="40%">&#160;</td>
+                <td class="line-cell" width="40%">&#160;Brenda Reyes</td>
                 <td width="12%">&#160;</td>
             </tr>
             <tr>
