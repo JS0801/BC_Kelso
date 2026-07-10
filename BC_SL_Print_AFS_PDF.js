@@ -118,6 +118,8 @@ log.debug("invoiceSearchObj result count",searchResultCount1);
   
    return true;
 });
+
+      var dateObj = getCurrentDateDetails();
       
         return {
             AFS_AMOUNT_1: '',
@@ -138,24 +140,56 @@ log.debug("invoiceSearchObj result count",searchResultCount1);
             AFS_NO_ISSUE_SIGNATURE: '',
             AFS_NO_ISSUE_THROUGH_DATE: '',
             NOTARY_COMMISSION_EXPIRES: '',
-            NOTARY_DAY: '',
+            NOTARY_DAY: getCurrentDateDetails.day,
             NOTARY_ID_TYPE: '',
-            NOTARY_MONTH: '',
-            NOTARY_PERSON_NAME: '',
-            NOTARY_PERSON_TITLE: '',
-            NOTARY_PRINTED_NAME: '',
-            NOTARY_YEAR: '',
+            NOTARY_MONTH: getCurrentDateDetails.month,
+            NOTARY_PERSON_NAME: 'Robert Forbis / Eric Perez',
+            NOTARY_PERSON_TITLE: 'President',
+            NOTARY_YEAR: getCurrentDateDetails.year,
             WAIVER_APPLICATION_DATE: dateInv,
-            WAIVER_COUNTY: '',
-            WAIVER_DATE: '',
+            WAIVER_COUNTY: 'COLLIER',
+            WAIVER_DATE: getCurrentDateDetails.currentDate,
             WAIVER_PAYMENT_AMOUNT: InvAmount,
-            WAIVER_PRINT_NAME: '',
-            WAIVER_PROPERTY_ADDRESS: projectName ,
+            WAIVER_PRINT_NAME: 'Robert Forbis / Eric Perez',
+            WAIVER_PROPERTY_ADDRESS: projectName,
             WAIVER_SIGNED_BY: '',
-            WAIVER_SUBCONTRACTOR: '',
-            WAIVER_TITLE: ''
+            WAIVER_SUBCONTRACTOR: 'Premier Electric Opco, LLC',
+            WAIVER_TITLE: 'President'
         };
     }
+
+
+function getCurrentDateDetails() {
+    var today = new Date();
+
+    var monthNames = [
+        "January", "February", "March", "April",
+        "May", "June", "July", "August",
+        "September", "October", "November", "December"
+    ];
+
+    var day = today.getDate();
+    var suffix = "th";
+
+    if (day % 10 === 1 && day !== 11) {
+        suffix = "st";
+    } else if (day % 10 === 2 && day !== 12) {
+        suffix = "nd";
+    } else if (day % 10 === 3 && day !== 13) {
+        suffix = "rd";
+    }
+
+    var mm = String(today.getMonth() + 1).padStart(2, "0");
+    var dd = String(day).padStart(2, "0");
+    var yyyy = today.getFullYear();
+
+    return {
+        currentDate: mm + "/" + dd + "/" + yyyy,
+        day: day + suffix,
+        month: monthNames[today.getMonth()],
+        year: String(yyyy)
+    };
+}
 
     function escapeXml(value) {
         return String(value || '')
