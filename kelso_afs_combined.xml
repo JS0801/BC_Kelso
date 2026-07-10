@@ -194,22 +194,22 @@
     <tr>
         <td width="52%" style="height:12pt; line-height:12pt; padding:0;">&#160;</td>
         <td class="label" width="20%" style="font-size:9pt; height:12pt; line-height:12pt; padding:0;">Subcontractor:</td>
-        <td width="28%" style="font-size:9pt; height:12pt; line-height:12pt; padding:0; border-bottom:0.8pt solid #000000;">&#160;{{WAIVER_SUBCONTRACTOR}}</td>
+        <td width="28%" style="font-size:9pt; height:12pt; line-height:12pt; padding:0; border-bottom:0.8pt solid #000000; align: center">{{WAIVER_SUBCONTRACTOR}}</td>
     </tr>
     <tr>
         <td style="height:12pt; line-height:12pt; padding:0;">&#160;</td>
         <td class="label" style="font-size:9pt; height:12pt; line-height:12pt; padding:0;">By:</td>
-        <td style="font-size:9pt; height:12pt; line-height:12pt; padding:0; border-bottom:0.8pt solid #000000;">&#160;{{WAIVER_SIGNED_BY}}</td>
+        <td style="font-size:9pt; height:12pt; line-height:12pt; padding:0; border-bottom:0.8pt solid #000000;  align: center">{{WAIVER_SIGNED_BY}}</td>
     </tr>
     <tr>
         <td style="height:12pt; line-height:12pt; padding:0;">&#160;</td>
         <td class="label" style="font-size:9pt; height:12pt; line-height:12pt; padding:0;">Print:</td>
-        <td style="font-size:9pt; height:12pt; line-height:12pt; padding:0; border-bottom:0.8pt solid #000000;">&#160;{{WAIVER_PRINT_NAME}}</td>
+        <td style="font-size:9pt; height:12pt; line-height:12pt; padding:0; border-bottom:0.8pt solid #000000;  align: center">{{WAIVER_PRINT_NAME}}</td>
     </tr>
     <tr>
         <td style="height:12pt; line-height:12pt; padding:0;">&#160;</td>
         <td class="label" style="font-size:9pt; height:12pt; line-height:12pt; padding:0;">Its:</td>
-        <td style="font-size:9pt; height:12pt; line-height:12pt; padding:0; border-bottom:0.8pt solid #000000;">&#160;{{WAIVER_TITLE}}</td>
+        <td style="font-size:9pt; height:12pt; line-height:12pt; padding:0; border-bottom:0.8pt solid #000000;  align: center">{{WAIVER_TITLE}}</td>
     </tr>
 </table>
         <table class="large-gap"><tr><td>&#160;</td></tr></table>
@@ -218,10 +218,10 @@
             <tr>
                 <td class="waiver-text" width="18%" colspan = "2">STATE OF FLORIDA</td>
             </tr>        </table>
-<table width = "50%">
+<table width = "35%">
             <tr>
                 <td class="waiver-text label" width="25%">COUNTY OF</td>
-                <td class="line-cell waiver-text">&#160;{{WAIVER_COUNTY}}</td>
+                <td class="line-cell waiver-text">{WAIVER_COUNTY}}</td>
                
             </tr>
         </table>
@@ -232,14 +232,14 @@
             <tr>
                 <td class="waiver-text">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                     The foregoing instrument was acknowledged before me by physical presence this
-                    <span class="blank">&#160;{{NOTARY_DAY}}&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span> day of 
-                  <span class="blank">&#160;{{NOTARY_MONTH}}&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span> 20
-                  <span class="blank">&#160;&#160;&#160;&#160;&#160;{{NOTARY_YEAR}}&#160;</span>
+                    <span class="blank">&#160;{{NOTARY_DAY}}</span> day of 
+                  <span class="blank">&#160;{{NOTARY_MONTH}}</span> 
+                  <span class="blank">&#160{{NOTARY_YEAR}}</span>
                    , by
-                    <span class="blank">&#160;{{NOTARY_PERSON_NAME}}&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span>
-                    , as <span class="blank">&#160;{{NOTARY_PERSON_TITLE}}&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span> 
+                    <span class="blank">&#160;{{NOTARY_PERSON_NAME}</span>
+                    , as <span class="blank">&#160;{{NOTARY_PERSON_TITLE}}</span> 
                        of
-                    <span class="blank">&#160;{{WAIVER_SUBCONTRACTOR}}&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span>, who is personally known to me or provided
+                    <span class="blank">&#160;{{WAIVER_SUBCONTRACTOR}}</span>, who is personally known to me or provided
                     <span class="blank">&#160;{{NOTARY_ID_TYPE}}&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span> as identification.
                 </td>
             </tr>
