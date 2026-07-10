@@ -235,9 +235,9 @@
                     <span class="blank">&#160;
 ${.now?string("d")}
 <sup>
-${(.now?string("d")?number % 10 == 1 && .now?string("d")?number != 11)?then("st",
-(.now?string("d")?number % 10 == 2 && .now?string("d")?number != 12)?then("nd",
-(.now?string("d")?number % 10 == 3 && .now?string("d")?number != 13)?then("rd","th")))}
+${(.now?string("d")?number % 10 == 1 &amp;&amp; .now?string("d")?number != 11)?then("st",
+(.now?string("d")?number % 10 == 2 &amp;&amp; .now?string("d")?number != 12)?then("nd",
+(.now?string("d")?number % 10 == 3 &amp;&amp; .now?string("d")?number != 13)?then("rd","th")))}
 </sup>
 &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span> day of 
                   <span class="blank">&#160;${.now?string("MMMM")}&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span> 20
