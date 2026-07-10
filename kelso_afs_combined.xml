@@ -240,7 +240,7 @@
                     <span class="blank">&#160;{{NOTARY_PERSON_NAME}}</span>
                     , as <span class="blank">&#160;{{NOTARY_PERSON_TITLE}}</span> 
                        of
-                    <span class="blank">&#160;{{WAIVER_SUBCONTRACTOR}}</span>, who is personally known to me or provided
+                    <span class="blank">&#160;{{WAIVER_SUBCONTRACTOR}}</span>, who is <b>personally known</b> to me or provided
                     <span class="blank">&#160;{{NOTARY_ID_TYPE}}&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span> as identification.
                 </td>
             </tr>
@@ -268,7 +268,7 @@
 
           <tr>
                 <td width="48%">&#160;</td>
-                <td class="line-cell" width="40%" align = "center">&#160;Brenda Reyes</td>
+                <td class="line-cell" width="40%" align = "center">Brenda Reyes</td>
                 <td width="12%">&#160;</td>
             </tr>
             <tr>
