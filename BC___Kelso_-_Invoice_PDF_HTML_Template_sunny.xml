@@ -1913,8 +1913,8 @@ ${record.billaddress@label}
         <#assign prevPercentage = ((nsformat_number(oldInvVal)/estAmt)*100)?string("0.##") />
         <#assign previousTotal = previousTotal + nsformat_number(oldInvVal) />
         </#if>
-   <#assign lineGross = nsformat_number(item.custcol_bc_sov_dollars_billed) />
-<#assign grossTotal = grossTotal + ((lineGross * 100)?round / 100) />
+    <#assign lineGross = nsformat_number(item.custcol_bc_sov_dollars_billed) />
+    <#assign grossTotal = grossTotal + ((lineGross * 100)?int / 100) />
     <#assign retentionTotal = retentionTotal + nsformat_number(item.custcol_bc_sov_unbilled_retention) />
     <#if !record.custbody_bc_retrofit_lumpsum>
 <tr style="border: 0px;">
