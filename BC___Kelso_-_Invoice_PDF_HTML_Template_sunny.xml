@@ -1913,12 +1913,23 @@ ${record.billaddress@label}
         <#assign prevPercentage = ((nsformat_number(oldInvVal)/estAmt)*100)?string("0.##") />
         <#assign previousTotal = previousTotal + nsformat_number(oldInvVal) />
         </#if>
-    <#assign lineGross = nsformat_number(item.custcol_bc_sov_dollars_billed) />
-    <#assign grossTotal = grossTotal + ((lineGross * 100)?int / 100) />
+<#assign lineGross = nsformat_number(item.custcol_bc_sov_dollars_billed) />
+<#assign itemAmount = nsformat_number(item.amount) />
+<#assign grossDiff = lineGross - itemAmount />
+
+<#if grossDiff gte -0.1>
+    <#if grossDiff lte 0.1>
+        <#assign grossTotal = grossTotal + itemAmount />
+    <#else>
+        <#assign grossTotal = grossTotal + lineGross />
+    </#if>
+<#else>
+    <#assign grossTotal = grossTotal + lineGross />
+</#if>
     <#assign retentionTotal = retentionTotal + nsformat_number(item.custcol_bc_sov_unbilled_retention) />
     <#if !record.custbody_bc_retrofit_lumpsum>
 <tr style="border: 0px;">
-    <td colspan="3" style="border-left: 2px black;">${item.item}</td>
+<td colspan="3" style="border-left: 2px black;">${item.item}</td>
 <td colspan="6" style="border-left-color: black; border-left: 2px black; border-bottom: 0px; border-left: 2px black;">${item.description}</td>
 <td colspan="3" style="align: right; border-left-color: black; border-left: 2px black; border-bottom: 0px;"><#if estAmt?has_content>${nsformat_currency(estAmt)}</#if></td>
 <td colspan="3" style="align: right; border-left-color: black; border-left: 2px black; border-bottom: 0px;">${item.custcol_bc_sov_unbilled_retention} </td>
