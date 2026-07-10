@@ -1,0 +1,434 @@
+<?xml version="1.0"?>
+<!DOCTYPE pdf PUBLIC "-//big.faceless.org//report" "report-1.1.dtd">
+<pdf>
+    <head>
+        <style type="text/css">
+            * {
+                font-family: Helvetica, Arial, sans-serif;
+            }
+            table {
+                width: 100%;
+                table-layout: fixed;
+                border-collapse: collapse;
+            }
+            td {
+                font-size: 10pt;
+                line-height: 13pt;
+                vertical-align: top;
+            }
+            .waiver-title {
+                font-family: "Times New Roman", Times, serif;
+                font-size: 12pt;
+                font-weight: bold;
+                line-height: 18pt;
+                align: center;
+                text-decoration: underline;
+            }
+            .waiver-exhibit {
+                font-family: "Times New Roman", Times, serif;
+                font-size: 11pt;
+                font-weight: bold;
+                line-height: 13pt;
+                align: center;
+            }
+            .waiver-exhibit-detail {
+                font-family: "Times New Roman", Times, serif;
+                font-size: 10pt;
+                line-height: 12pt;
+                align: center;
+            }
+            .waiver-text {
+                font-size: 10.5pt;
+                line-height: 15pt;
+            }
+            .afs-title {
+                font-family: "Times New Roman", Times, serif;
+                font-size: 16pt;
+                font-weight: bold;
+                line-height: 19pt;
+               align: center;
+            }
+            .afs-text {
+                font-size: 11pt;
+                line-height: 14pt;
+            }
+            .center {
+                align: center;
+            }
+            .right {
+                align: right;
+            }
+            .label {
+                white-space: nowrap;
+            }
+            .blank {
+                border-bottom: 0.8pt solid #000000;
+                height: 14pt;
+            }
+            .yellow-blank {
+                border-bottom: 0.8pt solid #000000;
+                height: 14pt;
+            }
+            .line-cell {
+                border-bottom: 0.8pt solid #000000;
+                height: 16pt;
+            }
+            .small-gap td {
+                height: 7pt;
+                line-height: 7pt;
+                font-size: 7pt;
+            }
+            .medium-gap td {
+                height: 12pt;
+                line-height: 12pt;
+                font-size: 12pt;
+            }
+            .large-gap td {
+                height: 20pt;
+                line-height: 20pt;
+                font-size: 20pt;
+            }
+            .footer-company {
+                color: #8a8a8a;
+                font-family: "Times New Roman", Times, serif;
+                font-size: 16pt;
+                line-height: 17pt;
+                align: center;
+            }
+            .footer-address {
+                color: #8a8a8a;
+                font-family: "Times New Roman", Times, serif;
+
+                font-size: 9pt;
+                line-height: 10pt;
+                align: center;
+            }
+        </style>
+    </head>
+    <body size="Letter" padding="0.55in 0.58in 0.45in 0.58in">
+<table>
+    <tr>
+        <td class="waiver-exhibit" style="height:12pt; line-height:12pt; padding:0;">EXHIBIT &quot;C&quot;</td>
+    </tr>
+    <tr>
+        <td class="waiver-exhibit" style="height:12pt; line-height:12pt; padding:0;">FORM PARTIAL LIEN WAIVER</td>
+    </tr>
+    <tr>
+        <td class="waiver-exhibit-detail" style="height:12pt; line-height:12pt; padding:0;">CGU Homes, LLC</td>
+    </tr>
+    <tr>
+        <td class="waiver-exhibit-detail" style="height:12pt; line-height:12pt; padding:0;">Tax ID: 81-1981738</td>
+    </tr>
+    <tr>
+        <td class="waiver-exhibit-detail" style="height:12pt; line-height:12pt; padding:0;">1998 Trade Center Way (Suite 2)</td>
+    </tr>
+    <tr>
+        <td class="waiver-exhibit-detail" style="height:12pt; line-height:12pt; padding:0;">Naples, FL 34109</td>
+    </tr>
+</table>
+
+        <table>
+    <tr>
+        <td class="center" style="height:55pt; padding-top:4pt; padding-bottom:4pt;">
+            <img src="https://6962009.app.netsuite.com/core/media/media.nl?id=738102&amp;c=6962009&amp;h=94MHjulKXW4KLp5IYxcnCvbX2_VcSGAgGGWSYntAEBr2-BrF" style="width:48pt; height:48pt;"/>
+        </td>
+    </tr>
+</table>
+
+        <table>
+            <tr>
+                <td class="waiver-title">
+                    CONDITIONAL WAIVER AND RELEASE OF LIEN
+                </td>
+            </tr>
+            <tr>
+                <td class="waiver-title">
+                    UPON PROGRESS PAYMENT
+                </td>
+            </tr>
+        </table>
+
+
+        <table>
+            <tr>
+                <td class="waiver-text">
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The undersigned lienor, in consideration of the progress payment in the amount of
+                    $&#160;<span class="blank">&#160;{{WAIVER_PAYMENT_AMOUNT}}&#160;</span>, received, hereby waives and releases its lien or claims and right to claim a lien or to assert any other claim for labor, services or materials furnished through the date of
+                    <span class="blank">&#160;{{WAIVER_APPLICATION_DATE}}&#160;</span> to CGU Homes LLC on the following described property:
+                </td>
+            </tr>
+        </table>
+
+
+        <table>
+            <tr>
+                <td width="12%">&#160;</td>
+                <td class="line-cell center waiver-text" width="76%">&#160;{{WAIVER_PROPERTY_ADDRESS}}</td>
+                <td width="12%">&#160;</td>
+            </tr>
+        </table>
+
+
+        <table>
+            <tr>
+                <td class="waiver-text">
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    This release is conditioned upon receipt by Lienor of the sum described above and is not effective until such payment is received in cash or, if by check, upon final credit to Lienor's account. Upon satisfaction of this condition this waiver constitutes a complete release of lien and of all claims relating to payment whatsoever relating to labor, services or materials furnished by the undersigned on the above-described real property through the date of the release except that the release expressly excludes unpaid retainage or labor, services, or materials furnished after the date specified.
+                </td>
+            </tr>
+        </table>
+
+        <table class="large-gap"><tr><td>&#160;</td></tr></table>
+
+        <table>
+            <tr>
+                <td class="waiver-text" width="16%">DATED on</td>
+                <td class="line-cell waiver-text" width="30%">&#160;{{WAIVER_DATE}}</td>
+                <td width="54%">&#160;</td>
+            </tr>
+        </table>
+
+        <table class="medium-gap"><tr><td>&#160;</td></tr></table>
+
+<table>
+    <tr>
+        <td width="52%" style="height:12pt; line-height:12pt; padding:0;">&#160;</td>
+        <td class="label" width="20%" style="font-size:9pt; height:12pt; line-height:12pt; padding:0;">Subcontractor:</td>
+        <td width="28%" style="font-size:9pt; height:12pt; line-height:12pt; padding:0; border-bottom:0.8pt solid #000000;">&#160;{{WAIVER_SUBCONTRACTOR}}</td>
+    </tr>
+    <tr>
+        <td style="height:12pt; line-height:12pt; padding:0;">&#160;</td>
+        <td class="label" style="font-size:9pt; height:12pt; line-height:12pt; padding:0;">By:</td>
+        <td style="font-size:9pt; height:12pt; line-height:12pt; padding:0; border-bottom:0.8pt solid #000000;">&#160;{{WAIVER_SIGNED_BY}}</td>
+    </tr>
+    <tr>
+        <td style="height:12pt; line-height:12pt; padding:0;">&#160;</td>
+        <td class="label" style="font-size:9pt; height:12pt; line-height:12pt; padding:0;">Print:</td>
+        <td style="font-size:9pt; height:12pt; line-height:12pt; padding:0; border-bottom:0.8pt solid #000000;">&#160;{{WAIVER_PRINT_NAME}}</td>
+    </tr>
+    <tr>
+        <td style="height:12pt; line-height:12pt; padding:0;">&#160;</td>
+        <td class="label" style="font-size:9pt; height:12pt; line-height:12pt; padding:0;">Its:</td>
+        <td style="font-size:9pt; height:12pt; line-height:12pt; padding:0; border-bottom:0.8pt solid #000000;">&#160;{{WAIVER_TITLE}}</td>
+    </tr>
+</table>
+        <table class="large-gap"><tr><td>&#160;</td></tr></table>
+
+        <table>
+            <tr>
+                <td class="waiver-text" width="18%" colspan = "2">STATE OF FLORIDA</td>
+            </tr>        </table>
+<table width = "50%">
+            <tr>
+                <td class="waiver-text label" width="25%">COUNTY OF</td>
+                <td class="line-cell waiver-text">&#160;{{WAIVER_COUNTY}}</td>
+               
+            </tr>
+        </table>
+
+        <table class="medium-gap"><tr><td>&#160;</td></tr></table>
+
+        <table>
+            <tr>
+                <td class="waiver-text">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    The foregoing instrument was acknowledged before me by physical presence this
+                    <span class="blank">&#160;{{NOTARY_DAY}}&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span> day of 
+                  <span class="blank">&#160;{{NOTARY_MONTH}}&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span> 20
+                  <span class="blank">&#160;&#160;&#160;&#160;&#160;{{NOTARY_YEAR}}&#160;</span>
+                   , by
+                    <span class="blank">&#160;{{NOTARY_PERSON_NAME}}&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span>
+                    , as <span class="blank">&#160;{{NOTARY_PERSON_TITLE}}&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span> 
+                       of
+                    <span class="blank">&#160;{{WAIVER_SUBCONTRACTOR}}&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span>, who is personally known to me or provided
+                    <span class="blank">&#160;{{NOTARY_ID_TYPE}}&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span> as identification.
+                </td>
+            </tr>
+        </table>
+
+        <table class="large-gap"><tr><td>&#160;</td></tr></table>
+
+        <table>
+            <tr>
+                <td width="48%">&#160;</td>
+                <td class="line-cell" width="40%">&#160;</td>
+                <td width="12%">&#160;</td>
+            </tr>
+            <tr>
+                <td class="waiver-text">Notary Seal:</td>
+                <td class="waiver-text">Notary Public</td>
+                <td>&#160;</td>
+            </tr>
+            <tr class="medium-gap">
+                <td>&#160;</td>
+                <td>&#160;</td>
+                <td>&#160;</td>
+            </tr>
+
+
+          <tr>
+                <td width="48%">&#160;</td>
+                <td class="line-cell" width="40%">&#160;</td>
+                <td width="12%">&#160;</td>
+            </tr>
+            <tr>
+                <td class="waiver-text">My Commission Expires:</td>
+                <td class="waiver-text">Printed Name of Notary</td>
+                <td>&#160;</td>
+            </tr>
+        </table>
+
+        <pbr/>
+
+        <table>
+        <tr><td class="center" style="height:110pt; padding-top:4pt; padding-bottom:4pt;">
+            <img src="https://6962009.app.netsuite.com/core/media/media.nl?id=738102&amp;c=6962009&amp;h=94MHjulKXW4KLp5IYxcnCvbX2_VcSGAgGGWSYntAEBr2-BrF" style="width:80pt; height:80pt;"/>
+        </td>
+    </tr>
+</table>
+
+        <table>
+            <tr>
+                <td class="afs-title">ACKNOWLEDGEMENT OF FINANCIAL STATUS</td>
+            </tr>
+        </table>
+
+        <table class="large-gap"><tr><td>&#160;</td></tr></table>
+
+        <table>
+            <tr>
+                <td class="afs-text">
+                    CGU Homes, LLC is requesting that the following information be filled out and submitted with your draw application prior to issuance of your monthly draw.
+                </td>
+            </tr>
+        </table>
+
+        <table class="medium-gap"><tr><td>&#160;</td></tr></table>
+
+        <table>
+            <tr>
+                <td class="afs-text center"><i><u>Please fill out<b>  only one </b>of the following sections below</u></i></td>
+            </tr>
+        </table>
+
+        <table class="large-gap"><tr><td>&#160;</td></tr></table>
+
+        <table>
+            <tr>
+<td class="afs-text" width="96%">
+                    I acknowledge that there are no open, unapproved, or disputed change orders or unresolved financial issues or claims against CGU Homes, LLC, the Owner, or the Surety on the <span class="yellow-blank" width="42%">&#160;{{AFS_NO_ISSUE_PROJECT}}&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span> project through the date of  <span class="yellow-blank" width="18%">&#160;{{AFS_NO_ISSUE_THROUGH_DATE}}&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span>.
+                </td>
+            </tr>
+        </table>
+
+        <table class="medium-gap"><tr><td>&#160;</td></tr></table>
+
+        <table>
+            <tr>
+                <td width="8%">&#160;</td>
+                <td class="afs-text label" width="20%">Company Name:</td>
+                <td class="yellow-blank" width="34%">&#160;{{AFS_NO_ISSUE_COMPANY_NAME}}</td>
+                <td width="12%">&#160;</td>
+                <td class="afs-text label" width="8%">Date:</td>
+                <td class="yellow-blank" width="18%">&#160;{{AFS_NO_ISSUE_DATE}}</td>
+            </tr>
+        </table>
+
+        <table class="medium-gap"><tr><td>&#160;</td></tr></table>
+
+        <table>
+            <tr>
+                <td width="8%">&#160;</td>
+                <td class="afs-text label" width="12%">Signature:</td>
+                <td class="yellow-blank" width="44%">&#160;{{AFS_NO_ISSUE_SIGNATURE}}</td>
+                <td width="36%">&#160;</td>
+            </tr>
+        </table>
+
+        <table class="medium-gap"><tr><td>&#160;</td></tr></table>
+
+        <table>
+            <tr>
+                <td class="afs-text center"><b>OR</b></td>
+            </tr>
+        </table>
+
+        <table class="medium-gap"><tr><td>&#160;</td></tr></table>
+
+        <table>
+            <tr>
+                <td class="afs-text" width="4%">2)</td>
+                <td class="afs-text" width="96%">
+                    I acknowledge that the following is a complete list of all open, unapproved, and/or disputed change orders and all unresolved financial issues and claims against CGU Homes, LLC, the Owner, or the Surety which exist on the <span class="yellow-blank" width="52%">&#160;{{AFS_ISSUE_PROJECT}}&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span> project through &#160; <span class="yellow-blank" width="18%">&#160;{{AFS_ISSUE_THROUGH_DATE}}&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span> .
+                </td>
+            </tr>
+        </table>
+
+        <table class="medium-gap"><tr><td>&#160;</td></tr></table>
+
+        <table>
+            <tr>
+                <td width="8%">&#160;</td>
+                <td class="afs-text label" width="20%">Company Name:</td>
+                <td class="yellow-blank" width="34%">&#160;{{AFS_ISSUE_COMPANY_NAME}}</td>
+                <td width="12%">&#160;</td>
+                <td class="afs-text label" width="8%">Date:</td>
+                <td class="yellow-blank" width="18%">&#160;{{AFS_ISSUE_DATE}}</td>
+            </tr>
+        </table>
+
+        <table class="medium-gap"><tr><td>&#160;</td></tr></table>
+
+        <table>
+            <tr>
+                <td width="8%">&#160;</td>
+                <td class="afs-text label" width="12%">Signature:</td>
+                <td class="yellow-blank" width="44%">&#160;{{AFS_ISSUE_SIGNATURE}}</td>
+                <td width="36%">&#160;</td>
+            </tr>
+        </table>
+
+        <table class="medium-gap"><tr><td>&#160;</td></tr></table>
+
+        <table>
+            <tr>
+                <td width="17%">&#160;</td>
+                <td class="afs-text center" width="43%"><u>DESCRIPTION</u></td>
+                <td width="20%">&#160;</td>
+                <td class="afs-text center" width="20%"><u>AMOUNT</u></td>
+            </tr>
+            <tr>
+                <td class="afs-text right">1)</td>
+                <td class="line-cell">&#160;{{AFS_DESC_1}}</td>
+                <td>&#160;</td>
+                <td class="line-cell right">&#160;{{AFS_AMOUNT_1}}</td>
+            </tr>
+            <tr>
+                <td class="afs-text right">2)</td>
+                <td class="line-cell">&#160;{{AFS_DESC_2}}</td>
+                <td>&#160;</td>
+                <td class="line-cell right">&#160;{{AFS_AMOUNT_2}}</td>
+            </tr>
+            <tr>
+                <td class="afs-text right">3)</td>
+                <td class="line-cell">&#160;{{AFS_DESC_3}}</td>
+                <td>&#160;</td>
+                <td class="line-cell right">&#160;{{AFS_AMOUNT_3}}</td>
+            </tr>
+        </table>
+
+        <table class="large-gap"><tr><td>&#160;</td></tr></table>
+        <table class="large-gap"><tr><td>&#160;</td></tr></table>
+
+        <table>
+            <tr>
+                <td class="footer-company">CGU Homes, LLC</td>
+            </tr>
+            <tr>
+                <td class="footer-address">1998 Trade Center Way (Suite 2)</td>
+            </tr>
+            <tr>
+                <td class="footer-address">Naples, FL 34109</td>
+            </tr>
+        </table>
+    </body>
+</pdf>
