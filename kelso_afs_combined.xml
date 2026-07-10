@@ -183,8 +183,8 @@
         <table>
             <tr>
                 <td class="waiver-text" width="5%">DATED on</td>
-                <td class="line-cell waiver-text" width="10%">&#160;{{WAIVER_DATE}}</td>
-                <td width="54%">&#160;</td>
+                <td class="line-cell waiver-text" width="7%">{{WAIVER_DATE}}</td>
+                <td width="54%"></td>
             </tr>
         </table>
 
