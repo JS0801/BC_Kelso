@@ -1,0 +1,2331 @@
+<?xml version="1.0"?><!DOCTYPE pdf PUBLIC "-//big.faceless.org//report" "report-1.1.dtd"><#-- Translation Collection --><#assign tc = nstranslation.load({
+        "collections":[{
+            "alias": "default",
+            "collection": "custcollection_chargespdf",
+            "keys": ["CHARGES_TAX_AMT","CHARGES_AMT_DUE","CHARGES_TYPE","CHARGES_DATE","CHARGES_EMP","CHARGES_DESC","CHARGES_QTY","CHARGES_RATE","CHARGES_AMT"],
+            "locale": .locale
+        }]})>
+    <pdf>
+    <head>
+    <link name="NotoSans" type="font" subtype="truetype" src="${nsfont.NotoSans_Regular}" src-bold="${nsfont.NotoSans_Bold}" src-italic="${nsfont.NotoSans_Italic}" src-bolditalic="${nsfont.NotoSans_BoldItalic}" bytes="2" />
+    <#if .locale == "zh_CN">
+    <link name="NotoSansCJKsc" type="font" subtype="opentype" src="${nsfont.NotoSansCJKsc_Regular}" src-bold="${nsfont.NotoSansCJKsc_Bold}" bytes="2" />
+    <#elseif .locale == "zh_TW">
+    <link name="NotoSansCJKtc" type="font" subtype="opentype" src="${nsfont.NotoSansCJKtc_Regular}" src-bold="${nsfont.NotoSansCJKtc_Bold}" bytes="2" />
+    <#elseif .locale == "ja_JP">
+    <link name="NotoSansCJKjp" type="font" subtype="opentype" src="${nsfont.NotoSansCJKjp_Regular}" src-bold="${nsfont.NotoSansCJKjp_Bold}" bytes="2" />
+    <#elseif .locale == "ko_KR">
+    <link name="NotoSansCJKkr" type="font" subtype="opentype" src="${nsfont.NotoSansCJKkr_Regular}" src-bold="${nsfont.NotoSansCJKkr_Bold}" bytes="2" />
+    <#elseif .locale == "th_TH">
+    <link name="NotoSansThai" type="font" subtype="opentype" src="${nsfont.NotoSansThai_Regular}" src-bold="${nsfont.NotoSansThai_Bold}" bytes="2" />
+    </#if>
+<macrolist>
+    <macro id="nlheader">
+
+      <!-- Header for Premier Electric (id: 37) -->
+        <#if subsidiary.id == "37">
+          <table class="header" style="width: 100%;">
+            <tr>
+              <td width="60%">
+                <#if subsidiary.logo?length != 0>
+                  <img src="${subsidiary.logo@url}" style="float: left; margin: 7px; width: 60%; height: 60%;"/>
+                </#if>
+              </td>
+              <td width="40%">
+                <span class="subsidiaryname"><strong>Premier Electric</strong></span>
+                <span class="nameandaddress">${subsidiary.mainaddress_text?replace("Premier Electric", "")}</span><br />
+                <span class="nameandaddress">${record.subsidiary.url}</span><br />
+                <span class="nameandaddress">239-598-2000</span>
+              </td>
+            </tr>
+          </table>
+          
+        <!-- Header for Markade Subsidiary (id: 29) -->
+        <#elseif subsidiary.id == "29">
+        <table class="header" style="border-bottom: 0px;" height="180px">
+            <tr>
+                <td align="left" rowspan="5" width="20%">
+                    <#if (subsidiary.logo?length != 0) || (subsidiary.pagelogo?length != 0)>
+                    <img src="${subsidiary.pagelogo@url}" style="width:20%; height:20%; vertical-align: top;"/>
+                </#if>
+                <#if subsidiary.mainaddress_text?length != 0 >
+                <#assign addressLines = subsidiary.mainaddress_text?split(r"<br />","r")>
+                <#list addressLines as line>
+                <br/>${line}
+            </#list>
+            <#else>
+            ${companyInformation.addressText}
+        </#if>
+        <br/><br/>
+        Phone<#if subsidiary.phone?has_content> ${subsidiary.phone}</#if>
+</td>
+<td align="right">
+    <table>
+        <tr>
+            <td colspan="2" align="right">
+                <b><span style="font-size: 25px;">${record@title}</span></b>
+            </td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+        </tr>
+        <tr>
+            <td align="right"></td>
+            <td align="right">${record.trandate@label}    ${record.trandate}</td>
+        </tr>
+    </table>
+</td>
+</tr>
+</table>
+
+<#elseif subsidiary.id == "30">
+<table width="100%" line-height="80%">
+    <tr>
+        <td colspan="5"><b>${record.subsidiary}</b></td>
+        <td colspan="5" rowspan="6" align="right">
+            <img src="${subsidiary.pagelogo@url}" vertical-align="top" height="70%" width="70%"/>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="5">${subsidiary.addr1}</td>
+    </tr>
+    <tr>
+        <td colspan="5">${subsidiary.addr2} ${subsidiary.state} ${subsidiary.zip} ${subsidiary.country}</td>
+    </tr>
+    <tr>
+        <td colspan="5">${subsidiary.custrecord_atlas_svcs_mm_phone}</td>
+    </tr>
+    <tr>
+        <td colspan="5">scott@markade.net</td>
+    </tr>
+    <tr>
+        <td colspan="5">${record.subsidiary.url}</td>
+    </tr>
+</table>
+
+<#elseif subsidiary.id == "56">
+<table width="100%">
+    <tr>
+       <td colspan="5" style="padding:0; line-height:100%; color: #004183;">
+            <span style="color: #004183; font-weight: bold;">${record.subsidiary}</span><br/>
+            <#if subsidiary.addr1?has_content>${subsidiary.addr1}<br/></#if>
+            <#if subsidiary.addr2?has_content>${subsidiary.addr2}<br/></#if>
+            <#if subsidiary.city?has_content || subsidiary.state?has_content || subsidiary.zip?has_content>${subsidiary.city}, ${subsidiary.state} ${subsidiary.zip}<br/></#if>
+            <#if subsidiary.custrecord_atlas_svcs_mm_phone?has_content>${subsidiary.custrecord_atlas_svcs_mm_phone}<br/></#if>
+            <#if record.subsidiary.url?has_content>${record.subsidiary.url}</#if>
+       </td>
+        <td colspan="5" align="right">
+            <img src="${subsidiary.pagelogo@url}" vertical-align="top" height="40%" width="40%"/>
+       </td>
+    </tr>
+</table>
+
+  
+<!-- End of Header for Markade Subsidiary (id: 30) -->
+<#elseif subsidiary.id == "20">
+<!-- Header for Four Star Subsidiary (id: 20) -->
+<table width="100%" style="line-height:120%; font-size: 10pt">
+    <tr>
+    <td>
+    <b>${record.subsidiary}</b><br/>
+${subsidiary.addr1}<br/>
+${subsidiary.city} ${subsidiary.state} ${subsidiary.zip}<br/>
+T: ${subsidiary.custrecord_atlas_svcs_mm_phone}<br/>
+F: ${subsidiary.fax}
+</td>
+<td style="text-align:right; margin-top: -20pt;"><img src="${subsidiary.logo@url}" height="70%" width="70%" /></td>
+<td>&nbsp;</td>
+</tr>
+</table>
+<!-- End of Header Four Star Subsidiary (id: 20) -->
+<#elseif subsidiary.id == "3" || subsidiary.id == "5">
+<!-- Header for Idaho -->
+                <table class="header" height="160px">
+    <tr>
+    <td align="left">
+    <#if subsidiary.logo?length != 0 >
+    <img src="${subsidiary.pagelogo@url}" height="45px" width="200px" vertical-align="top"/>
+    <#elseif companyInformation.logoUrl?length != 0 >
+    <img height="45px" src="${companyInformation.logoUrl}" vertical-align="top" width="200px" />
+    </#if>
+</td>
+</tr>
+<tr>
+    <td align="left">
+        <#if subsidiary.mainaddress_text?length != 0 > ${subsidiary.mainaddress_text}<#else>${companyInformation.addressText}</#if>
+</td>
+</tr>
+</table>
+<!-- End of Header for Idaho -->
+<#elseif subsidiary.id == "7">
+<!-- Header for DHR Subsidiary (id: 7) -->
+<#assign bcLocAddress = ''>
+    <#assign _suiteletURL = ("https://6962009.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=3022&deploy=1&compid=6962009&ns-at=AAEJ7tMQzJ_Jp02beofJ049FxjTkmrOtRTWdU4jcbdTCZUGkSPY&recid="+record.internalid+"&locid="+record.location.internalid+"&param=3") />
+    <#include _suiteletURL />
+<table class="header" height="150px">
+    <tr>
+    <td align="left">
+    <#if subsidiary.logo?length != 0 >
+    <img src="${subsidiary.pagelogo@url}" height="45px" width="200px" vertical-align="top"/>
+    <#elseif companyInformation.logoUrl?length != 0 >
+    <img height="45px" src="${companyInformation.logoUrl}" vertical-align="top" width="200px" />
+    </#if>
+</td>
+</tr>
+<tr >
+    <td align="left">
+        <#if record.cseg_bc_project.custrecord_bc_location == 'DHR Tampa Branch' || record.cseg_bc_project.custrecord_bc_location == 'DHR Atlanta Branch' || record.cseg_bc_project.custrecord_bc_location == 'DHR Nashville Branch' || !record.cseg_bc_project.custrecord_bc_location?has_content >
+        ${bcLocAddress}
+        <#else>
+        <#if subsidiary.mainaddress_text?length != 0 > ${subsidiary.mainaddress_text} <#else> ${companyInformation.addressText}  </#if>
+</#if>
+</td>
+</tr>
+</table>
+<!-- End of Header  DHR Subsidiary (id: 7)-->
+
+          <#elseif subsidiary.id == "46" || subsidiary.id == "47" || subsidiary.id == "48">
+              <table width="100%" style="line-height:120%; font-size: 10pt">
+                <tr>
+                  <td>
+                    SUPREME HVAC-COMMERCIAL<br/><br/>
+                    ${subsidiary.addressee?upper_case}<br/>
+                    ${subsidiary.addr1?upper_case}<br/>
+                    ${subsidiary.city?upper_case} ${subsidiary.state?upper_case} ${subsidiary.zip}
+                    <#if subsidiary.custrecord_atlas_svcs_mm_phone?has_content><br/>${subsidiary.custrecord_atlas_svcs_mm_phone} PHONE</#if>
+                    
+                  </td>
+                  <td align = "center"><img src="${subsidiary.logo@url}" height="25%" width="20%" /></td>
+                  <td align = "right">
+                    <table width = "70%">
+                      <tr><td align = "right" style = "font-size: 25pt; font-weight: bold;" colspan = "2">Invoice</td></tr>
+                      <tr>
+                        <td align = "center" style="border:2px solid #000; padding:3px;">Date</td>
+                        <td align = "center" style="border:2px solid #000; border-left:0px solid #000; padding:3px;">Invoice #</td>
+                      </tr>
+                      <tr>
+                        <td align = "center" style="border:2px solid #000; border-top:0px solid #000; padding:3px;">${record.trandate}</td>
+                        <td align = "center" style="border:2px solid #000; border-left:0px solid #000; border-top:0px solid #000; padding:3px;">${record.tranid}</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+<#elseif subsidiary.id == "38">
+<!-- Header for MJ Mechanical (id: 38) -->
+<table class="header" style="border-bottom: 0px;" height="200px">
+    <tr>
+        <td align="left" valign="top" rowspan="5" width="30%">
+            <img src="${subsidiary.pagelogo@url}" vertical-align="top" height="65px" width="160px"/>
+            <#if subsidiary.mainaddress_text?length != 0>
+                <#assign addressLines = subsidiary.mainaddress_text?split(r"<br />", "r")>
+                <#list addressLines as line>
+                    <#if line_index gt 0 && line != "United States"><br/>${line}</#if>
+                </#list>
+            <#else>
+                ${companyInformation.addressText}
+            </#if>
+            <#if subsidiary.phone?has_content><br/>Phone ${subsidiary.phone}</#if>
+        </td>
+        <td align="right">
+            <table>
+                <tr>
+                    <td colspan="2" align="right"><b><span style="font-size: 25px;">${record@title}</span></b></td>
+                </tr>
+                <tr>
+                    <td>&nbsp;</td>
+                </tr>
+                <tr>
+                    <td align="right">${record.trandate@label}</td>
+                    <td align="right">${record.trandate}</td>
+                </tr>
+                <tr>
+                    <td align="right">Invoice#</td>
+                    <td align="right">${record.tranid}</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+<!-- End of Header MJ Mechanical (id: 38) -->
+
+<#else>
+<!-- ============================================================ -->
+<!-- SHARED ELSE BLOCK: all remaining subsidiaries including 16, 21, 19, and others -->
+<!-- ============================================================ -->
+<#if subsidiary.id == "16">
+<table class="header" style="border-bottom: 0px;" height="220px">
+    <#elseif subsidiary.id != "21">
+<table class="header" height="150px">
+    <#else>
+    <table class="header" style="border-bottom: 0px;" height="150px">
+    </#if>
+<tr>
+
+    <#if subsidiary.id == "16">
+    <!-- RETROFIT (id: 16): logo top-left, address lines below logo, no company name text -->
+    <td align="left" rowspan="5" width="30%">
+        <img src="${subsidiary.pagelogo@url}" vertical-align="top" height="65px" width="195px"/><br/><br/>
+        <#if subsidiary.mainaddress_text?length != 0>
+            <#assign addressLines = subsidiary.mainaddress_text?split(r"<br />", "r")>
+            <#list addressLines as line>
+                <#if line_index gt 0>${line}<br/></#if>
+            </#list>
+        <#else>
+            ${companyInformation.addressText}
+        </#if>
+        <#if subsidiary.phone?has_content><br/>Phone ${subsidiary.phone}</#if>
+    </td>
+    <td align="right">
+        <table>
+            <tr>
+                <td colspan="2" align="right"><b><span style="font-size: 25px;">${record@title}</span></b></td>
+            </tr>
+            <tr>
+                <td>&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right">${record.trandate@label}</td>
+                <td align="right">${record.trandate}</td>
+            </tr>
+            <tr>
+                <td align="right">Invoice#</td>
+                <td align="right">${record.tranid}</td>
+            </tr>
+        </table>
+    </td>
+
+    <#elseif (subsidiary.id == "21" && record.custbody_bc_progress_billing == true) || subsidiary.id != "21">
+    <td align="left" rowspan="5" width="20%">
+        <#if subsidiary.logo?length != 0 || subsidiary.pagelogo?length != 0>
+        <#if subsidiary.id == "7" || subsidiary.id == "5">
+        <img src="${subsidiary.pagelogo@url}" vertical-align="top" height="25%" width="25%"/>
+        <#elseif subsidiary.id == "15" >
+        <img src="${subsidiary.pagelogo@url}" vertical-align="top" height="75%" width="75%"/>
+        <#elseif subsidiary.id == "21">
+        <img src="${subsidiary.pagelogo@url}" vertical-align="top" width="140%" height="140%"/>
+        <#elseif subsidiary.id == "10" >
+        <img src="${subsidiary.pagelogo@url}" vertical-align="top" height="60%" width="60%"/>
+        <#elseif subsidiary.id == "4" >
+        <img src="${subsidiary.logo@url}" vertical-align="top"  height="250%" width="250%"/>
+     <#elseif subsidiary.id == "19" >
+<img src="${subsidiary.pagelogo@url}" vertical-align="top"  height="25%" width="25%"/>
+
+<#elseif subsidiary.id == "13" >
+<img src="${subsidiary.pagelogo@url}" vertical-align="top" height="40%" width="40%"/>
+
+<#else>
+<img src="${subsidiary.pagelogo@url}" vertical-align="top"/>
+    </#if>
+    <#elseif companyInformation.logoUrl?length != 0 && subsidiary.id != "21">
+    &nbsp;
+</#if>
+</td>
+</#if>
+
+<#if subsidiary.id != "16">
+<#if (subsidiary.id == "21" && record.custbody_bc_progress_billing)>
+    <td align="left" margin-top="-15px">
+<#if subsidiary.mainaddress_text?length != 0 >
+    <#assign addressLines = subsidiary.mainaddress_text?split(r"<br />", "r")>
+<#list addressLines as line>
+<br/>${line}
+</#list>
+<#else>${companyInformation.addressText}
+</#if>
+<br/> <br/>
+Phone <#if subsidiary.phone?has_content> ${subsidiary.phone}</#if>
+</td>
+<td align="right">
+    <table>
+        <tr>
+            <td colspan="2" align="right"><b><span style="font-size: 25px;">${record@title}</span></b></td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+        </tr>
+        <tr>
+            <td align="right">${record.trandate@label}</td>
+            <td align="right">${record.trandate}</td>
+        </tr>
+        <tr>
+            <td align="right">Invoice#</td>
+            <td align="right">${record.tranid}</td>
+        </tr>
+    </table>
+</td>
+<#elseif subsidiary.id == "19">
+<td align="center">
+    <#if subsidiary.mainaddress_text?length != 0 >
+    <#assign addressLines = subsidiary.mainaddress_text?split(r"<br />", "r")>
+<#list addressLines as line>
+${line} <br/>
+</#list>
+<#else>${companyInformation.addressText}
+</#if>
+Phone <#if subsidiary.phone?has_content> ${subsidiary.phone}</#if>
+</td>
+<td align="right">
+    <table>
+        <tr>
+            <td colspan="2" align="center"><b><span style="font-size: 25px;">${record@title}</span></b></td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+        </tr>
+    </table>
+</td>
+<#elseif (subsidiary.id == "21" && !record.custbody_bc_progress_billing)>
+<td align="left" margin-top="-30px">
+    <table>
+    <tr>
+    <td>
+    <img src="${subsidiary.pagelogo@url}" vertical-align="top" width="225px" height="75px"/>
+    </td>
+</tr>
+<tr>
+    <td margin-top="10px">
+        <#if subsidiary.mainaddress_text?length != 0 >
+        <#assign addressLines = subsidiary.mainaddress_text?split(r"<br />", "r")>
+        <#list addressLines as line>
+        <#if line_index == 0>
+        LLR Electric, LLC
+        <br/>
+        <br/>${line}
+        <#else>
+        <br/>${line}
+    </#if>
+</#list>
+<#else>${companyInformation.addressText}
+</#if>
+</td>
+</tr>
+</table>
+</td>
+<td align="right">
+    <table>
+        <tr>
+            <td colspan="3" align="right"><b><span style="font-size: 25px;">${record@title}</span></b></td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td align="center" border="1px">${record.trandate@label}</td>
+            <td align="center" border="1px">Invoice#</td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td align="center" border-top="0px" border="1px">${record.trandate}</td>
+            <td align="center" border-top="0px" border="1px">${record.tranid}</td>
+        </tr>
+    </table>
+</td>
+</#if>
+</#if>
+</tr>
+<#if subsidiary.id != "16" && subsidiary.id != "19" && subsidiary.id != "21">
+    <tr>
+    <td align="left">
+    <#if subsidiary.mainaddress_text?length != 0 > ${subsidiary.mainaddress_text}
+<#else>${companyInformation.addressText}
+</#if>
+</td>
+</tr>
+</#if>
+</table>
+</#if>
+</macro>
+<macro id="nlfooter">
+    <!-- Footer for Markade subsidiary (id: 30) -->
+    <#if subsidiary.id == "30" || subsidiary.id == "56">
+    <table class="footer" width="100%">
+        <tr>
+            <td align="center">
+                     <span style="color: #8E9096">
+                        Page
+                        <pagenumber/>
+                        of
+                        <totalpages/>
+                     </span>
+            </td>
+        </tr>
+    </table>
+    <!-- End of Footer for Markade subsidiary (id: 30) -->
+    <#elseif subsidiary.id == "20">
+    <!-- Footer for Four Star subsidiary (id: 20) -->
+    <table class="footer" width="100%" style="font-size: 8pt">
+        <tr>
+            <td align="left">FOUR STAR MECHANICAL, LLC</td>
+            <td align="center">"Performance That Earns Confidence"</td>
+            <td align="right">Since 1993</td>
+        </tr>
+    </table>
+    <!-- End of Footer for Four Star subsidiary (id: 20) -->
+    <#else>
+    <table align="right" border="0" class="footer">
+        <#assign footer_ltd_msg = record.subsidiary.custrecord_atlas_svcs_mm_doc_footer>
+        <#if record.subsidiary.custrecord_atlas_svcs_mm_doc_footer?has_content>
+        <#if footer_ltd_msg?has_content?length &gt; 260>
+        <#assign footer_ltd_msg = footer_ltd_msg?substring(0,260)></#if></#if>
+<#assign f_colspan_1 = 'colspan="4" style="align: left;"'>
+    <#assign f_colspan_2 = 'colspan="5" style="align: left;"'>
+    <#assign f_colspan_3 = 'colspan="5" style="align: left;"'>
+    <#assign f_colspan_4 = 'colspan="5" style="align: left;"'>
+    <tr>
+    <td style="height: 57px;">${subsidiary.custrecord_atlas_svcs_mm_doc_footer}</td>
+<td style="height: 57px;">${subsidiary.custrecord_atlas_svcs_mm_bankdetails}</td>
+</tr>
+</table>
+<#if subsidiary.id == "16"  || (subsidiary.id == "21" && record.custbody_bc_progress_billing)>
+    <table>
+    <tr>
+    <td align="left">&nbsp;</td>
+<td align="center" style="border: 1px;">E-mail</td>
+<td align="right">&nbsp;</td>
+</tr>
+<tr>
+    <td align="left">&nbsp;</td>
+    <td align="center" style="border: 1px; border-top:0px;">${subsidiary.email?lower_case}</td>
+    <td align="right">&nbsp;</td>
+</tr>
+</table>
+</#if>
+<#if subsidiary.id == "19">
+    <table width="100%">
+    <tr>
+    <td style="font-size: 12pt;" align="center"><b>We accept payment via check, Credit Card (fee applies), and ACH.</b></td>
+</tr>
+<tr>
+    <td style="font-size: 12pt;" align="center"><b><i>Thank you for your business.</i></b></td>
+</tr>
+</table>
+</#if>
+</#if>
+</macro>
+</macrolist>
+  
+
+  <style>
+    /*Start Premier Electric Style*/  
+    <#if subsidiary.id == "37">
+		* {
+		<#if .locale == "zh_CN">
+			font-family: NotoSans, NotoSansCJKsc, sans-serif;
+		<#elseif .locale == "zh_TW">
+			font-family: NotoSans, NotoSansCJKtc, sans-serif;
+		<#elseif .locale == "ja_JP">
+			font-family: NotoSans, NotoSansCJKjp, sans-serif;
+		<#elseif .locale == "ko_KR">
+			font-family: NotoSans, NotoSansCJKkr, sans-serif;
+		<#elseif .locale == "th_TH">
+			font-family: NotoSans, NotoSansThai, sans-serif;
+		<#else>
+			font-family: NotoSans, sans-serif;
+		</#if>
+		}
+		table {
+			font-size: 9pt;
+			table-layout: fixed;
+		}
+        th {
+            font-weight: bold;
+            font-size: 8pt;
+            vertical-align: middle;
+            padding: 5px 6px 3px;
+            background-color: #e6ccd1;
+            color: #9c364c;
+        }
+		td p { align:left }
+        b {
+            font-weight: bold;
+            color: #333333;
+        }
+        table.header td {
+            padding: 0px;
+            font-size: 10pt;
+        }
+        table.footer td {
+            padding: 0px;
+            font-size: 8pt;
+        }
+        table.itemtable th {
+            padding-bottom: 10px;
+            padding-top: 10px;
+        }
+        table.body td {
+            padding-top: 2px;
+        }
+        table.total {
+            page-break-inside: avoid;
+        }
+        tr.totalrow {
+            background-color: #e3e3e3;
+            line-height: 200%;
+        }
+        td.totalboxtop {
+            font-size: 12pt;
+            background-color: #e3e3e3;
+        }
+        td.addressheader {
+            font-size: 8pt;
+            padding-top: 6px;
+            padding-bottom: 2px;
+        }
+        td.address {
+            padding-top: 0px;
+        }
+        td.totalboxmid {
+            font-size: 28pt;
+            padding-top: 20px;
+            background-color: #e3e3e3;
+        }
+        td.totalboxbot {
+            background-color: #e3e3e3;
+            font-weight: bold;
+        }
+        span.title {
+            font-size: 28pt;
+        }
+        span.number {
+            font-size: 16pt;
+        }
+        span.itemname {
+            font-weight: bold;
+            line-height: 150%;
+        }
+        hr {
+            width: 100%;
+            color: #d3d3d3;
+            background-color: #fff;
+            height: 0.5px;
+            border-top: 0.5px dashed #9B9B9B;
+        }
+        .recordtype {
+            color: #9c364c;
+        }
+        .headertext {
+            color: #9B9B9B;
+        }
+        .subsidiaryname {
+            font-weight: bold;
+            color: #333333;
+            font-size: 12pt;
+        }
+        table.total td {
+            font-size: 8pt;
+        }
+        .itemdescription {
+            font-size: 8pt;
+        }
+        .amountdue {
+            font-weight: bold;
+            font-size: 10pt;
+        }
+    </#if>    
+  </style>
+
+  <style type="text/css">
+    /*Style for other subsidiaries*/  
+    <#if subsidiary.id != "37">
+    table {
+    <#if .locale == "zh_CN">
+    font-family: stsong, sans-serif;
+    <#elseif .locale == "zh_TW">
+    font-family: msung, sans-serif;
+    <#elseif .locale == "ja_JP">
+    font-family: heiseimin, sans-serif;
+    <#elseif .locale == "ko_KR">
+    font-family: hygothic, sans-serif;
+    <#elseif .locale == "ru_RU">
+    font-family: verdana;
+    <#else>
+    font-family: sans-serif;
+    </#if>
+    font-size: 9pt;
+    margin-top: 10px;
+    table-layout: fixed;
+    width: 100%;
+}
+    .debbug{
+    background-color : red;
+}
+    th {
+    font-weight: bold;
+    font-size: 10pt;
+    vertical-align: middle;
+    padding-right: 8px;
+    padding-left: 8px;
+    padding-bottom: 3px;
+    padding-top: 5px;
+    background-color: #00467F;
+    color: #ffffff;
+}
+    td {
+    padding-right: 6px;
+    padding-left: 6px;
+    padding-bottom: 4px;
+    padding-top: 4px;
+}
+    td p {
+    text-align: left;
+}
+    b {
+    font-weight: bold;
+    color: #333333;
+}
+    body {
+    background-color: #ffffff;
+}
+    table.border_bottom tr{
+    border-bottom: 3px solid #black;
+}
+    table.header{
+    <!--background-color: #eaeaea;-->
+    border-bottom: 4px solid #666666;
+}
+    table.header td {
+    padding: 0px;
+    font-size: 10pt;
+}
+    table.footer{
+    padding: 0px;
+    margin: 0px;
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+    table.footer td {
+    padding: 0px;
+    margin: 0px;
+}
+    table.footer td img{
+}
+    table.footer span{
+    font-size: 7pt;
+}
+    table.footer tr {
+    padding: 0px;
+    margin: 0px;
+}
+    table.itemtable th {
+    padding-bottom: 5px;
+    padding-top: 5px;
+}
+    table.itemtable td {
+    border: .5px solid #e0e0e0;
+}
+    table.body td {
+    padding-top: 2px;
+}
+    table.total {
+    page-break-inside: avoid;
+}
+    table.total td{
+    color: #2B547E;
+}
+    tr.totalrow {
+    background-color: #ffffff;
+    line-height: 200%;
+    color: #2B547E;
+}
+    td.addressheader {
+    font-size: 8pt;
+    padding-top: 8px;
+    padding-bottom: 2px;
+    text-transform: uppercase;
+}
+    td.address {
+    padding-top: 0px;
+}
+    td.item {
+    padding-top: 0px;
+    border: 0px solid #ffffff;
+}
+    td p {
+    text-align: left;
+}
+    span.title {
+    font-size: 14pt;
+}
+    span.number {
+    font-size: 16pt;
+    color:#00467f;
+    }
+    span.total {
+    <!--color:#00467f;-->
+    font-size: 10pt;
+}
+    link {
+    text-decoration: none;
+}
+    hr {
+    width: 100%;
+    color: #d3d3d3;
+    background-color: #d3d3d3;
+    height: 1px;
+}
+    <#if subsidiary.id == "13">
+    th {
+    background-color: #707070;
+    }
+    </#if>
+    </#if>  
+  </style>
+</head>
+  <!-- Paper Size setup for Premier Electric subsidiary (id: 37) -->
+  <#if subsidiary.id == "37">
+    <body header="nlheader" header-height="20%" footer="nlfooter" footer-height="10pt" padding="0.5in 0.25in 0.5in 0.25in" size="Letter">
+    <!-- Paper Size setup for Markade subsidiary (id: 30) -->
+    <#elseif subsidiary.id == "30" || subsidiary.id == "56">
+    <body header="nlheader" header-height="150px" footer="nlfooter" footer-height="2%" padding="0.3in 0.3in 0.3in 0.3in" size="Letter">
+    <!-- Paper Size setup for Four Star subsidiary (id: 20) -->
+    <#elseif subsidiary.id =="20">
+    <body header="nlheader" header-height="130px" footer="nlfooter" footer-height="2%" padding="0.5in 0.5in 0.5in 0.5in" size="Letter">
+    <#elseif subsidiary.id == "3" || subsidiary.id == "5">
+    <body header="nlheader" header-height="160px" footer="nlfooter" footer-height="2%" padding="0.5in 0.5in 0.5in 0.5in" size="Letter">
+    <#elseif subsidiary.id == "29">
+    <body header="nlheader" header-height="210px" footer="nlfooter" footer-height="65pt" padding="0.5in 0.5in 0.5in 0.5in" size="Letter">
+    <#elseif subsidiary.id == "16">
+    <body header="nlheader" header-height="220px" footer="nlfooter" footer-height="65pt" padding="0.5in 0.5in 0.5in 0.5in" size="Letter">
+    <#elseif subsidiary.id == "38">
+    <body header="nlheader" header-height="210px" footer="nlfooter" footer-height="65pt" padding="0.5in 0.5in 0.5in 0.5in" size="Letter">
+    <#else>
+    <body header="nlheader" header-height="150px" footer="nlfooter" footer-height="65pt" padding="0.5in 0.5in 0.5in 0.5in" size="Letter">
+    </#if>
+
+    <!-- Invoice Body for Premier Electric subsidiary (id: 37) -->
+    <#if subsidiary.id == "37">
+      <span class="recordtype">INVOICE</span>
+      <table style="width: 100%; margin-top: 5px;">
+        <tr>
+          <td class="addressheader headertext" width="33%">${record.billaddress@label?upper_case}</td>
+          <td class="addressheader headertext" width="33%">${record.shipaddress@label?upper_case}</td>
+          <td class="addressheader" width="34%" rowspan="2">
+            <table style="width: 100%;">
+              <tr>
+                <td class="headertext" width="30%">INVOICE</td>
+                <td width="70%">${record.tranid}</td>
+              </tr>
+              <tr>
+                <td class="headertext" >DATE</td>
+                <td>${record.trandate}</td>
+              </tr>
+              <tr>
+                <td class="headertext" >DUE DATE</td>
+                <td>${record.duedate}</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+       <tr>
+          <td class="address"><p class="toptext">${record.billaddress}</p></td>
+          <td class="address">${record.shipaddress}<#if record.cseg_bc_project?has_content><br/><br/><b>Project:</b> ${record.cseg_bc_project}</#if></td>
+        </tr>
+      </table>
+      
+     <table style="width: 100%; margin-top: 5px;">
+  <tr><td class="headertext">DATE OF SERVICE:</td></tr>
+  <tr><td>${record.custbody_date_of_service}&nbsp;</td></tr>
+  <tr><td class="headertext">SCOPE:</td></tr>
+  <tr><td>${record.custbody_wallace_scope}&nbsp;</td></tr>
+</table>
+      <#if record.item?has_content>
+        <table class="itemtable" style="width: 100%; margin-top: 10px;">
+          <thead>
+  <tr>
+    <th style="width: 55%;">MATERIAL</th>
+    <th align="right" style="width: 15%;">QTY</th>
+    <th align="right" style="width: 15%;">RATE</th>
+    <th align="right" style="width: 15%;">AMOUNT</th>
+  </tr>
+          </thead>
+          <tr>
+            <td>${record.custbody_description_of_work}</td>
+          </tr>      
+          <!-- start items -->
+          <#list record.item as item>
+            <tr>
+              <td line-height="150%">${item.item?upper_case}<br /><span class="itemdescription">${item.description}</span><br /></td>
+              <td align="right">${item.quantity}</td>
+              <td align="right">${item.rate}</td>
+              <td align="right">
+                ${item.amount}
+                <#if item.item.taxschedule == "Taxable">T</#if>
+              </td>
+            </tr>
+          </#list>
+          <!-- end items -->
+        </table>
+        <hr />
+      </#if>
+        
+      <table class="total" style="width: 100%; margin-top: 10px;">
+        <tr>
+          <td width="50%"></td>
+          <td width="50%">
+            <table style="width: 100%;">
+              <tr>
+                <td class="headertext">${record.subtotal@label?upper_case}</td>
+                <td align="right">${record.subtotal}</td>
+              </tr>
+              <tr>
+                <td class="headertext">TAX</td>
+                <td align="right">${record.taxtotal}</td>
+              </tr>
+              <tr>
+                <td class="headertext">${record.total@label?upper_case}</td>
+                <td align="right">${record.total}</td>
+              </tr>
+              <tr>
+                <td colspan="2"><hr /></td>
+              </tr>
+              <tr>
+                <td class="headertext">BALANCE DUE</td>
+                <td align="right"><span class="amountdue">${record.amountremaining}</span></td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    
+    <!-- Invoice Body for Markade subsidiary (id: 30) -->
+<#elseif subsidiary.id == "30">
+    <table width="100%">
+    <tr>
+    <td colspan="6"><span style="font-size: 12pt; color: #004183">INVOICE</span></td>
+    </tr>
+    <tr>
+    <td colspan="2"><span style="color: #8E9096">BILL TO</span></td>
+    <td colspan="2"><span style="color: #8E9096">JOB NAME</span></td>
+    <td><span style="color: #8E9096">INVOICE</span></td>
+    <td>${record.tranid}</td>
+</tr>
+<tr>
+    <td colspan="2" rowspan="2">${record.billaddress}</td>
+    <td colspan="2" rowspan="2"><#if record.cseg_bc_project?has_content>${record.cseg_bc_project?replace('&','&amp;')}<#else>${record.custbody_bc_job_address?replace('&','&amp;')}</#if></td>
+<td rowspan="2"><span style="color: #8E9096">DATE</span></td>
+<td rowspan="2">${record.trandate}</td>
+</tr>
+</table>
+   
+
+<!-- Items table for Markade Subsidiary (id: 30) -->
+<table width="100%">
+    <tr style="background-color: #CCD9E6">
+        <td colspan="3"><span style="color: #004183">ACTIVITY</span></td>
+        <td colspan="5"><span style="color: #004183">ITEM</span></td>
+        <td colspan="2" align="right"><span style="color: #004183">AMOUNT</span></td>
+    </tr>
+    <#if record.item?has_content>
+    <#list record.item as item>
+    <tr>
+        <td colspan="3">${item.item}</td>
+        <td colspan="5">${item.description}</td>
+        <td colspan="2" align="right">${item.amount}</td>
+    </tr>
+</#list>
+</#if>
+</table>
+
+<!-- Total Summary for Markade Subsidiary -->
+<table>
+    <tr>
+        <td colspan="3"></td>
+        <td><span style="color: #8E9096">TOTAL</span></td>
+        <td align="right">${record.total}</td>
+    </tr>
+</table>
+
+      <#elseif subsidiary.id == "56">
+<#import "https://6962009.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=2746&deploy=1&compid=6962009&ns-at=AAEJ7tMQMjAjC9x3LhMJ1umfMziG2giFaq8pw0x1Mbryzsn_L9c&invoicenum="+record.internalid+"&createdfrom=" + record.createdfrom.id as importData />
+<table width="100%">
+<tr>
+<td colspan="6"><span style="font-size: 12pt; color: #004183">INVOICE</span></td>
+</tr>
+
+<tr>
+<td colspan="2"><span style="color: #8E9096">BILL TO</span></td>
+<td colspan="2"><span style="color: #8E9096">JOB NAME</span></td>
+<td><span style="color: #8E9096">INVOICE</span></td>
+<td>${record.tranid}</td>
+</tr>
+
+<tr>
+<td colspan="2" rowspan="5">${record.billaddress}</td>
+<td colspan="2" rowspan="5">
+    <#if record.cseg_bc_project?has_content>
+        ${record.cseg_bc_project?replace('&','&amp;')}
+    <#else>
+        ${record.custbody_bc_job_address?replace('&','&amp;')}
+    </#if>
+</td>
+
+<td><span style="color: #8E9096">DATE</span></td>
+<td>${record.trandate}</td>
+</tr>
+
+<tr>
+<td><span style="color: #8E9096">TERMS</span></td>
+<td>${record.terms}</td>
+</tr>
+
+<tr>
+<td><span style="color: #8E9096">DUE DATE</span></td>
+<td>${record.duedate}</td>
+</tr>
+
+<tr>
+<td><span style="color: #8E9096">PO</span></td>
+<td>${record.otherrefnum}</td>
+</tr>
+
+<tr>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+</table>
+      
+<!-- Items table Markade Subsidiary (Schedule of Values - same setup as sub 21) -->
+<#if record.item?has_content>
+<#assign grossTotal = 0 />
+<#assign retentionTotal = 0 />
+<#assign previousTotal = 0 />
+<table width="100%" style="border-collapse:collapse;">
+    <tr style="background-color: #CCD9E6; font-size: 10px; font-weight: bold; color: #004183;">
+        <td colspan="6"><span style="color: #004183">ITEM</span></td>
+        <td colspan="3" align="right"><span style="color: #004183">EST AMT</span></td>
+        <td colspan="3" align="right"><span style="color: #004183">RETENTION</span></td>
+        <td colspan="3" align="right"><span style="color: #004183">GROSS AMT</span></td>
+        <td colspan="3" align="right"><span style="color: #004183">PRIOR %</span></td>
+        <td colspan="3" align="right"><span style="color: #004183">CURR %</span></td>
+        <td colspan="3" align="right"><span style="color: #004183">TOTAL %</span></td>
+        <td colspan="3" align="right"><span style="color: #004183">NET AMOUNT</span></td>
+    </tr>
+    <!-- start items --><#list record.item as item>
+        <#assign estAmt = ''>
+        <#if importData.clientData?has_content>
+            <#assign key = item.item + item.description>
+            <#assign object = importData.clientData.soValObj>
+            <#if object[key]?has_content>
+                <#assign estAmt = object[key]>
+            </#if>
+        </#if>
+        <#assign oldInvVal = 0>
+        <#assign lumpSumTotal = 0>
+        <#if importData.clientData?has_content>
+            <#assign key = item.item + item.description>
+            <#assign object = importData.clientData.prevInvObj>
+            <#if object[key]?has_content>
+                <#assign oldInvVal = object[key]>
+            </#if>
+            <#assign lumpSumTotal = nsformat_number(importData.clientData.lumpSum) />
+        </#if>
+        <#assign percentage = '' />
+        <#if estAmt?has_content && estAmt != 0>
+            <#assign percentage = ((item.amount / estAmt) * 100)?string("0.##") />
+        </#if>
+        <#assign prevPercentage = 0 />
+        <#if estAmt?has_content && estAmt != 0 && oldInvVal?has_content>
+            <#assign prevPercentage = ((nsformat_number(oldInvVal)/estAmt)*100)?string("0.##") />
+            <#assign previousTotal = previousTotal + nsformat_number(oldInvVal) />
+        </#if>
+        <#assign grossTotal = grossTotal + nsformat_number(item.custcol_bc_sov_dollars_billed) />
+        <#assign retentionTotal = retentionTotal + nsformat_number(item.custcol_bc_sov_unbilled_retention) />
+        <#if !record.custbody_bc_retrofit_lumpsum>
+        <tr>
+            <td colspan="6">${item.item} ${item.description}</td>
+            <td colspan="3" align="right"><#if estAmt?has_content>${nsformat_currency(estAmt)}</#if></td>
+            <td colspan="3" align="right">${item.custcol_bc_sov_unbilled_retention}</td>
+            <td colspan="3" align="right">${item.custcol_bc_sov_dollars_billed}</td>
+            <td colspan="3" align="right">${prevPercentage}%</td>
+            <td colspan="3" align="right">${percentage}%</td>
+            <td colspan="3" align="right">${nsformat_number(percentage) + nsformat_number(prevPercentage)}%</td>
+            <td colspan="3" align="right">${item.amount}</td>
+        </tr>
+        </#if>
+    </#list>
+    <#if record.custbody_bc_retrofit_lumpsum>
+        <#if record.createdfrom.total != 0>
+            <#assign currentPercentage = ((record.total/record.createdfrom.total) * 100)?string("0.##") />
+            <#assign prevTotal = ((lumpSumTotal/record.createdfrom.total) * 100)?string("0.##") />
+        <#else>
+            <#assign currentPercentage = "100.00"/>
+            <#assign prevTotal = lumpSumTotal?string("0.##")/>
+        </#if>
+        <tr>
+            <td colspan="6">${record.memo}</td>
+            <td colspan="3" align="right">${record.createdfrom.total}</td>
+            <td colspan="3" align="right">${nsformat_currency(retentionTotal)}</td>
+            <td colspan="3" align="right">${nsformat_currency(grossTotal)}</td>
+            <td colspan="3" align="right">${prevTotal}%</td>
+            <td colspan="3" align="right">${currentPercentage}%</td>
+            <td colspan="3" align="right">${nsformat_number(currentPercentage) + nsformat_number(prevTotal)}%</td>
+            <td colspan="3" align="right">${record.total}</td>
+        </tr>
+    </#if>
+</table>
+</#if>
+<!-- End of Items table Markade Subsidiary -->
+<hr/>
+<!-- Total Summary for Markade Subsidiary -->
+<table>
+    <tr>
+        <td colspan="3"></td>
+        <td><span style="color: #8E9096">TOTAL</span></td>
+        <td align="right">${record.total}</td>
+    </tr>
+</table>
+<!-- End of Invoice Body for Markade subsidiary (id: 30) -->
+
+      <#elseif subsidiary.id =="46" || subsidiary.id =="47" || subsidiary.id =="48">
+        <#assign _suiteletURLSUP = ("https://6962009.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=3022&deploy=1&compid=6962009&ns-at=AAEJ7tMQzJ_Jp02beofJ049FxjTkmrOtRTWdU4jcbdTCZUGkSPY&bcpid="+record.cseg_bc_project.id)/>
+            <#include _suiteletURLSUP />
+       <table width="100%" style="border-collapse:collapse; font-size:10pt;">
+  <tr>
+    <td colspan="2"
+        style="border:2px solid #000; font-weight:bold; padding:6px;">
+      Bill To
+    </td>
+    <td></td>
+    <td colspan="2"
+        style="border:2px solid #000; font-weight:bold; padding:6px;">
+      Serviced At
+    </td>
+    
+  </tr>
+
+  <tr>
+    
+    <td colspan="2" rowspan="2"
+        style="border:2px solid #000; border-top:0px solid #000; padding:6px; vertical-align:top;">
+      ${record.billaddress}
+    </td>
+    <td></td>
+    <td colspan="2" rowspan="2"
+        style="border:2px solid #000; border-top:0px solid #000; padding:6px; vertical-align:top;">
+      <#if projectAddress?has_content>${projectAddress}<#else>${record.cseg_bc_project?replace('&','&amp;')}</#if>
+    </td>
+  </tr>
+
+  <tr></tr>
+</table>
+    <table>
+      <tr>
+        <td></td>
+        <td style="border:2px solid #000; padding:6px; vertical-align:middle; font-weight: bold;" align = "center">P.O. No.</td>
+        <td style="border:2px solid #000; border-left:0px solid #000; padding:6px; vertical-align:middle; font-weight: bold;" align = "center">Terms</td>
+        <td style="border:2px solid #000; border-left:0px solid #000; padding:6px; vertical-align:middle; font-weight: bold;" align = "center">Project</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td style="border:2px solid #000; border-top:0px solid #000; padding:6px; vertical-align:middle;" align = "center">${record.otherrefnum}</td>
+        <td style="border:2px solid #000; border-left:0px solid #000; border-top:0px solid #000; padding:6px; vertical-align:middle;" align = "center">${record.terms}</td>
+        <td style="border:2px solid #000; border-left:0px solid #000; border-top:0px solid #000; padding:6px; vertical-align:middle;" align = "center">${record.cseg_bc_project}</td>
+      </tr>
+    </table>
+
+
+       <!-- Items table Markade Subsidiary -->
+<table width="100%" style="border-collapse:collapse; font-size:10pt;">
+  <tr style="background-color:#e3e3e3;">
+    <td colspan="3" align="center"
+        style="border:2px solid #000; padding:6px; font-weight:bold;">
+      Item
+    </td>
+    <td colspan="5" align="center"
+        style="border:2px solid #000; border-left:0px solid #000; padding:6px; font-weight:bold;">
+      Description
+    </td>
+    <td colspan="2" align="center"
+        style="border:2px solid #000; border-left:0px solid #000; padding:6px; font-weight:bold;">
+      Amount
+    </td>
+  </tr>
+
+  <#if record.item?has_content>
+    <#list record.item as item>
+      <tr>
+        <td colspan="3"
+            style="border-right:2px solid #000; border-left:2px solid #000; padding:5px;">
+          ${item.item}
+        </td>
+        <td colspan="5"
+            style="border-right:2px solid #000; padding:5px;">
+          ${item.description}
+        </td>
+        <td colspan="2" align="right"
+            style="border-right:2px solid #000; padding:5px;">
+          ${item.amount}
+        </td>
+      </tr>
+    </#list>
+      <tr>
+        <td colspan="7"
+            style="border:2px solid #000; padding:5px;">
+        </td>
+        <td colspan="1"
+            style="border:2px solid #000; border-left:0px solid #000; border-right:0px solid #000; padding:5px;"><b>Total</b>
+        </td>
+        <td colspan="2"
+            style="border:2px solid #000; border-left:0px solid #000; padding:5px;" align = "right"><b>${record.total}</b>
+        </td>
+      </tr>
+  </#if>
+</table> 
+
+      
+<#elseif subsidiary.id == "20">
+<!-- Body for Four Star Subsidiary (id: 20) -->
+<!--BILL TO TABLE-->
+<table align="left" border="0" width="100%">
+    <tr>
+    <td class="addressheader" colspan="6"><b>${record.billaddress@label}</b></td>
+</tr>
+<tr>
+    <td class="address" colspan="6"><span style="color:#666666;"><#if record.billaddress?has_content>${record.billaddress}<#else>${record.entity.address}</#if></span></td>
+</tr>
+</table>
+<!--INVOICE NO. TABLE-->
+<table align="left" border="0" class="itemtable" width="100%">
+    <thead>
+    <tr>
+        <th colspan="8" style="align: left;">${record.tranid@label}</th>
+        <th colspan="8" style="align: center;">Invoice Date</th>
+        <th colspan="8" style="align: center;">${record.total@label}</th>
+    </tr>
+    </thead>
+    <tr>
+        <td colspan="8" style="align: left;"><span style="color:#666666;">${record.tranid}</span></td>
+        <td colspan="8" style="align: center;"><span style="color:#666666;">${record.trandate}</span></td>
+        <td colspan="8" style="align: center;"><span style="color:#666666;">${record.total}</span></td>
+    </tr>
+</table>
+<!--TERMS TABLE-->
+<table align="left" border="0" class="itemtable" style="width: 747px;" width="100%">
+    <thead>
+    <tr>
+        <th colspan="8">${record.terms@label}</th>
+        <th colspan="8" align="center">${record.duedate@label}</th>
+        <th colspan="8" align="center">${record.otherrefnum@label}</th>
+    </tr>
+    </thead>
+    <tr>
+        <td colspan="8"><span style="color:#666666;">${record.terms}</span></td>
+        <td colspan="8"><span style="color:#666666;" align="center">${record.duedate}</span></td>
+        <td colspan="8" align="center">${record.otherrefnum}</td>
+    </tr>
+</table>
+<!--ITEMS TABLE-->
+<#if record.item?has_content>
+    <table align="left" class="itemtable" width="100%">
+    <!-- start items --><#list record.item as item><#if item_index==0>
+<thead>
+<tr>
+<!--<th colspan="8" style="align: left;">${item.item@label}</th>-->
+<th colspan="17">${item.description@label}</th>
+<th colspan="4" style="align: right;">Quantity</th>
+                        <!--<th colspan="3" style="align: left;">${item.taxrate1@label}</th>-->
+<th colspan="6" style="align: right;">${item.rate@label}</th>
+<th colspan="7" style="align: right;">${item.amount@label}</th>
+</tr>
+</thead>
+</#if>
+<tr style="background-color: ${((item_index % 2)==0)?string('#ffffff', '#f0f0f0')};">
+    <!--<td colspan="8"><span style="color:#666666;">${item.item}</span></td>-->
+    <td colspan="17"><span style="color:#666666;">${item.description}</span></td>
+    <td colspan="4" style="align: right;"><span style="color:#666666;">${item.quantity}</span></td>
+    <!--<td colspan="3"><span style="color:#666666;">${item.taxrate1}</span></td>-->
+    <td colspan="6" style="align: right;"><span style="color:#666666;">${item.rate}</span></td>
+    <td colspan="7" style="align: right;"><span style="color:#666666;">${item.amount}</span></td>
+</tr>
+</#list><!-- end items -->
+</table>
+</#if>
+<table align="left" border="0" class="itemtable" width="100%">
+    <tr>
+        <td class="item" colspan="21">&nbsp;</td>
+        <td colspan="6" style="align: right;"><b>${record.subtotal@label}</b></td>
+        <td colspan="7" style="align: right;"><b>${record.subtotal}</b></td>
+    </tr>
+</table>
+<hr />
+<table align="left" border="0" width="100%">
+    <tr>
+        <td colspan="21">&nbsp;</td>
+        <td colspan="6" style="align: right;"><b>${record.total@label}</b></td>
+        <td align="right" colspan="7"><b>${record.total}</b></td>
+    </tr>
+    <tr>
+        <td colspan="21">&nbsp;</td>
+        <td colspan="6" style="align: right;"><b>Amount Due</b></td>
+        <td align="right" colspan="7"><b>${record.amountremaining}</b></td>
+    </tr>
+</table>
+<!--DISCLAIMER TEXT-->
+<table width="100%" style="margin-top: 20px; border: 0.5pt; font-size: 8.5pt">
+    <tr>
+        <td>
+            <p style="text-align: justify; color:#666666;">
+                It is the responsibility of the invoice recipient to review the details and expenses listed herein. Any dispute must be received within 15 business days of receiving this invoice. A response will be provided within 5 business days of any claimed dispute and further response is expected from party to party within 5 business days of the last response provided until a resolution is agreed upon. Accounts over 60 days will automatically be sent to collections unless prior written notice has been provided based on correspondence between FSM and the Bill to on this invoice. The recipient of this invoice is responsible for any collection or attorney fees required to collect payment in addition to a 7% per month service charge that is assessed to each invoice every 30 days that an invoice is past due. All credit card payments are subject to a 2.5% processing fee.
+            </p>
+        </td>
+    </tr>
+</table>
+<!-- End of Body Four Star Subsidiary (id: 20) -->
+<#elseif subsidiary.id == "3" || subsidiary.id == "5">
+<!-- Body for Advanced Heating and Cooling (id: 3) -->
+<table align="left" border="0" width="100%">
+    <tr>
+    <td class="addressheader" colspan="6"><b>${record.shipaddress@label}</b></td>
+<td>&nbsp;</td>
+<td class="addressheader" colspan="6"><b>${record.billaddress@label}</b></td>
+</tr>
+<tr>
+    <td class="address" colspan="6"><span style="color:#666666;">${record.shipaddress}</span></td>
+    <td>&nbsp;</td>
+    <td class="address" colspan="6"><span style="color:#666666;">${record.billaddress}</span></td>
+</tr>
+</table>
+<table align="left" border="0" class="itemtable" width="100%" margin-top="20px">
+    <thead>
+    <tr>
+        <th colspan="8" style="align: left;">${record.tranid@label}</th>
+        <th colspan="12" style="align: left;">Project</th>
+        <th colspan="5" style="align: center;">${record.trandate@label}</th>
+        <th colspan="7" style="align: center;">${record.total@label}</th>
+    </tr>
+    </thead>
+    <tr>
+        <td colspan="8" style="align: left;"><span style="color:#666666;">${record.tranid}</span></td>
+        <td colspan="12" style="align: left;"><span style="color:#666666;">${record.cseg_bc_project}</span></td>
+        <td colspan="5" style="align: center;"><span style="color:#666666;">${record.trandate}</span></td>
+        <td colspan="7" style="align: center;"><span style="color:#666666;">${record.total}</span></td>
+    </tr>
+</table>
+<table align="left" border="0" class="itemtable" style="width: 747px;" width="100%">
+    <thead>
+    <tr>
+        <th colspan="12" style="width: 159px;">${record.terms@label}</th>
+        <th colspan="13" style="width: 175px;">${record.duedate@label}</th>
+        <th colspan="12" style="width: 180px;">${record.salesrep@label}</th>
+        <th style="width: 149px;">${record.otherrefnum@label}</th>
+    </tr>
+    </thead>
+    <tr>
+        <td colspan="12" style="width: 163px;"><span style="color:#666666;">${record.terms}</span></td>
+        <td colspan="13" style="width: 179px;"><span style="color:#666666;">${record.duedate}</span></td>
+        <td colspan="12" style="width: 184px;"><span style="color:#666666;">${record.salesrep}</span></td>
+        <td style="width: 153px;">${record.otherrefnum}</td>
+    </tr>
+</table>
+<#if record.item?has_content>
+    <table align="left" class="itemtable" width="100%">
+    <!-- start items -->
+<#list record.item as item><#if item_index==0>
+<thead>
+<tr>
+<th colspan="8" style="align: left;">${item.item@label}</th>
+<th colspan="9">${item.description@label}</th>
+<th colspan="4" align="center">
+    <p style="text-align: center">${item.quantity@label}</p>
+</th>
+<th colspan="5" style="align: right;">${item.rate@label}</th>
+<th colspan="7" style="align: right;">${item.amount@label}</th>
+</tr>
+</thead>
+</#if>
+<tr style="background-color: ${((item_index % 2)==0)?string('#ffffff', '#f0f0f0')};">
+    <td colspan="8"><span style="color:#666666;">${item.item}</span></td>
+    <td colspan="9"><span style="color:#666666;">${item.description}</span></td>
+    <td colspan="4" style="align: right;"><span style="color:#666666;">${item.quantity}</span></td>
+    <td colspan="5" style="align: right;"><span style="color:#666666;">${item.rate}</span></td>
+    <td colspan="7" style="align: right;"><span style="color:#666666;">${item.amount}</span></td>
+</tr>
+</#list><!-- end items -->
+</table>
+</#if>
+<table align="left" border="0" class="itemtable" width="100%">
+    <tr>
+        <td class="item" colspan="21">&nbsp;</td>
+        <td colspan="5" style="align: right;"><b>${record.subtotal@label}</b></td>
+        <td colspan="7" style="align: right;"><b>${record.subtotal}</b></td>
+    </tr>
+    <tr>
+        <td class="item" colspan="21">&nbsp;</td>
+        <td colspan="5" style="align: right;"><b>Tax Amount</b></td>
+        <td colspan="7" style="align: right;"><b>${record.taxtotal}</b></td>
+    </tr>
+</table>
+<hr />
+<table align="left" border="0" width="100%">
+    <tr>
+        <td colspan="21">&nbsp;</td>
+        <td colspan="6" style="align: right;"><b>${record.total@label}</b></td>
+        <td align="right" colspan="7"><b>${record.total}</b></td>
+    </tr>
+    <tr>
+        <td colspan="21">&nbsp;</td>
+        <td colspan="6" style="align: right;"><b>Amount Due</b></td>
+        <td align="right" colspan="7"><b>${record.amountremaining}</b></td>
+    </tr>
+</table>
+<!-- End of Body Advanced Heating and Cooling (id: 3) -->
+<#elseif subsidiary.id == "7">
+<!-- Body for DHR Subsidiary (id: 7) -->
+<table align="left" border="0" width="100%">
+    <tr>
+    <td class="addressheader" colspan="6"><b>${record.shipaddress@label}</b></td>
+<td>&nbsp;</td>
+<td class="addressheader" colspan="6"><b>${record.billaddress@label}</b></td>
+</tr>
+<tr>
+    <td class="address" colspan="6">
+                        <span style="color:#666666;">
+                        <#if bcShipAddress?has_content>${bcShipAddress?replace('&', '&amp;')}<#else>${record.shipaddress}</#if>
+    </span>
+</td>
+<td>&nbsp;</td>
+<td class="address" colspan="6"><span style="color:#666666;">${record.billaddress}</span></td>
+</tr>
+<tr>
+    <td>&nbsp;</td>
+</tr>
+</table>
+<table align="left" border="0" class="itemtable" width="100%">
+    <thead>
+    <tr>
+        <th colspan="10" style="align: left;">${record.tranid@label}</th>
+        <th colspan="8" style="align: left;">PO #</th>
+        <th colspan="9" style="align: center;">${record.trandate@label}</th>
+        <th colspan="7" style="align: center;">${record.total@label}</th>
+        <td class="item" colspan="13">&nbsp;</td>
+    </tr>
+    </thead>
+    <tr>
+        <td colspan="10" style="align: left;"><span style="color:#666666; text-align: left">${record.tranid}</span></td>
+        <td colspan="8" style="align: left;"><span style="color:#666666;">${record.otherrefnum}</span></td>
+        <td colspan="9" style="align: center;"><span style="color:#666666;">${record.trandate}</span></td>
+        <td colspan="7" style="align: center;"><span style="color:#666666;">${record.total}</span></td>
+        <td class="item" colspan="13">&nbsp;</td>
+    </tr>
+</table>
+<table align="left" border="0" class="itemtable" style="width: 747px;" width="100%">
+    <thead>
+    <tr>
+        <th colspan="12" style="width: 159px;">${record.terms@label}</th>
+        <th colspan="13" style="width: 175px;">${record.duedate@label}</th>
+        <th colspan="12" style="width: 180px;">Project</th>
+    </tr>
+    </thead>
+    <tr>
+        <td colspan="12" style="width: 163px;"><span style="color:#666666;">${record.terms}</span></td>
+        <td colspan="13" style="width: 179px;"><span style="color:#666666;">${record.duedate}</span></td>
+        <td colspan="12" style="width: 184px;"><span style="color:#666666;">${record.cseg_bc_project.name}</span></td>
+    </tr>
+</table>
+<#if record.item?has_content>
+    <table align="left" class="itemtable" width="100%">
+    <!-- start items --><#list record.item as item><#if item_index==0>
+<thead>
+<tr>
+<th colspan="8" style="align: left;">${item.item@label}</th>
+<th colspan="9">${item.description@label}</th>
+<th colspan="6" style="align: left;">
+    <p style="text-align: left">${item.quantity@label}</p>
+</th>
+<th colspan="3" style="align: left;">${item.taxrate1@label}</th>
+<th colspan="6" style="align: right;">${item.rate@label}</th>
+<th colspan="7" style="align: right;">${item.amount@label}</th>
+</tr>
+</thead>
+</#if>
+<tr style="background-color: ${((item_index % 2)==0)?string('#ffffff', '#f0f0f0')};">
+    <td colspan="8"><span style="color:#666666;">${item.item}</span></td>
+    <td colspan="9"><span style="color:#666666;">${item.description}</span></td>
+    <td colspan="6" style="align: right;"><span style="color:#666666;">${item.quantity}</span></td>
+    <td colspan="3"><span style="color:#666666;">${item.taxrate1}</span></td>
+    <td colspan="6" style="align: right;"><span style="color:#666666;">${item.rate}</span></td>
+    <td colspan="7" style="align: right;"><span style="color:#666666;">${item.amount}</span></td>
+</tr>
+</#list><!-- end items -->
+</table>
+</#if>
+<table width="100%" style="margin-top: -10pt">
+    <tr>
+        <td colspan="24">
+            <table width="100%">
+                <tr>
+                    <td><b>Notes</b><br/>${record.custbody_bc_dhr_notes}</td>
+                </tr>
+                <tr>
+                    <td><b>Project Pay App No.</b><br/>${record.custbody_bc_pay_app_number}</td>
+                </tr>
+            </table>
+        </td>
+        <td colspan="13">
+            <table>
+                <tr>
+                    <td colspan="6" style="align: right;"><b>${record.subtotal@label}</b></td>
+                    <td colspan="7" style="align: right;"><b>${record.subtotal}</b></td>
+                </tr>
+                <tr>
+                    <td colspan="6" style="align: right;"><b>${record.discounttotal@label}</b></td>
+                    <td colspan="7" style="align: right;"><b>${record.discounttotal}</b></td>
+                </tr>
+                <tr>
+                    <td colspan="6" style="align: right;"><b>${tc.default.CHARGES_TAX_AMT}</b></td>
+                    <td colspan="7" style="align: right;"><b>${record.taxtotal}</b></td>
+                </tr>
+               <#if shippingcost?has_content>
+                <tr>
+                    <td colspan="6" style="align: right;"><b>${record.shippingcost@label}</b></td>
+                    <td colspan="7" style="align: right;"><b>${record.shippingcost}</b></td>
+                </tr>
+                </#if>
+                <tr>
+                    <td colspan="6" style="align: right;"><b>${record.total@label}</b></td>
+                    <td colspan="7" style="align: right;"><b>${record.total}</b></td>
+                </tr>
+               <tr>
+                    <td colspan="6" style="align: right;"><b>${record.amountremaining@label}</b></td>
+                    <td colspan="7" style="align: right;"><b>${record.amountremaining}</b></td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+<!--End of Body for DHR Subsidiary (id: 7) -->
+<#else>
+<#if subsidiary.id != "21" || (subsidiary.id == "21" && record.custbody_bc_progress_billing)>
+<#if subsidiary.id != "19">
+<table align="left" border="0" width="100%">
+    <tr>
+    <td class="addressheader" colspan="6"><b>
+    <#if subsidiary.id == "29">
+${record.shipaddress@label}
+<#assign _suiteletURL = ("https://6962009.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=3022&deploy=1&compid=6962009&ns-at=AAEJ7tMQzJ_Jp02beofJ049FxjTkmrOtRTWdU4jcbdTCZUGkSPY&recid="+record.internalid+"&locid="+record.location.internalid) />
+    <#include _suiteletURL />
+<#else>
+<#if subsidiary.id != "16" && subsidiary.id != "21">
+${record.shipaddress@label}
+<#else>
+${record.billaddress@label}
+</#if>
+</#if>
+</b>
+</td>
+<td>&nbsp;</td>
+<td class="addressheader" colspan="6">
+    <#if subsidiary.id != "16"  && subsidiary.id != "21">
+    <b>${record.billaddress@label}</b>
+</#if>
+</td>
+
+
+</tr>
+<#if subsidiary.id != "34">
+<#assign bcLocAddress = ''>
+<#assign _suiteletURL = ("https://6962009.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=3022&deploy=1&compid=6962009&ns-at=AAEJ7tMQzJ_Jp02beofJ049FxjTkmrOtRTWdU4jcbdTCZUGkSPY&recid="+record.internalid+"&locid="+record.location.internalid+"&param=3") />
+<#include _suiteletURL />
+<#else>
+<#assign bcLocAddress = ''>
+</#if>
+<tr>
+  
+  
+<td class="address" colspan="6"><span style="color:#666666;">
+    <#if subsidiary.id == "29">
+        <#if bcLocAddress?has_content>
+            ${bcLocAddress}
+        <#else>
+            ${record.custbody_bc_entity_address}
+        </#if>
+    <#elseif subsidiary.id == "34">
+        ${record.shipaddress}
+    <#elseif subsidiary.id != "16" && subsidiary.id != "21">
+        <#if bcLocAddress?has_content>
+            ${bcLocAddress}
+        <#else>
+            ${record.custbody_bc_entity_address}
+        </#if>
+    <#else>
+        ${record.billaddress}
+    </#if>
+</span>
+
+    
+    
+    </td>
+<td>&nbsp;</td>
+
+  
+  
+  <td class="address" colspan="6">
+    <#if subsidiary.id != "16"  && subsidiary.id != "21">
+    <span style="color:#666666;">${record.billaddress}</span>
+</#if>
+</td>
+</tr>
+<tr>
+    <td>&nbsp;</td>
+</tr>
+<#if subsidiary.id != "16" && subsidiary.id != "21" && subsidiary.id != "29" && subsidiary.id != "38">
+    <tr>
+    <td class="address" colspan="12"><span style="color:#666666;">${record.entity.vatregnumber@label} : ${record.entity.vatregnumber}</span></td>
+</tr>
+</#if>
+</table>
+<#if subsidiary.id != "16"  && subsidiary.id != "21">
+    <table align="left" border="0" class="itemtable" width="100%">
+    <thead>
+    <tr>
+    <th colspan="8" style="align: left;">${record.tranid@label}</th>
+<th colspan="9" style="align: center;">${record.trandate@label}</th>
+<th colspan="7" style="align: center;">${record.total@label}</th>
+<td class="item" colspan="13">&nbsp;</td>
+</tr>
+</thead>
+<tr>
+    <td colspan="8" style="align: left;"><span style="color:#666666;">${record.tranid}</span></td>
+    <td colspan="9" style="align: center;"><span style="color:#666666;">${record.trandate}</span></td>
+    <td colspan="7" style="align: center;"><span style="color:#666666;">${record.total}</span></td>
+    <td class="item" colspan="13">&nbsp;</td>
+</tr>
+</table>
+<!-- Add Project No. Project Name and Project Address if Subsidiary is AZN -->
+<#assign projectAddress = ''>
+    <#assign _suiteletURL = ("https://6962009.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=3022&deploy=1&compid=6962009&ns-at=AAEJ7tMQzJ_Jp02beofJ049FxjTkmrOtRTWdU4jcbdTCZUGkSPY&recid="+record.internalid+"&bcpid="+record.cseg_bc_project.id)/>
+    <#include _suiteletURL />
+<#if subsidiary.id == "10">
+<table align="left" border="0" class="itemtable" width="100%">
+    <thead>
+    <tr>
+    <th colspan="8" style="align: center;">Project No.</th>
+<th colspan="12" style="align: center;">Project Name</th>
+<th colspan="15" style="align: center;">Project Address</th>
+</tr>
+</thead>
+<tr>
+    <td colspan="8" style="align: center; vertical-align: middle"><span style="color:#666666;">${record.cseg_bc_project.custrecord_bc_proj_number}</span></td>
+    <td colspan="12" style="align: center; vertical-align: middle"><span style="color:#666666;">${record.cseg_bc_project}</span></td>
+    <td colspan="15" style="align: center;"><span style="color:#666666;">${projectAddress?replace("<[^>]*>", " ", "r")}</span></td>
+</tr>
+</table>
+</#if>
+<#if subsidiary.id == "29">
+    <table align="left" border="0" class="itemtable" style="width: 747px;" width="100%">
+    <thead>
+    <tr>
+    <th colspan="9" style="width: 200px;">${record.cseg_bc_project@label}</th>
+<th colspan="5" style="width: 155px;">${record.terms@label}</th>
+<th colspan="5" style="width: 155px;">${record.duedate@label}</th>
+<th colspan="5" style="width: 155px;">${record.salesrep@label}</th>
+<th style="width: 155px;">${record.otherrefnum@label}</th>
+</tr>
+</thead>
+<tr>
+    <td colspan="9" style="width: 200px;"><span style="color:#666666;">${record.cseg_bc_project}</span></td>
+    <td colspan="5" style="width: 155px;"><span style="color:#666666;">${record.terms}</span></td>
+    <td colspan="5" style="width: 155px;"><span style="color:#666666;">${record.duedate}</span></td>
+    <td colspan="5" style="width: 155px;"><span style="color:#666666;">${record.salesrep}</span></td>
+    <td style="width: 155px;">${record.otherrefnum}</td>
+</tr>
+</table>
+<#else>
+<!-- End of Project No. Project Name and Project Address if Subsidiary is AZN -->
+<table align="left" border="0" class="itemtable" style="width: 747px;" width="100%">
+    <thead>
+    <tr>
+    <th colspan="12" style="width: 159px;">${record.terms@label}</th>
+<th colspan="13" style="width: 175px;">${record.duedate@label}</th>
+<th colspan="12" style="width: 180px;">${record.salesrep@label}</th>
+<th style="width: 149px;">${record.otherrefnum@label}</th>
+</tr>
+</thead>
+<tr>
+    <td colspan="12" style="width: 163px;"><span style="color:#666666;">${record.terms}</span></td>
+    <td colspan="13" style="width: 179px;"><span style="color:#666666;">${record.duedate}</span></td>
+    <td colspan="12" style="width: 184px;"><span style="color:#666666;">${record.salesrep}</span></td>
+    <td style="width: 153px;">${record.otherrefnum}</td>
+</tr>
+</table>
+</#if>
+
+<!-- Start of TM Billing for YES SUBSIDIARIES-->
+<#if subsidiary.id == '31' || subsidiary.id == '34' || subsidiary.id == '51' || subsidiary.id == '36' || subsidiary.id == '33'>
+      <#assign timeBillSuiteletURL="https://6962009.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=3755&deploy=1&compid=6962009&ns-at=AAEJ7tMQjaZPW65kP7WKrCxJ2sDrUwvX-RVNY5yLRTUSthSqrq0&recordid="+record.id+"&recordtype=invoice">
+      <#include timeBillSuiteletURL/>
+      <#if billEntries?has_content>
+            <table align="left" class="itemtable" width="100%"><!-- start items -->
+            <#list billEntries as item>
+                  <#if item_index==0>
+                        <thead>
+                              <tr>
+                                    <th colspan="8" style="align: left;">Item</th>
+                                    <th colspan="9">Description</th>
+                                    <th colspan="6" style="align: right;">Net Quantity</th>
+                                    <th colspan="5" style="align: right;">Rate</th>
+                                    <th colspan="6" style="align: right;">Net Amount</th>
+                              </tr>
+                        </thead>
+                  </#if>
+                  <tr>
+                        <td colspan="8"><span style="color:#666666;">${item.itemdesc?html}</span></td>
+                        <td colspan="9"><span style="color:#666666;">${item.memo?html}</span></td>
+                        <td colspan="6" style="align: right;"><span style="color:#666666;">${item.quantity}</span></td>
+                        <td colspan="5" style="align: right;"><span style="color:#666666;">${nsformat_currency(item.rate, "USD")}</span></td>
+                        <td colspan="6" style="align: right;"><span style="color:#666666;">${nsformat_currency(item.amount, "USD")}</span></td>
+                  </tr> 
+                  
+                  
+            </#list>
+            </table>
+      </#if>
+<#else> <!-- START OF NON YES SUBSIDIARIES -->
+
+
+  <#if record.item?has_content>
+
+    <#if subsidiary.id == "10" && record.custbody_bc_retrofit_lumpsum>
+
+        <#import "https://6962009.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=2746&deploy=1&compid=6962009&ns-at=AAEJ7tMQMjAjC9x3LhMJ1umfMziG2giFaq8pw0x1Mbryzsn_L9c&invoicenum="+record.internalid+"&createdfrom="+record.createdfrom.id as importData />
+
+        <#assign grossTotal = 0 />
+        <#assign retentionTotal = 0 />
+        <#assign lumpSumTotal = 0 />
+
+        <#if importData.clientData?has_content
+            && importData.clientData.lumpSum?has_content>
+            <#assign lumpSumTotal =
+                nsformat_number(importData.clientData.lumpSum) />
+        </#if>
+
+        <#list record.item as item>
+            <#assign grossTotal =
+                grossTotal +
+                nsformat_number(item.custcol_bc_sov_dollars_billed) />
+
+            <#assign retentionTotal =
+                retentionTotal +
+                nsformat_number(item.custcol_bc_sov_unbilled_retention) />
+        </#list>
+
+        <#if record.createdfrom.total != 0>
+            <#assign currentPercentage =
+                ((record.total / record.createdfrom.total) * 100)?string("0.##") />
+
+            <#assign previousPercentage =
+                ((lumpSumTotal / record.createdfrom.total) * 100)?string("0.##") />
+        <#else>
+            <#assign currentPercentage = "100.00" />
+            <#assign previousPercentage = lumpSumTotal?string("0.##") />
+        </#if>
+
+        <table align="left" class="itemtable" width="100%">
+            <thead>
+                <tr>
+                    <th colspan="6" font-size = "9pt">Memo</th>
+                    <th colspan="3" font-size = "9pt" style="align: right;">Est Amt</th>
+                    <th colspan="3" font-size = "9pt" style="align: right;">Retention</th>
+                    <th colspan="3" font-size = "9pt" style="align: right;">Gross Amt</th>
+                    <th colspan="2" font-size = "9pt" style="align: right;">Prior %</th>
+                    <th colspan="2" font-size = "9pt" style="align: right;">Curr %</th>
+                    <th colspan="2" font-size = "9pt" style="align: right;">Total %</th>
+                    <th colspan="3" font-size = "9pt" style="align: right;">Net Amount</th>
+                </tr>
+            </thead>
+
+            <tr>
+                <td colspan="6">${record.memo}</td>
+                <td colspan="3" style="align: right;">
+                    ${record.createdfrom.total}
+                </td>
+                <td colspan="3" style="align: right;">
+                    ${nsformat_currency(retentionTotal)}
+                </td>
+                <td colspan="3" style="align: right;">
+                    ${nsformat_currency(grossTotal)}
+                </td>
+                <td colspan="2" style="align: right;">
+                    ${previousPercentage}%
+                </td>
+                <td colspan="2" style="align: right;">
+                    ${currentPercentage}%
+                </td>
+                <td colspan="2" style="align: right;">
+                    ${nsformat_number(previousPercentage)
+                      + nsformat_number(currentPercentage)}%
+                </td>
+                <td colspan="3" style="align: right;">
+                    ${record.total}
+                </td>
+            </tr>
+        </table>
+
+    <#else>
+
+        <!-- Existing standard item table -->
+        <table align="left" class="itemtable" width="100%">
+            <#list record.item as item>
+                <#if item_index == 0>
+                    <thead>
+                        <tr>
+                            <th colspan="8" style="align: left;">
+                                ${item.item@label}
+                            </th>
+                            <th colspan="9">${item.description@label}</th>
+                            <th colspan="6" style="align: right;">
+                                ${item.quantity@label}
+                            </th>
+                            <th colspan="2" style="align: left;">
+                                ${item.taxrate1@label}
+                            </th>
+                            <th colspan="6" style="align: right;">
+                                ${item.rate@label}
+                            </th>
+                            <th colspan="6" style="align: right;">
+                                ${item.amount@label}
+                            </th>
+                        </tr>
+                    </thead>
+                </#if>
+
+                <tr style="background-color: ${((item_index % 2) == 0)?string('#ffffff', '#f0f0f0')};">
+                    <td colspan="8">${item.item}</td>
+                    <td colspan="9">${item.description}</td>
+                    <td colspan="6" style="align: right;">
+                        ${item.quantity}
+                    </td>
+                    <td colspan="2">${item.taxrate1}</td>
+                    <td colspan="6" style="align: right;">
+                        ${item.rate}
+                    </td>
+                    <td colspan="6" style="align: right;">
+                        ${item.amount}
+                    </td>
+                </tr>
+            </#list>
+        </table>
+
+    </#if>
+</#if>
+    <!-- <#if record.item?has_content>
+        <table align="left" class="itemtable" width="100%">
+       <#list record.item as item><#if item_index==0>
+    <thead>
+    <tr>
+    <th colspan="8" style="align: left;">${item.item@label}</th>
+    <th colspan="9">${item.description@label}</th>
+    <th colspan="6" style="align: right;">${item.quantity@label}</th>
+    <th colspan="2" style="align: left;">${item.taxrate1@label}</th>
+    <th colspan="6" style="align: right;">${item.rate@label}</th>
+    <th colspan="6" style="align: right;">${item.amount@label}</th>
+    </tr>
+    </thead>
+    </#if>
+    <tr style="background-color: ${((item_index % 2)==0)?string('#ffffff', '#f0f0f0')};">
+        <td colspan="8"><span style="color:#666666;">${item.item}</span></td>
+        <td colspan="9"><span style="color:#666666;">${item.description}</span></td>
+        <td colspan="6" style="align: right;"><span style="color:#666666;">${item.quantity}</span></td>
+        <td colspan="2"><span style="color:#666666;">${item.taxrate1}</span></td>
+        <td colspan="6" style="align: right;"><span style="color:#666666;">${item.rate}</span></td>
+        <td colspan="6" style="align: right;"><span style="color:#666666;">${item.amount}</span></td>
+    </tr>
+    </#list>
+    </table>
+    </#if> -->
+</#if>
+
+</#if>
+<!-- If Subsidiary Retrofit And LLR Progress BIlling -->
+<#if subsidiary.id == "16" || (subsidiary.id == "21" && record.custbody_bc_progress_billing)>
+    <#import "https://6962009.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=2746&deploy=1&compid=6962009&ns-at=AAEJ7tMQMjAjC9x3LhMJ1umfMziG2giFaq8pw0x1Mbryzsn_L9c&invoicenum="+record.internalid+"&createdfrom=" + record.createdfrom.id as importData />
+<table align="left" style="width: 747px; border: 2px black; padding: 0px; font-size: 10px;" width="100%">
+    <thead>
+    <tr style="border-bottom: 2px black;">
+    <th align="center" colspan="12" style="width: 149px; background-color:#9e9e9e; color: black; font-weight: normal;">P.O. No.</th>
+<th align="center" colspan="12" style="width: 159px; background-color:#9e9e9e; color: black; border-left: 2px black; font-weight: normal;">${record.terms@label}</th>
+<th align="center" colspan="6" style="width: 81px; background-color:#9e9e9e; color: black; border-left: 2px black; font-weight: normal;">${record.duedate@label}</th>
+<th align="center" colspan="24" style="width: 180px; background-color:#9e9e9e; color: black; border-left: 2px black; font-weight: normal;">Project</th>
+</tr>
+</thead>
+<tr>
+    <td align="center" colspan="12" style="width: 153px; color: black;">${record.otherrefnum}</td>
+    <td align="center" colspan="12" style="width: 163px; color: black; border-left-color: black; border-left: 2px black;">${record.terms}</td>
+    <td align="center" colspan="6" style="width: 81px; color: black; border-left-color: black; border-left: 2px black;">${record.duedate}</td>
+    <td align="center" colspan="24" style="width: 184px; color: black; border-left-color: black; border-left: 2px black;">${record.cseg_bc_project}</td>
+</tr>
+</table>
+<#if record.item?has_content>
+    <#assign grossTotal = 0 />
+    <#assign retentionTotal = 0 />
+    <#assign previousTotal = 0 />
+    <table align="left" width="100%" style="border-top: 2px black; border-right: 2px black; border-right: 2px black; border-bottom: 2px black; font-size: 10px; padding: 0px; margin-bottom: 0px;">
+    <!-- start items --><#list record.item as item>
+<#assign estAmt = ''>
+    <#if importData.clientData?has_content>
+    <#assign key = item.item + item.description>
+    <#assign object = importData.clientData.soValObj>
+    <#if object[key]?has_content>
+    <#assign estAmt = object[key]>
+    </#if>
+</#if>
+<#assign oldInvVal = 0>
+    <#assign lumpSumTotal = 0>
+    <#if importData.clientData?has_content>
+    <#assign key = item.item + item.description>
+    <#assign object = importData.clientData.prevInvObj>
+    <#if object[key]?has_content>
+    <#assign oldInvVal = object[key]>
+    </#if>
+<#assign lumpSumTotal = nsformat_number(importData.clientData.lumpSum) />
+    </#if>
+<#if item_index==0>
+    <#if !record.custbody_bc_retrofit_lumpsum>
+<tr style="border-bottom: 2px black;">
+    <th colspan="3" style="font-size: 10px; align: center; background-color:#9e9e9e; color: black; font-weight: normal; border-left: 2px black;">${item.item@label}</th>
+<th colspan="6" style="font-size: 10px; align: center; background-color:#9e9e9e; color: black; font-weight: normal; border-left: 2px black;">${item.description@label}</th>
+<th colspan="3" style="font-size: 10px; align: center; background-color:#9e9e9e; color: black; font-weight: normal; border-left: 2px black;">Est Amt</th>
+<th colspan="3" style="font-size: 10px; align: center; background-color:#9e9e9e; color: black; font-weight: normal; border-left: 2px black;">Retention Total</th>
+<th colspan="3" style="font-size: 10px; align: center; background-color:#9e9e9e; color: black; font-weight: normal; border-left: 2px black;">Gross Amt</th>
+<th colspan="3" style="font-size: 10px; align: center; background-color:#9e9e9e; color: black; font-weight: normal; border-left: 2px black;">Prior %</th>
+<th colspan="3" style="font-size: 10px; align: center; background-color:#9e9e9e; color: black; font-weight: normal; border-left: 2px black;">Curr %</th>
+<th colspan="3" style="font-size: 10px; align: center; background-color:#9e9e9e; color: black; font-weight: normal; border-left: 2px black;">Total %</th>
+<th colspan="3" style="font-size: 10px; text-align: center; background-color:#9e9e9e; color: black; font-weight: normal; border-left: 2px black;">Net<br/>Amount</th>
+</tr>
+<#else>
+<tr style="border-bottom: 2px black;">
+    <th colspan="3" style="font-size: 10px; align: center; background-color:#9e9e9e; color: black; font-weight: normal; border-left: 2px black;">Memo</th>
+<th colspan="3" style="font-size: 10px; align: center; background-color:#9e9e9e; color: black; font-weight: normal; border-left: 2px black;">Est Amt</th>
+<th colspan="3" style="font-size: 10px; align: center; background-color:#9e9e9e; color: black; font-weight: normal; border-left: 2px black;">Retention Total</th>
+<th colspan="3" style="font-size: 10px; align: center; background-color:#9e9e9e; color: black; font-weight: normal; border-left: 2px black;">Gross Amt</th>
+<th colspan="3" style="font-size: 10px; align: center; background-color:#9e9e9e; color: black; font-weight: normal; border-left: 2px black;">Prior %</th>
+<th colspan="3" style="font-size: 10px; align: center; background-color:#9e9e9e; color: black; font-weight: normal; border-left: 2px black;">Curr %</th>
+<th colspan="3" style="font-size: 10px; align: center; background-color:#9e9e9e; color: black; font-weight: normal; border-left: 2px black;">Total %</th>
+<th colspan="3" style="font-size: 10px; text-align: center; background-color:#9e9e9e; color: black; font-weight: normal; border-left: 2px black;">Net<br/>Amount</th>
+</tr>
+</#if>
+</#if>
+<#assign percentage = '' />
+    <#if estAmt?has_content && estAmt != 0>
+    <#assign percentage = ((item.amount / estAmt) * 100)?string("0.##") />
+    </#if>
+    <#assign prevPercentage = 0 />
+    <#if estAmt?has_content  && estAmt != 0 && oldInvVal?has_content>
+        <#assign prevPercentage = ((nsformat_number(oldInvVal)/estAmt)*100)?string("0.##") />
+        <#assign previousTotal = previousTotal + nsformat_number(oldInvVal) />
+        </#if>
+   <#assign lineGross = nsformat_number(item.custcol_bc_sov_dollars_billed) />
+<#assign grossTotal = grossTotal + ((lineGross * 100)?round / 100) />
+    <#assign retentionTotal = retentionTotal + nsformat_number(item.custcol_bc_sov_unbilled_retention) />
+    <#if !record.custbody_bc_retrofit_lumpsum>
+<tr style="border: 0px;">
+    <td colspan="3" style="border-left: 2px black;">${item.item}</td>
+<td colspan="6" style="border-left-color: black; border-left: 2px black; border-bottom: 0px; border-left: 2px black;">${item.description}</td>
+<td colspan="3" style="align: right; border-left-color: black; border-left: 2px black; border-bottom: 0px;"><#if estAmt?has_content>${nsformat_currency(estAmt)}</#if></td>
+<td colspan="3" style="align: right; border-left-color: black; border-left: 2px black; border-bottom: 0px;">${item.custcol_bc_sov_unbilled_retention} </td>
+<td colspan="3" style="align: right; border-left-color: black; border-left: 2px black; border-bottom: 0px;">${item.custcol_bc_sov_dollars_billed}</td>
+<td colspan="3" style="align: right; border-left-color: black; border-left: 2px black; border-bottom: 0px;">${prevPercentage}%</td>
+<td colspan="3" style="align: right; border-left-color: black; border-left: 2px black;">${percentage}%</td>
+<td colspan="3" style="align: right; border-left-color: black; border-left: 2px black; border-bottom: 0px;">${nsformat_number(percentage) + nsformat_number(prevPercentage)}%</td>
+<td colspan="3" style="align: right; border-left-color: black;  border-left: 2px black; border-bottom: 0px;">${item.amount}</td>
+</tr>
+</#if>
+</#list>
+<#if record.custbody_bc_retrofit_lumpsum>
+    <#if record.createdfrom.total != 0>
+<#assign currentPercentage = ((record.total/record.createdfrom.total) * 100)?string("0.##") />
+    <#assign prevTotal = ((lumpSumTotal/record.createdfrom.total) * 100)?string("0.##") />
+    <#else>
+    <#assign currentPercentage = "100.00"/>
+    <#assign prevTotal = lumpSumTotal?string("0.##")/>
+    </#if>
+    <tr style="border: 0px;">
+        <td colspan="3" style="align: right; border-left-color: black; border-left: 2px black; border-bottom: 0px;">${record.memo}</td>
+        <td colspan="3" style="align: right; border-left-color: black; border-left: 2px black; border-bottom: 0px;">${record.createdfrom.total}</td>
+        <td colspan="3" style="align: right; border-left-color: black; border-left: 2px black; border-bottom: 0px;">${nsformat_currency(retentionTotal)} </td>
+        <td colspan="3" style="align: right; border-left-color: black; border-left: 2px black; border-bottom: 0px;">${nsformat_currency(grossTotal)}</td>
+        <td colspan="3" style="align: right; border-left-color: black; border-left: 2px black; border-bottom: 0px;">${prevTotal}%</td>
+        <td colspan="3" style="align: right; border-left-color: black; border-left: 2px black;">${currentPercentage}%</td>
+        <td colspan="3" style="align: right; border-left-color: black; border-left: 2px black; border-bottom: 0px;">${nsformat_number(currentPercentage) + nsformat_number(prevTotal)}%</td>
+        <td colspan="3" style="align: right; border-left-color: black;  border-left: 2px black; border-bottom: 0px;">${record.total}</td>
+    </tr>
+</#if>
+</#if>
+</table>
+<table align="left" width="100%" style="border-right: 2px black; font-size: 10px; padding: 0px; margin-top: 0px;">
+    <tr style="border-bottom: 2px; border-color: black; height: 25px;">
+        <#if !record.custbody_bc_retrofit_lumpsum>
+        <td colspan="22" style="border-left: 2px black;">Thank you for your business.</td>
+        <td colspan="5" style="border-left-color: black;  border-left: 2px black;"><b>${record.total@label}</b></td>
+        <td colspan="3" align="right">${record.total}</td>
+        <#else>
+        <td colspan="17" style="border-left: 2px black;">Thank you for your business.</td>
+        <td colspan="4" style="border-left-color: black;  border-left: 2px black;"><b>${record.total@label}</b></td>
+        <td colspan="3" align="right">${record.total}</td>
+    </#if>
+</tr>
+<tr style="border-left: 0px;">
+    <#if !record.custbody_bc_retrofit_lumpsum>
+    <td colspan="22" style="border-left: 0px;">&nbsp;</td>
+    <td colspan="5" style="border-left-color: black;  border-left: 2px black; border-bottom: 2px;"><b>Payments/Credits</b></td>
+    <td colspan="3" align="right" style="border-bottom: 2px;">${record.amountpaid}</td>
+    <#else>
+    <td colspan="17" style="border-left: 0px;">&nbsp;</td>
+    <td colspan="4" style="border-left-color: black;  border-left: 2px black; border-bottom: 2px;"><b>Payments/Credits</b></td>
+    <td colspan="3" align="right" style="border-bottom: 2px;">${record.amountpaid}</td>
+</#if>
+</tr>
+<tr style="border-left: 0px;">
+    <#if !record.custbody_bc_retrofit_lumpsum>
+    <td colspan="22" style="border-left: 0px;">&nbsp;</td>
+    <td colspan="5" style="border-left-color: black;  border-left: 2px black; border-bottom: 2px;"><b>Gross Total</b></td>
+    <td colspan="3" align="right" style="border-bottom: 2px;">${nsformat_currency(grossTotal)}</td>
+    <#else>
+    <td colspan="17" style="border-left: 0px;">&nbsp;</td>
+    <td colspan="4" style="border-left-color: black;  border-left: 2px black; border-bottom: 2px;"><b>Gross Total</b></td>
+    <td colspan="3" align="right" style="border-bottom: 2px;">${nsformat_currency(grossTotal)}</td>
+</#if>
+</tr>
+<tr style="border-left: 0px;">
+    <#if !record.custbody_bc_retrofit_lumpsum>
+    <td colspan="22" style="border-left: 0px;">&nbsp;</td>
+    <td colspan="5" style="border-left-color: black;  border-left: 2px black; border-bottom: 2px;"><b>Retention Total</b></td>
+    <td colspan="3" align="right" style="border-bottom: 2px;">${nsformat_currency(retentionTotal)}</td>
+    <#else>
+    <td colspan="17" style="border-left: 0px;">&nbsp;</td>
+    <td colspan="4" style="border-left-color: black;  border-left: 2px black; border-bottom: 2px;"><b>Retention Total</b></td>
+    <td colspan="3" align="right" style="border-bottom: 2px;">${nsformat_currency(retentionTotal)}</td>
+</#if>
+</tr>
+<tr style="border-left: 0px;">
+    <#if !record.custbody_bc_retrofit_lumpsum>
+    <td colspan="22" style="border-left: 0px;">&nbsp;</td>
+    <td colspan="5" style="border-left-color: black;  border-left: 2px black; border-bottom: 2px;"><b>Balance Due</b></td>
+    <td colspan="3" align="right" style="border-bottom: 2px;">${record.amountremaining}</td>
+    <#else>
+    <td colspan="17" style="border-left: 0px;">&nbsp;</td>
+    <td colspan="4" style="border-left-color: black;  border-left: 2px black; border-bottom: 2px;"><b>Balance Due</b></td>
+    <td colspan="3" align="right" style="border-bottom: 2px;">${record.amountremaining}</td>
+</#if>
+</tr>
+<!-- end items -->
+</table>
+</#if>
+<#if subsidiary.id != "16" && subsidiary.id != "21">
+    <table align="left" border="0" class="itemtable" width="100%">
+    <tr>
+    <td class="item" colspan="24">&nbsp;</td>
+<td colspan="6" style="align: right;"><b>${record.subtotal@label}</b></td>
+<td colspan="7" style="align: right;"><b>${record.subtotal}</b></td>
+</tr>
+<tr>
+    <td class="item" colspan="24">&nbsp;</td>
+    <td colspan="6" style="align: right;"><b>${tc.default.CHARGES_TAX_AMT}</b></td>
+    <td colspan="7" style="align: right;"><b>${record.taxtotal}</b></td>
+</tr>
+<tr>
+    <td class="item" colspan="24">&nbsp;</td>
+    <td colspan="6" style="align: right;"><b>${record.shippingcost@label}</b></td>
+    <td colspan="7" style="align: right;"><b>${record.shippingcost}</b></td>
+</tr>
+</table>
+<hr />
+<table align="left" border="0" width="100%">
+    <tr>
+        <td colspan="24">&nbsp;</td>
+        <td colspan="6" style="align: right;"><b><span class="total">${record.total@label}</span></b></td>
+        <td align="right" colspan="7"><b><span class="total">${record.total}</span></b></td>
+    </tr>
+    <tr>
+        <td colspan="24">&nbsp;</td>
+        <td colspan="6" style="align: right;"><strong>${tc.default.CHARGES_AMT_DUE}</strong></td>
+        <td align="right" colspan="7"><b>${record.amountremaining}</b></td>
+    </tr>
+</table>
+<#if record.custbody_atlas_svcs_mm_json?has_content><#assign data = record.custbody_atlas_svcs_mm_json><#assign jsonValid = false><#attempt><#assign m = data?eval><#assign jsonValid = true><#recover></#attempt><#if jsonValid && m??><#assign printEmployee = false><#assign printDescription = false><#list m["charges"] as itemList><#if (itemList.f?has_content)><#assign printDescription = true></#if><#if (itemList.g?has_content)><#assign printEmployee = true></#if></#list>
+<table align="left" border="0" class="itemtable" width="100%">
+    <#list m["charges"] as itemList><#if itemList_index==0>
+    <thead>
+    <tr>
+        <th colspan="6" style="align: left;">${tc.default.CHARGES_TYPE}</th>
+        <th colspan="4" style="align: left;">${tc.default.CHARGES_DATE}</th>
+        <#if printEmployee>
+        <th colspan="6" style="align: left;">${tc.default.CHARGES_EMP}</th>
+    </#if><#if printDescription>
+    <th colspan="8" style="align: left;">${tc.default.CHARGES_DESC}</th>
+    </#if>
+    <th colspan="3" style="align: left;">${tc.default.CHARGES_QTY}</th>
+    <th colspan="4" style="align: left;">${tc.default.CHARGES_RATE}</th>
+    <th colspan="4" style="align: left;">${tc.default.CHARGES_AMT}</th>
+</tr>
+</thead>
+</#if><#-- JSON structure generated by script
+a - chargetype
+b - rate
+c - quantity
+d - amount
+e - chargedate
+f - description
+g - chargeemployee
+--><#if (itemList.a?has_content)><#assign item_a = itemList.a><#else><#assign item_a = ''></#if><#if (itemList.b?has_content)><#assign item_b = itemList.b><#else><#assign item_b = ''></#if><#if (itemList.c?has_content)><#assign item_c = itemList.c><#else><#assign item_c = ''></#if><#if (itemList.d?has_content)><#assign item_d = itemList.d><#else><#assign item_d = ''></#if><#if (itemList.e?has_content)><#assign item_e = itemList.e><#else><#assign item_e = ''></#if><#if printDescription><#if (itemList.f?has_content)><#assign item_f = itemList.f><#else><#assign item_f = ''></#if></#if><#if printEmployee><#if (itemList.d?has_content)><#assign item_g = itemList.g><#else><#assign item_g = ''></#if></#if>
+<tr style="background-color: ${((itemList_index % 2)==0)?string('#ffffff', '#f0f0f0')};">
+    <td align="left" colspan="6"><span style="color:#666666;">${item_a}</span></td>
+    <td align="left" colspan="4"><span style="color:#666666;">${item_e}</span></td>
+    <#if printEmployee>
+    <td align="left" colspan="6"><span style="color:#666666;">${item_g}</span></td>
+</#if><#if printDescription>
+    <td align="left" colspan="8"><span style="color:#666666;">${item_f}</span></td>
+</#if>
+<td align="left" colspan="3"><span style="color:#666666;">${item_c}</span></td>
+<td align="left" colspan="4"><span style="color:#666666;">${item_b}</span></td>
+<td align="left" colspan="4"><span style="color:#666666;">${item_d}</span></td>
+</tr>
+</#list>
+</table>
+</#if></#if>
+</#if>
+<!-- Wallace Invoice -->
+<#else>
+<table align="left" border="0" width="80%" style="font-color: black; font-size: 12pt;">
+    <tr>
+    <td colspan="6"><b>
+    ${record.billaddress@label}
+</b>
+</td>
+<td>&nbsp;</td>
+<td colspan="6">
+    <b>${record.shipaddress@label}</b>
+</td>
+</tr>
+<tr>
+    <td colspan="6">
+        <b>${record.billaddress}</b>
+    </td>
+    <td>&nbsp;</td>
+    <td colspan="6">
+        <b>${record.shipaddress}</b>
+    </td>
+</tr>
+<tr>
+    <td>&nbsp;</td>
+</tr>
+</table>
+<table align="left" border="0" class="itemtable" width="60%" style="font-size: 12pt;">
+    <thead>
+    <tr>
+        <th colspan="8" style="align: left;">${record.tranid@label}</th>
+        <th colspan="8" style="align: center;">${record.trandate@label}</th>
+        <th colspan="8" style="align: center;">${record.total@label}</th>
+    </tr>
+    </thead>
+    <tr>
+        <td colspan="8" style="align: left;">${record.tranid}</td>
+        <td colspan="8" style="align: center;">${record.trandate}</td>
+        <td colspan="8" style="align: center;">${record.total}</td>
+    </tr>
+</table>
+<table align="left" border="0" class="itemtable" width="30%" style="font-size: 12pt;">
+    <thead>
+    <tr>
+        <th colspan="8" style="align: left;">Project #</th>
+    </tr>
+    </thead>
+    <tr>
+        <td colspan="8" style="align: left;">${record.cseg_bc_project.custrecord_bc_proj_number}</td>
+    </tr>
+</table>
+<br/>
+<br/>
+<table align="left" border="0" class="itemtable" style="width: 747px; font-size: 12pt;" width="100%">
+    <thead>
+    <tr>
+        <th colspan="12" style="width: 25%;">${record.terms@label}</th>
+        <th colspan="10" style="width: 25%;">${record.duedate@label}</th>
+        <th style="width: 50%;">${record.otherrefnum@label}</th>
+    </tr>
+    </thead>
+    <tr>
+        <td colspan="12" style="width: 25%;">${record.terms}</td>
+        <td colspan="10" style="width: 25%;">${record.duedate}</td>
+        <td style="width: 50%;">${record.otherrefnum}</td>
+    </tr>
+</table>
+<#assign retentionTotal = 0 />
+    <#assign grossAmtTotal = 0 />
+    <#if record.item?has_content>
+    <table align="left" class="itemtable" width="100%" style="font-size: 12pt;">
+    <!-- start items --><#list record.item as item><#if item_index==0>
+<thead>
+<tr>
+<th width="80%">${item.description@label}</th>
+<th width="20%" style="align: right;">Amount</th>
+</tr>
+</thead>
+</#if>
+<tr style="background-color: ${((item_index % 2)==0)?string('#ffffff', '#f0f0f0')};">
+    <#assign retentionTotal = retentionTotal + nsformat_number(item.custcol_bc_sov_unbilled_retention) />
+    <#assign grossAmtTotal = grossAmtTotal + nsformat_number(item.custcol_bc_sov_dollars_billed) />
+    <td width="80%">${item.description}</td>
+    <td width="20%" style="align: right;">${item.custcol_bc_sov_dollars_billed}</td>
+</tr>
+</#list><!-- end items -->
+</table>
+<table align="left" border="0" class="itemtable" width="100%" style="font-size: 11pt;">
+    <tr>
+        <td class="item" width="60%">&nbsp;</td>
+        <td width="20%" style="align: right;"><b>${record.subtotal@label}</b></td>
+        <td width="20%" style="align: right;"><b>${nsformat_currency(grossAmtTotal)}</b></td>
+    </tr>
+    <tr>
+        <td class="item" width="60%">&nbsp;</td>
+        <td width="20%" style="align: right;"><b>Less Retention</b></td>
+        <td width="20%" style="align: right;"><b>${nsformat_currency(retentionTotal)}</b></td>
+    </tr>
+</table>
+<hr/>
+<table align="left" border="0" width="100%" style="font-size: 15pt;">
+    <tr>
+        <td class="item" width="50%">&nbsp;</td>
+        <td width="30%" style="align: right;"><b>Total Amount Due</b></td>
+        <td width="20%" style="align: right;"><b>${nsformat_currency(grossAmtTotal - retentionTotal)}</b></td>
+    </tr>
+</table>
+</#if>
+</#if>
+<!-- LLR INVOICE -->
+<#elseif (subsidiary.id == "21" && !record.custbody_bc_progress_billing)>
+<#assign grossAmtTotal = 0 />
+    <#assign retentionTotal = 0 />
+    <#assign previousTotal = 0 />
+    <br/>
+    <table align="left" border="1px" width="50%" height="125px">
+    <tr style="height:15px;">
+    <td class="addressheader" colspan="6" style="font-size: 12px;" border-bottom="1px"><b>&nbsp;${record.billaddress@label}</b></td>
+</tr>
+<tr>
+    <td class="address" colspan="6" style="font-size: 12px;"><span style="color:#666666;">${record.billaddress}</span>
+    </td>
+</tr>
+</table>
+<br/>
+<table style="font-size: 12px;">
+    <tr>
+        <td colspan="3">&nbsp;</td>
+        <td border="1px" align="center" colspan="2">P.O. No.</td>
+        <td border="1px"  border-left="0px" align="center" colspan="2">Terms</td>
+        <td border="1px"  border-left="0px" align="center" colspan="5">Project</td>
+    </tr>
+    <tr>
+        <td colspan="3">&nbsp;</td>
+        <td align="center" border="1px" colspan="2" border-top="0px" >${record.otherrefnum}</td>
+        <td align="center" border="1px" border-left="0px" border-top="0px" colspan="2" >${record.terms}</td>
+        <td align="center" border="1px" border-left="0px" border-top="0px" colspan="5" >${record.cseg_bc_project}</td>
+    </tr>
+</table>
+<table style="font-size: 12px;" border="1px">
+    <#if !record.custbody_bc_retrofit_lumpsum>
+    <tr border-bottom="1px">
+        <td align="center" colspan="2">Quantity</td>
+        <td align="center" border-left="1px" colspan="6">Description</td>
+        <td align="center" border-left="1px" colspan="2">Rate</td>
+        <td align="center" border-left="1px" colspan="2">Amount</td>
+    </tr>
+    <#assign totalHours = 0>
+    <#if record.custbody_bc_dhr_notes != "">
+    <tr>
+        <td align="right" colspan="2">&nbsp;</td>
+        <td align="left" border-left="1px" colspan="6">${record.custbody_bc_dhr_notes}</td>
+        <td align="right" border-left="1px" colspan="2">&nbsp;</td>
+        <td align="center" border-left="1px" colspan="2">&nbsp;</td>
+    </tr>
+</#if>
+<#list record.item as item>
+<#assign totalHours += nsformat_number(item.quantity)>
+    <tr>
+    <td align="right" colspan="2">${item.quantity}</td>
+<td align="left" border-left="1px" colspan="6">${item.description}</td>
+<td align="right" border-left="1px" colspan="2">${item.rate}</td>
+<td align="center" border-left="1px" colspan="2">${item.amount}</td>
+</tr>
+</#list>
+<#else>
+<#list record.item as item>
+<#import "https://6962009-sb2.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=2746&deploy=1&compid=6962009_SB2&ns-at=AAEJ7tMQMLunm89EqPAH4ppoRHANgqWRBpwytrXHJjXzfj6BwKM&invoicenum="+record.internalid+"&createdfrom=" + record.createdfrom.id as importData />
+<#assign estAmt = ''>
+    <#if importData.clientData?has_content>
+    <#assign key = item.item + item.description>
+    <#assign object = importData.clientData.soValObj>
+    <#if object[key]?has_content>
+    <#assign estAmt = object[key]>
+    </#if>
+</#if>
+<#assign oldInvVal = 0>
+    <#assign lumpSumTotal = 0>
+    <#if importData.clientData?has_content>
+    <#assign key = item.item + item.description>
+    <#assign object = importData.clientData.prevInvObj>
+    <#if object[key]?has_content>
+    <#assign oldInvVal = object[key]>
+    </#if>
+<#assign lumpSumTotal = nsformat_number(importData.clientData.lumpSum) />
+    </#if>
+<#if record.createdfrom.total != 0>
+    <#assign currentPercentage = ((record.total/record.createdfrom.total) * 100)?string("0.##") />
+    <#assign prevTotal = ((lumpSumTotal/record.createdfrom.total) * 100)?string("0.##") />
+    <#else>
+    <#assign currentPercentage = "100.00"/>
+    <#assign prevTotal = lumpSumTotal?string("0.##")/>
+    </#if>
+    <#assign retentionTotal = 0>
+    <#assign grossAmtTotal = 0>
+    <#assign retentionTotal = retentionTotal + nsformat_number(item.custcol_bc_sov_unbilled_retention) />
+    <#assign grossAmtTotal = grossAmtTotal + nsformat_number(item.custcol_bc_sov_dollars_billed) />
+    </#list>
+<tr style="border-bottom: 1px">
+    <td colspan="3">Memo</td>
+    <td colspan="3" border-left="1px">Est Amt</td>
+    <td colspan="3" border-left="1px">Retention Total</td>
+    <td colspan="3" border-left="1px">Gross Amt</td>
+    <td colspan="3" border-left="1px">Prior %</td>
+    <td colspan="3" border-left="1px">Curr %</td>
+    <td colspan="3" border-left="1px">Total %</td>
+    <td colspan="3" border-left="1px">Net<br/>Amount</td>
+</tr>
+<tr style="border: 0px;">
+    <td colspan="3">${record.memo}</td>
+    <td colspan="3" border-left="1px">${record.createdfrom.total}</td>
+    <td colspan="3" border-left="1px">${nsformat_currency(retentionTotal)} </td>
+    <td colspan="3" border-left="1px">${nsformat_currency(grossAmtTotal)}</td>
+    <td colspan="3" border-left="1px">${prevTotal}%</td>
+    <td colspan="3" border-left="1px">${currentPercentage}%</td>
+    <td colspan="3" border-left="1px">${nsformat_number(currentPercentage) + nsformat_number(prevTotal)}%</td>
+    <td colspan="3" border-left="1px">${record.total}</td>
+</tr>
+</#if>
+</table>
+<table>
+    <#if record.taxtotal gt 0>
+    <tr border="1px">
+        <td colspan="7" border-left="1px">&nbsp;</td>
+        <td colspan="5" border-left="1px" border-right="1px"><span style="font-size:18px;"><b>AZ Trans Priv Tax (5.395%)</b></span> ${record.taxtotal}</td>
+    </tr>
+</#if>
+<#if record.taxtotal gt 0>
+<tr border-bottom="1px">
+    <#else>
+    <tr border="1px">
+    </#if>
+<td colspan="9" border-left="1px">&nbsp;</td>
+<td colspan="3" border-left="1px" border-right="1px"><b><span style="font-size:18px;">Total</span></b>&nbsp; &nbsp; &nbsp; ${record.total}</td>
+</tr>
+<tr>
+    <td border-bottom="1px" align="center" border-left="1px" colspan="2">Phone #</td>
+    <td border-bottom="1px" align="center" border-left="1px" colspan="2">480-705-8349</td>
+    <td border-bottom="1px" align="center" border-left="1px" colspan="3">E-mail </td>
+    <td border-bottom="1px" align="center" border-left="1px" border-right="1px" colspan="3">Payables@LLRElectric.com</td>
+    <td colspan="2">&nbsp;</td>
+</tr>
+</table>
+</#if>
+</#if>
+</body>
+</pdf>
