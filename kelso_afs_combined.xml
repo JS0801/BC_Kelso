@@ -194,22 +194,22 @@
     <tr>
         <td width="52%" style="height:12pt; line-height:12pt; padding:0;">&#160;</td>
         <td class="label" width="20%" style="font-size:9pt; height:12pt; line-height:12pt; padding:0;">Subcontractor:</td>
-        <td width="28%" style="font-size:9pt; height:12pt; line-height:12pt; padding:0; border-bottom:0.8pt solid #000000; align: center">{{WAIVER_SUBCONTRACTOR}}</td>
+        <td width="28%" style="font-size:9pt; height:12pt; line-height:12pt; padding:0; border-bottom:0.8pt solid #000000; align: center;">{{WAIVER_SUBCONTRACTOR}}</td>
     </tr>
     <tr>
         <td style="height:12pt; line-height:12pt; padding:0;">&#160;</td>
         <td class="label" style="font-size:9pt; height:12pt; line-height:12pt; padding:0;">By:</td>
-        <td style="font-size:9pt; height:12pt; line-height:12pt; padding:0; border-bottom:0.8pt solid #000000;  align: center">{{WAIVER_SIGNED_BY}}</td>
+        <td style="font-size:9pt; height:12pt; line-height:12pt; padding:0; border-bottom:0.8pt solid #000000;  align: center;">{{WAIVER_SIGNED_BY}}</td>
     </tr>
     <tr>
         <td style="height:12pt; line-height:12pt; padding:0;">&#160;</td>
         <td class="label" style="font-size:9pt; height:12pt; line-height:12pt; padding:0;">Print:</td>
-        <td style="font-size:9pt; height:12pt; line-height:12pt; padding:0; border-bottom:0.8pt solid #000000;  align: center">{{WAIVER_PRINT_NAME}}</td>
+        <td style="font-size:9pt; height:12pt; line-height:12pt; padding:0; border-bottom:0.8pt solid #000000;  align: center;">{{WAIVER_PRINT_NAME}}</td>
     </tr>
     <tr>
         <td style="height:12pt; line-height:12pt; padding:0;">&#160;</td>
         <td class="label" style="font-size:9pt; height:12pt; line-height:12pt; padding:0;">Its:</td>
-        <td style="font-size:9pt; height:12pt; line-height:12pt; padding:0; border-bottom:0.8pt solid #000000;  align: center">{{WAIVER_TITLE}}</td>
+        <td style="font-size:9pt; height:12pt; line-height:12pt; padding:0; border-bottom:0.8pt solid #000000;  align: center;">{{WAIVER_TITLE}}</td>
     </tr>
 </table>
         <table class="large-gap"><tr><td>&#160;</td></tr></table>
