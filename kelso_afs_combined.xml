@@ -218,10 +218,10 @@
             <tr>
                 <td class="waiver-text" width="18%" colspan = "2">STATE OF FLORIDA</td>
             </tr>        </table>
-<table width = "35%">
+<table width = "45%">
             <tr>
                 <td class="waiver-text label" width="25%">COUNTY OF</td>
-                <td class="line-cell waiver-text">{WAIVER_COUNTY}}</td>
+                <td class="line-cell waiver-text">{{WAIVER_COUNTY}}</td>
                
             </tr>
         </table>
@@ -236,7 +236,7 @@
                   <span class="blank">&#160;{{NOTARY_MONTH}}</span> 
                   <span class="blank">&#160;{{NOTARY_YEAR}}</span>
                    , by
-                    <span class="blank">&#160;{{NOTARY_PERSON_NAME}</span>
+                    <span class="blank">&#160;{{NOTARY_PERSON_NAME}}</span>
                     , as <span class="blank">&#160;{{NOTARY_PERSON_TITLE}}</span> 
                        of
                     <span class="blank">&#160;{{WAIVER_SUBCONTRACTOR}}</span>, who is personally known to me or provided
