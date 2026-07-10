@@ -183,7 +183,7 @@
         <table>
             <tr>
                 <td class="waiver-text" width="16%">DATED on</td>
-                <td class="line-cell waiver-text" width="30%">${.now?string("MM/dd/yyyy")}</td>
+                <td class="line-cell waiver-text" width="30%">&#160;{{WAIVER_DATE}}</td>
                 <td width="54%">&#160;</td>
             </tr>
         </table>
@@ -194,7 +194,7 @@
     <tr>
         <td width="52%" style="height:12pt; line-height:12pt; padding:0;">&#160;</td>
         <td class="label" width="20%" style="font-size:9pt; height:12pt; line-height:12pt; padding:0;">Subcontractor:</td>
-        <td width="28%" style="font-size:9pt; height:12pt; line-height:12pt; padding:0; border-bottom:0.8pt solid #000000;">&#160;Premier Electric Opco, LLC</td>
+        <td width="28%" style="font-size:9pt; height:12pt; line-height:12pt; padding:0; border-bottom:0.8pt solid #000000;">&#160;{{WAIVER_SUBCONTRACTOR}}</td>
     </tr>
     <tr>
         <td style="height:12pt; line-height:12pt; padding:0;">&#160;</td>
@@ -204,12 +204,12 @@
     <tr>
         <td style="height:12pt; line-height:12pt; padding:0;">&#160;</td>
         <td class="label" style="font-size:9pt; height:12pt; line-height:12pt; padding:0;">Print:</td>
-        <td style="font-size:9pt; height:12pt; line-height:12pt; padding:0; border-bottom:0.8pt solid #000000;">&#160;Robert Forbis / Eric Perez</td>
+        <td style="font-size:9pt; height:12pt; line-height:12pt; padding:0; border-bottom:0.8pt solid #000000;">&#160;{{WAIVER_PRINT_NAME}}</td>
     </tr>
     <tr>
         <td style="height:12pt; line-height:12pt; padding:0;">&#160;</td>
         <td class="label" style="font-size:9pt; height:12pt; line-height:12pt; padding:0;">Its:</td>
-        <td style="font-size:9pt; height:12pt; line-height:12pt; padding:0; border-bottom:0.8pt solid #000000;">&#160;President</td>
+        <td style="font-size:9pt; height:12pt; line-height:12pt; padding:0; border-bottom:0.8pt solid #000000;">&#160;{{WAIVER_TITLE}}</td>
     </tr>
 </table>
         <table class="large-gap"><tr><td>&#160;</td></tr></table>
@@ -221,7 +221,7 @@
 <table width = "50%">
             <tr>
                 <td class="waiver-text label" width="25%">COUNTY OF</td>
-                <td class="line-cell waiver-text">&#160;Collier</td>
+                <td class="line-cell waiver-text">&#160;{{WAIVER_COUNTY}}</td>
                
             </tr>
         </table>
@@ -232,21 +232,14 @@
             <tr>
                 <td class="waiver-text">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                     The foregoing instrument was acknowledged before me by physical presence this
-                    <span class="blank">&#160;
-${.now?string("d")}
-<sup>
-${(.now?string("d")?number % 10 == 1 &amp;&amp; .now?string("d")?number != 11)?then("st",
-(.now?string("d")?number % 10 == 2 &amp;&amp; .now?string("d")?number != 12)?then("nd",
-(.now?string("d")?number % 10 == 3 &amp;&amp; .now?string("d")?number != 13)?then("rd","th")))}
-</sup>
-&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span> day of 
-                  <span class="blank">&#160;${.now?string("MMMM")}&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span> 20
-                  <span class="blank">&#160;&#160;&#160;&#160;&#160;${.now?string("yyyy")}&#160;</span>
+                    <span class="blank">&#160;{{NOTARY_DAY}}&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span> day of 
+                  <span class="blank">&#160;{{NOTARY_MONTH}}&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span> 20
+                  <span class="blank">&#160;&#160;&#160;&#160;&#160;{{NOTARY_YEAR}}&#160;</span>
                    , by
-                    <span class="blank">&#160; Robert Forbis / Eric Perez &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span>
-                    , as <span class="blank">&#160; President &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span> 
+                    <span class="blank">&#160;{{NOTARY_PERSON_NAME}}&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span>
+                    , as <span class="blank">&#160;{{NOTARY_PERSON_TITLE}}&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span> 
                        of
-                    <span class="blank">&#160; Premier Electric &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span>, who is <b>personally known</b> to me or provided
+                    <span class="blank">&#160;{{WAIVER_SUBCONTRACTOR}}&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span>, who is personally known to me or provided
                     <span class="blank">&#160;{{NOTARY_ID_TYPE}}&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span> as identification.
                 </td>
             </tr>
@@ -274,7 +267,7 @@ ${(.now?string("d")?number % 10 == 1 &amp;&amp; .now?string("d")?number != 11)?t
 
           <tr>
                 <td width="48%">&#160;</td>
-                <td class="line-cell" width="40%">&#160; Brenda Reyes</td>
+                <td class="line-cell" width="40%">&#160;</td>
                 <td width="12%">&#160;</td>
             </tr>
             <tr>
