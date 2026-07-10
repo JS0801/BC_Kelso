@@ -218,10 +218,11 @@
             <tr>
                 <td class="waiver-text" width="18%" colspan = "2">STATE OF FLORIDA</td>
             </tr>        </table>
-<table width = "45%">
+<table width = "50%">
             <tr>
                 <td class="waiver-text label" width="25%">COUNTY OF</td>
                 <td class="line-cell waiver-text">{{WAIVER_COUNTY}}</td>
+               <td></td>
                
             </tr>
         </table>
