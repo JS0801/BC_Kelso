@@ -120,6 +120,22 @@ log.debug("invoiceSearchObj result count",searchResultCount1);
 });
 
       var dateObj = getCurrentDateDetails();
+
+      if (openAR) {
+        var finObj = {
+          AFS_ISSUE_COMPANY_NAME: 'Premier Electric Opco, LLC',
+          AFS_ISSUE_DATE: dateObj.currentDate,
+          AFS_ISSUE_PROJECT: projectName,
+          AFS_ISSUE_THROUGH_DATE: dateObj.currentDate,
+        }
+      }else {
+        var finObj = {
+          AFS_NO_ISSUE_COMPANY_NAME: 'Premier Electric Opco, LLC',
+          AFS_NO_ISSUE_DATE: dateObj.currentDate,
+          AFS_NO_ISSUE_PROJECT: projectName,
+          AFS_NO_ISSUE_THROUGH_DATE: dateObj.currentDate,
+        }
+      }
       
         return {
             AFS_AMOUNT_1: '',
@@ -128,17 +144,16 @@ log.debug("invoiceSearchObj result count",searchResultCount1);
             AFS_DESC_1: '',
             AFS_DESC_2: '',
             AFS_DESC_3: '',
-            AFS_ISSUE_COMPANY_NAME: '',
-            AFS_ISSUE_DATE: '',
-            AFS_ISSUE_PROJECT: '',
-            AFS_ISSUE_SIGNATURE: '',
-            AFS_ISSUE_THROUGH_DATE: '',
-            AFS_LOGO_URL: '',
-            AFS_NO_ISSUE_COMPANY_NAME: '',
-            AFS_NO_ISSUE_DATE: '',
-            AFS_NO_ISSUE_PROJECT: '',
-            AFS_NO_ISSUE_SIGNATURE: '',
-            AFS_NO_ISSUE_THROUGH_DATE: '',
+            AFS_ISSUE_COMPANY_NAME: finObj.AFS_ISSUE_COMPANY_NAME,
+            AFS_ISSUE_DATE: finObj.AFS_ISSUE_DATE,
+            AFS_ISSUE_PROJECT: finObj.AFS_ISSUE_PROJECT,
+            AFS_ISSUE_SIGNATURE: finObj.AFS_ISSUE_SIGNATURE,
+            AFS_ISSUE_THROUGH_DATE: finObj.AFS_ISSUE_THROUGH_DATE,
+            AFS_NO_ISSUE_COMPANY_NAME: finObj.AFS_NO_ISSUE_COMPANY_NAME,
+            AFS_NO_ISSUE_DATE: finObj.AFS_NO_ISSUE_DATE,
+            AFS_NO_ISSUE_PROJECT: finObj.AFS_NO_ISSUE_PROJECT,
+            AFS_NO_ISSUE_SIGNATURE: finObj.AFS_NO_ISSUE_THROUGH_DATE,
+            AFS_NO_ISSUE_THROUGH_DATE: finObj.AFS_NO_ISSUE_THROUGH_DATE,
             NOTARY_COMMISSION_EXPIRES: '',
             NOTARY_DAY: dateObj.day,
             NOTARY_ID_TYPE: '',
