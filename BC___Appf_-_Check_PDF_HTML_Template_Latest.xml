@@ -2113,7 +2113,8 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
         <th align="right"><b>Original Amount</b></th>
         <th align="right"><b>Balance Due</b></th>
         <th align="right"><b>Discount</b></th>
-        <th align="right"><b>Payment</b></th>
+        <th align="right" style="width: 15%; padding-right: 15px;"><b>Payment</b></th>
+        <th style="width: 5%"></th>
           
     </tr>
 
@@ -2138,7 +2139,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 <td align="right">${apply.total}</td>
 <td align="right">${apply.due}</td>
 <td align="right">${apply.disc}</td>
-<td align="right">${(apply.total - apply.disc)?string.currency}</td>
+<td align="right" style="padding-right: 15px;">${(apply.total - apply.disc)?string.currency}</td>
 </tr>
   <#else>
     <tr>
@@ -2167,7 +2168,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 <td align="right">${credit.description}</td>
 <td align="right">(${credit.amount})</td>
 <td align="right">${credit.discamt}</td>
-<td align="right">(${credit.amount})</td>
+<td align="right"  style="padding-right: 15px;">(${credit.amount})</td>
 </tr>
   <#else>
 <tr>
@@ -2300,7 +2301,8 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
         <th align="right"><b>Original Amount</b></th>
         <th align="right"><b>Balance Due</b></th>
         <th align="right"><b>Discount</b></th>
-        <th align="right"><b>Payment</b></th>
+        <th align="right" style="width: 15%; padding-right: 15px;"><b>Payment</b></th>
+        <th style="width: 5%"></th>
     </tr>
     <#else>
       <tr>
@@ -2322,7 +2324,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 <td align="right">${apply.total}</td>
 <td align="right">${apply.due}</td>
 <td align="right">${apply.disc}</td>
-<td align="right">${(apply.total - apply.disc)?string.currency}</td>
+<td align="right"  style="padding-right: 15px;">${(apply.total - apply.disc)?string.currency}</td>
 </tr>
     <#else>
       <tr>
@@ -2349,7 +2351,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 <td align="right">${credit.description}</td>
 <td align="right">(${credit.amount})</td>
 <td align="right">${credit.discamt}</td>
-<td align="right">(${credit.amount})</td>
+<td align="right" style="padding-right: 15px;">(${credit.amount})</td>
 </tr>
     <#else>
       <tr>
@@ -2396,7 +2398,8 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
         <th align="right"><b>Original Amount</b></th>
         <th align="right"><b>Balance Due</b></th>
         <th align="right"><b>Discount</b></th>
-        <th align="right"><b>Payment</b></th>
+        <th align="right" style="width: 15%; padding-right: 15px;"><b>Payment</b></th>
+        <th style="width: 5%"></th>
     </tr>
     <#else>
       <tr>
@@ -2415,10 +2418,14 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
     <td align="center">${check.trandate}</td>
     <td align="center">Expense</td>
     <td align="center">&nbsp;</td>
+    <td align = "right">${expense.amount}</td>style="padding-right: 15px;"
     <td align = "right">${expense.amount}</td>
+  <#if showDiscountColumn>
+    <td align="right"></td>
+    <td align = "right" style="padding-right: 15px;" >${expense.amount}</td>
+  <#else>
     <td align = "right">${expense.amount}</td>
-  <#if showDiscountColumn><td align="right"></td></#if>
-    <td align = "right">${expense.amount}</td>
+  </#if>
 </tr>
 </#list>
 <#list check.item as item>
@@ -2428,8 +2435,12 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 <td align="center">${item.item}, ${item.description}</td>
 <td align = "right">${item.amount}</td>
 <td align = "right">${item.amount}</td>
-    <#if showDiscountColumn><td align="right"></td></#if>
-<td align = "right">${item.amount}</td>
+  <#if showDiscountColumn>
+    <td align="right"></td>
+    <td align = "right" style="padding-right: 15px;" >${item.amount}</td>
+  <#else>
+    <td align = "right">${item.amount}</td>
+  </#if>
 </tr>
         </#list>
         </table>
