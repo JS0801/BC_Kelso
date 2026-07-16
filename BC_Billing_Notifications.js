@@ -26,8 +26,8 @@ define([
         DAYS_BEFORE_PM: 3,
         DAYS_BEFORE_ACCOUNTING: 1,
         EMAIL_SENDER: -5,
-        PM_EXTRA_EMAILS: ['jainil.suthar@bluecollar.cloud'],
-        ACCOUNTING_EXTRA_EMAILS: ['jainil.suthar@bluecollar.cloud'],
+        PM_EXTRA_EMAILS: [],
+        ACCOUNTING_EXTRA_EMAILS: [],
         ACCOUNTING_EMAIL: 697221
     };
 
@@ -895,8 +895,6 @@ const billingQualificationFilter = openChangeProjectFilter
         return search.create({
             type: RECORDS.PROJECT,
             filters: [
-                ['internalid', 'anyof', '67126'],
-                'AND',
                 ['custrecord_bc_proj_subsidiary', 'anyof', SUBSIDIARIES.BLUECOLLAR],
                 'AND',
                 ['isinactive', 'is', 'F'],
