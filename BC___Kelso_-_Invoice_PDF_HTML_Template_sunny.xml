@@ -1027,7 +1027,7 @@ Phone <#if subsidiary.phone?has_content> ${subsidiary.phone}</#if>
             <#assign prevPercentage = ((nsformat_number(oldInvVal)/estAmt)*100)?string("0.##") />
             <#assign previousTotal = previousTotal + nsformat_number(oldInvVal) />
         </#if>
-        <#assign grossTotal = grossTotal + nsformat_number(item.custcol_bc_sov_dollars_billed) />
+        <#assign grossTotal = grossTotal + item.custcol_bc_sov_dollars_billed />
         <#assign retentionTotal = retentionTotal + nsformat_number(item.custcol_bc_sov_unbilled_retention) />
         <#if !record.custbody_bc_retrofit_lumpsum>
         <tr>
