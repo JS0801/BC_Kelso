@@ -2022,7 +2022,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
     <#assign showDiscountColumn = check.subsidiary.id == "22">
 
 <div style="font-family: Helvetica,sans-serif;height: 255pt;width: 612pt;page-break-inside: avoid;font-size: 9pt;">
- <img src="https://6962009-sb2.app.netsuite.com/core/media/media.nl?id=596173&amp;c=6962009_SB2&amp;h=ONKM_Mwpyo5vhSyzXzyHBbpu6zJta1pIvA7fhFOnk8pRXRfB" style="position: absolute;left: 0pt;top: 2pt;" />
+ <img src="https://6962009-sb2.app.netsuite.com/core/media/media.nl?id=596173&amp;c=6962009_SB2&amp;h=ONKM_Mwpyo5vhSyzXzyHBbpu6zJta1pIvA7fhFOnk8pRXRfB" style="position: absolute;left: 0pt;top: 5pt;" />
 
 <table style="position: absolute;overflow: hidden;left: 505pt;top: 53pt;height: 18pt;width: 575pt;">
     <tr>
