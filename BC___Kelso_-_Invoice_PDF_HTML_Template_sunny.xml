@@ -1916,16 +1916,10 @@ ${record.billaddress@label}
 <#assign lineGross = nsformat_number(item.custcol_bc_sov_dollars_billed) />
 <#assign itemAmount = nsformat_number(item.amount) />
 <#assign grossDiff = lineGross - itemAmount />
+<#assign grossTotal = grossTotal + lineGross />
+  
+<#if record.id = '2544673'><#assign grossTotal = grossTotal + lineGross /></#if>
 
-<#if grossDiff gte -0.1>
-    <#if grossDiff lte 0.1>
-        <#assign grossTotal = grossTotal + itemAmount />
-    <#else>
-        <#assign grossTotal = grossTotal + lineGross />
-    </#if>
-<#else>
-    <#assign grossTotal = grossTotal + lineGross />
-</#if>
     <#assign retentionTotal = retentionTotal + nsformat_number(item.custcol_bc_sov_unbilled_retention) />
     <#if !record.custbody_bc_retrofit_lumpsum>
 <tr style="border: 0px;">
