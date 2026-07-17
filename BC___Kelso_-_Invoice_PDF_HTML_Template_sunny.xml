@@ -1919,7 +1919,7 @@ ${record.billaddress@label}
 
 <#if grossDiff gte -0.1>
     <#if grossDiff lte 0.1>
-        <#assign grossTotal = grossTotal + lineGross />
+        <#assign grossTotal = grossTotal + itemAmount />
     <#else>
         <#assign grossTotal = grossTotal + lineGross />
     </#if>
