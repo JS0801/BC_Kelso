@@ -2025,7 +2025,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
  <img src="https://6962009-sb2.app.netsuite.com/core/media/media.nl?id=596173&amp;c=6962009_SB2&amp;h=ONKM_Mwpyo5vhSyzXzyHBbpu6zJta1pIvA7fhFOnk8pRXRfB" style="position: absolute;left: 0pt;top: 6pt;" />
 
 <#if check.subsidiary.id == "22" >
-<table style="position: absolute;overflow: hidden;left: 505pt;top: 56pt;height: 18pt;width: 575pt;">
+<table style="position: absolute;overflow: hidden;left: 505pt;top: 60pt;height: 18pt;width: 575pt;">
 <#else>
   <table style="position: absolute;overflow: hidden;left: 505pt;top: 53pt;height: 18pt;width: 575pt;">
 </#if>
