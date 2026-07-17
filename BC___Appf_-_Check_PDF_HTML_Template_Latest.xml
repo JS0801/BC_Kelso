@@ -2033,16 +2033,20 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
         <td>${check.trandate}</td>
     </tr>
 </table>
-
+<#if check.subsidiary.id == "22" >
 <table style="position: absolute;overflow: hidden;left: 82pt;top: 78pt;height: 18pt;width: 393pt;">
+  <#else><table style="position: absolute;overflow: hidden;left: 82pt;top: 78pt;height: 18pt;width: 393pt;">
+    </#if>
     <tr>
         <td><#if (check.entity.companyname?has_content)>${check.entity.companyname}<#else>${check.entity}
         </#if>
     </td>
 </tr>
 </table>
-          
-<table style="position: absolute;overflow: hidden;left: 510pt;top: 83pt;height: 18pt;width: 111pt;">
+ <#if check.subsidiary.id == "22" >         
+<table style="position: absolute;overflow: hidden;left: 510pt;top: 90pt;height: 18pt;width: 111pt;">
+  <#else><table style="position: absolute;overflow: hidden;left: 510pt;top: 83pt;height: 18pt;width: 111pt;">
+    </#if>
 <tr>
     <td>**
         <#if (check.usertotal?length> 0)>${check.usertotal?string['#,###,##0.00']}
