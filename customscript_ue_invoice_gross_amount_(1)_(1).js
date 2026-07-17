@@ -14,7 +14,7 @@ define(['N/record', 'N/log'],
 
     const beforeSubmit = (scriptContext) => {
         try {
-            if (scriptContext.type !== scriptContext.UserEventType.CREATE) return;
+         //   if (scriptContext.type !== scriptContext.UserEventType.CREATE) return;
 
             const rec = scriptContext.newRecord;
 
