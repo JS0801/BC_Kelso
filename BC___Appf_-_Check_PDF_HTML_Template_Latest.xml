@@ -2044,7 +2044,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 </tr>
 </table>
  <#if check.subsidiary.id == "22" >         
-<table style="position: absolute;overflow: hidden;left: 510pt;top: 90pt;height: 18pt;width: 111pt;">
+<table style="position: absolute;overflow: hidden;left: 510pt;top: 100pt;height: 18pt;width: 111pt;">
   <#else><table style="position: absolute;overflow: hidden;left: 510pt;top: 83pt;height: 18pt;width: 111pt;">
     </#if>
 <tr>
