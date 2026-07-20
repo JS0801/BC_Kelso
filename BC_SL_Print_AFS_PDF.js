@@ -37,6 +37,12 @@ define(['N/file', 'N/log', 'N/render', 'N/runtime', 'N/search'], (file, log, ren
         }
     }
 
+  function fixedUnderlineValue(value, totalLength) {
+    var text = String(value || '');
+    var remaining = Math.max(totalLength - text.length, 0);
+    return text + '\u00A0'.repeat(remaining);
+}
+
     function getXmlFileId(request) {
         return runtime.getCurrentScript().getParameter({ name: PARAM_XML_FILE_ID }) ||
             request.parameters.xmlFileId ||
@@ -114,7 +120,7 @@ const invoiceSearchObj1 = search.create({
 const searchResultCount1 = invoiceSearchObj1.runPaged().count;
 log.debug("invoiceSearchObj result count",searchResultCount1);
 
-  if (searchResultCount > 0) openAR = true;
+  if (searchResultCount1 > 0) openAR = true;
   
    return true;
 });
@@ -127,6 +133,10 @@ log.debug("invoiceSearchObj result count",searchResultCount1);
           AFS_ISSUE_DATE: dateObj.currentDate,
           AFS_ISSUE_PROJECT: projectName,
           AFS_ISSUE_THROUGH_DATE: dateObj.currentDate,
+          AFS_NO_ISSUE_PROJECT: fixedUnderlineValue('', 35),
+          AFS_NO_ISSUE_THROUGH_DATE: fixedUnderlineValue('', 18),
+          AFS_ISSUE_PROJECT: fixedUnderlineValue(projectName, 35),
+          AFS_ISSUE_THROUGH_DATE: fixedUnderlineValue(dateObj.currentDate, 18)
         }
       }else {
         var finObj = {
@@ -134,6 +144,10 @@ log.debug("invoiceSearchObj result count",searchResultCount1);
           AFS_NO_ISSUE_DATE: dateObj.currentDate,
           AFS_NO_ISSUE_PROJECT: projectName,
           AFS_NO_ISSUE_THROUGH_DATE: dateObj.currentDate,
+          AFS_NO_ISSUE_PROJECT: fixedUnderlineValue(projectName, 35),
+          AFS_NO_ISSUE_THROUGH_DATE: fixedUnderlineValue(dateObj.currentDate, 18),
+          AFS_ISSUE_PROJECT: fixedUnderlineValue('', 35),
+          AFS_ISSUE_THROUGH_DATE: fixedUnderlineValue('', 18)
         }
       }
       
