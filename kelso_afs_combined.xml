@@ -317,17 +317,9 @@
             <tr>
 <td class="afs-text" width="96%">
                     I acknowledge that there are no open, unapproved, or disputed change orders or unresolved financial issues or claims against CGU Homes, LLC, the Owner, or the Surety on the 
-<#if {{AFS_NO_ISSUE_PROJECT}}?has_content>
-<span class="yellow-blank" width="42%">&#160;{{AFS_NO_ISSUE_PROJECT}}</span>
-<#else>
-<span class="yellow-blank" width="42%">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span>
-</#if>
+<span class="yellow-blank">{{AFS_NO_ISSUE_PROJECT}}</span>
  project through the date of  
-<#if {{AFS_NO_ISSUE_THROUGH_DATE}}?has_content>
-<span class="yellow-blank" width="42%">&#160;{{AFS_NO_ISSUE_THROUGH_DATE}}</span>
-<#else>
-<span class="yellow-blank" width="18%">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span>.
-</#if>
+<span class="yellow-blank">{{AFS_NO_ISSUE_THROUGH_DATE}}</span>
                 </td>
             </tr>
         </table>
@@ -371,17 +363,9 @@
                 <td class="afs-text" width="4%">2)</td>
                 <td class="afs-text" width="96%">
                     I acknowledge that the following is a complete list of all open, unapproved, and/or disputed change orders and all unresolved financial issues and claims against CGU Homes, LLC, the Owner, or the Surety which exist on the 
-<#if {{AFS_ISSUE_PROJECT}}?has_content>
-<span class="yellow-blank" width="52%">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span>
-<#else>
-<span class="yellow-blank" width="52%">&#160;{{AFS_ISSUE_PROJECT}}</span>
-</#if>
+<span class="yellow-blank">{{AFS_ISSUE_PROJECT}}</span>
  project through &#160; 
-<#if {{AFS_ISSUE_THROUGH_DATE}}?has_content>
-<span class="yellow-blank" width="18%">{{AFS_ISSUE_THROUGH_DATE}}</span>
-<#else>
-<span class="yellow-blank" width="18%">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span>
-</#if> .
+<span class="yellow-blank">{{AFS_ISSUE_THROUGH_DATE}}</span>
                 </td>
             </tr>
         </table>
