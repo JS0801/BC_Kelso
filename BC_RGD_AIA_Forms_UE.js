@@ -22,7 +22,7 @@ define(['N/ui/serverWidget', 'N/url', 'N/search'], function(ui, url, search) {
         });
 
 
-        var buttonScript1 = "window.open('" + scriptUrl + "&recordid=" + recordId +"', '_blank');";
+        var buttonScript1 = "window.open('" + scriptUrl1 + "&recordid=" + recordId +"', '_blank');";
 
         form.addButton({
           id: 'custpage_my_button1',
