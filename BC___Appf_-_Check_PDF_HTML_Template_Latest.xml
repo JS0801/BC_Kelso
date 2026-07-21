@@ -2058,11 +2058,12 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
  <#if check.subsidiary.id == "22" >     
 <#assign words = check.totalwords?trim?capitalize>
 <#assign maxChars = 85>
+  <#assign starCount = maxChars - words?length>
 
 <table style="position:absolute; overflow:hidden; left:50pt; top:122pt; height:18pt; width:575pt; font-family:'Courier New', monospace; font-size:10pt;">
   <tr>
     <td style="white-space:nowrap;">
-      ${words?right_pad(maxChars, "*")}
+      ${words}<#if starCount gt 0>${""?right_pad(starCount, "*")}</#if>
     </td>
   </tr>
 </table>
