@@ -2057,7 +2057,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
         </table>
  <#if check.subsidiary.id == "22" >     
 <#assign words = check.totalwords?trim?capitalize>
-<#assign maxChars = 95>
+<#assign maxChars = 85>
 
 <table style="position:absolute; overflow:hidden; left:50pt; top:122pt; height:18pt; width:575pt; font-family:'Courier New', monospace; font-size:10pt;">
   <tr>
