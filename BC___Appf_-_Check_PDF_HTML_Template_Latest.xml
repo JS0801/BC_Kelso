@@ -2057,13 +2057,18 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
         </table>
  <#if check.subsidiary.id == "22" >     
 <table style="position: absolute;overflow: hidden;left: 50pt;top: 122pt;height: 18pt;width:575pt;">
+  <tr>
+    <td>${check.totalwords?capitalize}****************************
+    </td>
+</tr>
+</table>
  <#else> <table style="position: absolute;overflow: hidden;left: 50pt;top: 103pt;height: 18pt;width:575pt;">
-   </#if>
-<tr>
+   <tr>
     <td>${check.totalwords}****************************
     </td>
 </tr>
 </table>
+   </#if>
 
 <table style="position: absolute;overflow: hidden;left: 70pt;top: 128pt;height: 80pt;width: 575pt;">
 <tr>
