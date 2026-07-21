@@ -2060,7 +2060,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 <#assign maxChars = 90>
   <#assign starCount = maxChars - words?length>
 
-<table style="position:absolute; overflow:hidden; left:50pt; top:122pt; height:18pt; width:575pt; font-family:'Courier New', monospace; font-size:10pt;">
+<table style="position:absolute; overflow:hidden; left:50pt; top:122pt; height:18pt; width:575pt; font-family:'Courier New', monospace;">
   <tr>
     <td style="white-space:nowrap;">
       ${words}<#if starCount gt 0>${""?right_pad(starCount, "*")}</#if>
