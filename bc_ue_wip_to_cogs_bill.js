@@ -37,8 +37,8 @@ define(['N/record', 'N/search', 'N/log', 'N/workflow', 'N/https'], (record, sear
         ? String(context.oldRecord.getValue({ fieldId: 'approvalstatus' }) || '')
         : '';
 
-       // if (newStatus !== CFG.APPROVED) return;
-       // if (context.type !== context.UserEventType.APPROVE && oldStatus === CFG.APPROVED) return;
+        if (newStatus !== CFG.APPROVED) return;
+        if (context.type !== context.UserEventType.APPROVE && oldStatus === CFG.APPROVED) return;
 
       const billId = bill.id;
       const subsidiary = String(bill.getValue({ fieldId: 'subsidiary' }) || '');
