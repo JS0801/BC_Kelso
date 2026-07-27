@@ -91,6 +91,7 @@ define(['N/record', 'N/search', 'N/log', 'N/workflow', 'N/https'], (record, sear
       });
 
       if (!costs.length) return;
+      log.debug('Bill Details', costs)
 
       const projectIds = [...new Set(costs.map((line) => String(line.projectId || '')).filter(Boolean))];
       if (!projectIds.length || costs.some((line) => !line.projectId)) {
