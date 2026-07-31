@@ -732,6 +732,12 @@ style="font-family: Helvetica,sans-serif;height: 240pt;width: 612pt;page-break-i
     </td>
 </tr>
 </table>
+<table style="position: absolute;overflow: hidden;left: 35pt;top: 85pt;height: 18pt;width:575pt;">
+<tr>
+    <td>${check.entity}
+    </td>
+</tr>
+</table>
 
 <table style="position: absolute;overflow: hidden;left: 45pt;top: 111pt;height: 18pt;width:575pt;">
 <tr>
