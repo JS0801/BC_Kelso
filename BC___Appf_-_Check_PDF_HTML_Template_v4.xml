@@ -580,7 +580,7 @@
 <#elseif check.subsidiary.id == '17' || check.subsidiary.id == '18'>
 
 <div style="page-break-after: always;">
-  <img src="https://6962009.app.netsuite.com/core/media/media.nl?id=764318&amp;c=6962009&amp;h=ElTWTSuZWBf6s259O54EvJyPCNV_RzyotZxEbphB7dKN_BE5" style="position: absolute; overflow: hidden; left: 0pt; top: 0pt; width: 612pt; height: 792pt;"/>
+  <!-- <img src="https://6962009.app.netsuite.com/core/media/media.nl?id=764318&amp;c=6962009&amp;h=ElTWTSuZWBf6s259O54EvJyPCNV_RzyotZxEbphB7dKN_BE5" style="position: absolute; overflow: hidden; left: 0pt; top: 0pt; width: 612pt; height: 792pt;"/>  -->
 <div style="font-family: Helvetica,sans-serif;height: 260pt;width: 100%;page-break-before: avoid;font-size: 8pt; padding-top: 30px; padding-left: 10px; padding-right: 10px;">
     <#assign totalAmt = 0>
     <#assign totalAmtCheck = 0>
