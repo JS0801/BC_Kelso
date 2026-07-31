@@ -2876,7 +2876,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
         <th align="left" style="width: 15%">Applied To</th>
         <th align="left" style="width: 10%">Discount</th>
         <th align="left" style="width: 7.5%">Credits</th>
-        <th align="left" style="width: 7.5%">Check Amount</th>
+        <th align="left" style="width: 7.5%">Check<br/>Amount</th>
     </tr>
 </thead>
 
