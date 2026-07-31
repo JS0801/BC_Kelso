@@ -604,7 +604,7 @@
 </#list>
 
 
-<table style="position: absolute;overflow: hidden;left: 400pt;top: 10pt;height: 13pt;width: 70pt;">
+<table style="position: absolute;overflow: hidden;left: 475pt;top: 20pt;height: 13pt;width: 70pt;">
 <tr>
     <td>${check.trandate}</td>
 </tr>
@@ -757,12 +757,6 @@ style="font-family: Helvetica,sans-serif;height: 240pt;width: 612pt;page-break-i
         <!-- 2nd List of Records -->
 <div
 style="font-family: Helvetica,sans-serif;height: 260pt;width: 100%;page-break-before: avoid;font-size: 8pt; padding-top: 30px; padding-left: 10px; padding-right: 10px;">
-<table
-        style="position: absolute;overflow: hidden;left: 500pt;top: 5pt;height: 7pt;width: 80pt;font-size: 8pt;">
-    <tr>
-        <td align="center">${check.checknumber}</td>
-    </tr>
-</table>
 
 <table style="position: absolute;overflow: hidden;left: 475pt;top: 20pt;height: 13pt;width: 70pt;">
     <tr>
