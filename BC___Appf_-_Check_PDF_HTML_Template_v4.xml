@@ -724,7 +724,7 @@ style="font-family: Helvetica,sans-serif;height: 240pt;width: 612pt;page-break-i
     </tr>
 </table>
 
-<table style="position: absolute;overflow: hidden;left: 520pt;top: 52pt;height: 18pt;width: 111pt;">
+<table style="position: absolute;overflow: hidden;left: 528pt;top: 52pt;height: 18pt;width: 111pt;">
     <tr>
         <td>
             <#if ((check.usertotal!"")?length > 0)>${check.usertotal}<#else>${check.total}
