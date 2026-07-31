@@ -606,7 +606,7 @@
 
 <table style="position: absolute;overflow: hidden;left: 400pt;top: 10pt;height: 13pt;width: 70pt;">
 <tr>
-    <td>${check.trandate}</td>
+    <td>${check.trandate}T</td>
 </tr>
 </table>
 
