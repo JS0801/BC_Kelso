@@ -741,7 +741,7 @@ style="font-family: Helvetica,sans-serif;height: 240pt;width: 612pt;page-break-i
 
 <table style="position: absolute;overflow: hidden;left: 45pt;top: 111pt;height: 18pt;width:575pt;">
 <tr>
-    <td>${check.totalwords}
+    <td>${check.totalwords?cap_first}
     </td>
 </tr>
 </table>
