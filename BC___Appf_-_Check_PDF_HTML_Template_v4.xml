@@ -718,13 +718,13 @@
 style="font-family: Helvetica,sans-serif;height: 240pt;width: 612pt;page-break-inside: avoid;font-size: 8pt; padding-top: 20px;">
 
 
-<table style="position: absolute;overflow: hidden;left: 360pt;top: 50pt;height: 18pt;width: 575pt;">
+<table style="position: absolute;overflow: hidden;left: 360pt;top: 52pt;height: 18pt;width: 575pt;">
     <tr>
         <td>${check.trandate}</td>
     </tr>
 </table>
 
-<table style="position: absolute;overflow: hidden;left: 522pt;top: 85pt;height: 18pt;width: 111pt;">
+<table style="position: absolute;overflow: hidden;left: 450pt;top: 52pt;height: 18pt;width: 111pt;">
     <tr>
         <td>
             <#if ((check.usertotal!"")?length > 0)>${check.usertotal}<#else>${check.total}
