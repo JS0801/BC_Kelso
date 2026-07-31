@@ -733,7 +733,7 @@ style="font-family: Helvetica,sans-serif;height: 240pt;width: 612pt;page-break-i
 </tr>
 </table>
 
-<table style="position: absolute;overflow: hidden;left: 45pt;top: 113pt;height: 18pt;width:575pt;">
+<table style="position: absolute;overflow: hidden;left: 45pt;top: 111pt;height: 18pt;width:575pt;">
 <tr>
     <td>${check.totalwords}
     </td>
