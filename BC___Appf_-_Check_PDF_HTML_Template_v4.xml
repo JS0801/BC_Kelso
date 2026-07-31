@@ -718,7 +718,7 @@
 style="font-family: Helvetica,sans-serif;height: 240pt;width: 612pt;page-break-inside: avoid;font-size: 8pt; padding-top: 20px;">
 
 
-<table style="position: absolute;overflow: hidden;left: 375pt;top: 45pt;height: 18pt;width: 575pt;">
+<table style="position: absolute;overflow: hidden;left: 355pt;top: 50pt;height: 18pt;width: 575pt;">
     <tr>
         <td>${check.trandate}</td>
     </tr>
