@@ -2303,7 +2303,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 </tr>
         </table>
 
-<table style="position: absolute;overflow: hidden;left: 30pt;top: 110pt;height: 18pt;width:575pt;">
+<table style="position: absolute;overflow: hidden;left: 30pt;top: 113pt;height: 18pt;width:575pt;">
 
 <tr>
     <td>${check.totalwords}*********************************************************************
@@ -2312,6 +2312,15 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 </table>
 
 <table style="position: absolute;overflow: hidden;left: 60pt;top: 140pt;height: 80pt;width: 575pt;">
+
+<tr>
+    <td><#if (check.address!"")?contains("United States")>${check.address?replace("United States","")}<#else>${check.address}
+    </#if>
+</td>
+</tr>
+        </table>
+
+      <table style="position: absolute;overflow: hidden;left: 37pt;top: 220pt;height: 18pt;width: 300pt;">
 
 <tr>
     <td><#if (check.address!"")?contains("United States")>${check.address?replace("United States","")}<#else>${check.address}
@@ -2382,7 +2391,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 <td align="right" style="width: 15%">${apply.total}</td>
 <td align="right" style="width: 15%">${(nsformat_number(apply.total!0) - nsformat_number(apply.disc!0))?string.currency}</td>
 <td align="right" style="width: 15%">${apply.disc}</td>
-<td align="right" style="width: 15%">${(nsformat_number(apply.total!0) - nsformat_number(apply.disc!0))?string.currency}</td>
+<td align="right" style="width: 15%">${(nsformat_number(apply.amount!0) - nsformat_number(apply.disc!0))?string.currency}</td>
 </tr>
         </#if>
 <#assign ctr = ctr + 1>
@@ -2497,7 +2506,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 <td align="right" style="width: 15%">${apply.total}</td>
 <td align="right" style="width: 15%">${(nsformat_number(apply.total!0) - nsformat_number(apply.disc!0))?string.currency}</td>
 <td align="right" style="width: 15%">${apply.disc}</td>
-<td align="right" style="width: 15%">${(nsformat_number(apply.total!0) - nsformat_number(apply.disc!0))?string.currency}</td>
+<td align="right" style="width: 15%">${(nsformat_number(apply.amount!0) - nsformat_number(apply.disc!0))?string.currency}</td>
 </tr>
         </#if>
 <#assign ctr = ctr + 1>
