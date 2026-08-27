@@ -2321,12 +2321,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
         </table>
 
       <table style="position: absolute;overflow: hidden;left: 37pt;top: 220pt;height: 18pt;width: 300pt;">
-
-<tr>
-    <td><#if (check.address!"")?contains("United States")>${check.address?replace("United States","")}<#else>${check.address}
-    </#if>
-</td>
-</tr>
+        <tr>    <td>${check.memo}</td></tr>
         </table>
         </div>
 
