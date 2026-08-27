@@ -3123,7 +3123,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 
         <!-- Print Excess Records Page -->
 <#list records as check>
-<#if check.subsidiary.id == '19'>
+<#if check.subsidiary.id == '19' || check.subsidiary.id == '17' || check.subsidiary.id == '18'>
 
 
 
