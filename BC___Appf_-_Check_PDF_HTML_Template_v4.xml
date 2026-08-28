@@ -2353,7 +2353,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 <#assign otherTotalAmt = 0>
 <#assign otherTotalDisc = 0>
 <#list check.apply as apply>
-<#assign otherTotalAmt = otherTotalAmt + nsformat_number(apply.total!0)>
+<#assign otherTotalAmt = otherTotalAmt + nsformat_number(apply.amount!0)>
 <#assign otherTotalDisc = otherTotalDisc + nsformat_number(apply.disc!0)>
         </#list>
 <#list check.credit as credit>
