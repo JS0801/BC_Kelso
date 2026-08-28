@@ -2357,7 +2357,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 <#assign otherTotalDisc = otherTotalDisc + nsformat_number(apply.disc!0)>
         </#list>
 <#list check.credit as credit>
-<#assign otherTotalAmt = otherTotalAmt - nsformat_number(credit.amount!0)>
+<!-- <#assign otherTotalAmt = otherTotalAmt - nsformat_number(credit.amount!0)> -->
 <#assign otherTotalDisc = otherTotalDisc + nsformat_number(credit.discamt!0)>
         </#list>
 
