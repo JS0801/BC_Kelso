@@ -2416,7 +2416,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
     <strong>${otherTotalDisc?string.currency}</strong>
 </td>
 <td align="right">
-    <strong>${(otherTotalAmt - otherTotalDisc)?string.currency}</strong>
+    <strong>${check.total?string['#,###,##0.00']}</strong>
 </td>
 </tr>
 <#if combinedLength gt 20>
@@ -2533,7 +2533,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
     <strong>${otherTotalDisc?string.currency}</strong>
 </td>
 <td align="right">
-    <strong>${(otherTotalAmt - otherTotalDisc)?string.currency}</strong>
+    <strong>${check.total?string['#,###,##0.00']}</strong>
 </td>
 </tr>
 <#if combinedLength gt 20>
