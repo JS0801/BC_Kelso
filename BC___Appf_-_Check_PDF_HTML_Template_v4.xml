@@ -2384,7 +2384,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 <td style="width: 10%">${apply.type}</td>
 <td align="right" style="width: 15%">${apply.refnum}</td>
 <td align="right" style="width: 15%">${apply.total}</td>
-<td align="right" style="width: 15%">${(nsformat_number(apply.total!0) - nsformat_number(apply.disc!0))?string.currency}</td>
+<td align="right" style="width: 15%">${apply.due}</td>
 <td align="right" style="width: 15%">${apply.disc}</td>
 <td align="right" style="width: 15%">${(nsformat_number(apply.amount!0) - nsformat_number(apply.disc!0))?string.currency}</td>
 </tr>
@@ -2499,7 +2499,7 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 612pt;page-break-b
 <td style="width: 10%">${apply.type}</td>
 <td align="right" style="width: 15%">${apply.refnum}</td>
 <td align="right" style="width: 15%">${apply.total}</td>
-<td align="right" style="width: 15%">${(nsformat_number(apply.total!0) - nsformat_number(apply.disc!0))?string.currency}</td>
+<td align="right" style="width: 15%">${apply.due}</td>
 <td align="right" style="width: 15%">${apply.disc}</td>
 <td align="right" style="width: 15%">${(nsformat_number(apply.amount!0) - nsformat_number(apply.disc!0))?string.currency}</td>
 </tr>
