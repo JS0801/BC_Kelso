@@ -890,7 +890,6 @@ style="font-family: Helvetica,sans-serif;height: 260pt;width: 100%;page-break-be
 <#list check.credit as credit>
 <#assign ctr_main = ctr_main + 1 />
 <#assign totalAmt = totalAmt + nsformat_number(credit.amount!0)>
-<#assign totalAmtCheck = totalAmtCheck - nsformat_number(credit.amount!0)>
 <#assign totalDisc = totalDisc + nsformat_number(credit.discamt!0)>
 </#list>
 <table
