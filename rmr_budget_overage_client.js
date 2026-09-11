@@ -31,9 +31,15 @@ define(['N/currentRecord', 'N/search', 'N/ui/dialog', 'N/log'], function (curren
     var BUDGET_COST_TYPE_FIELD = 'custrecord_bc_budget_cost_type';
     var BUDGET_ESTIMATE_FIELD = 'custrecord_bc_budget_estimate';
 
+    var CHANGE_REQUEST_BUDGET_ITEM_RECORD_TYPE = 'customrecord_bc_change_req_budget_item';
+    var CHANGE_REQUEST_BUDGET_ITEM_FIELD = 'custrecord_bc_budget_item';
+    var CHANGE_REQUEST_STATUS_FIELD = 'custrecord_bc_chg_request_b_item_status';
+    var CHANGE_REQUEST_PROPOSED_CHANGE_FIELD = 'custrecord_bc_proposed_change';
+    var CHANGE_REQUEST_APPROVED_STATUS = '1';
+
     var DEFAULT_WARNING_PERCENT = 85;
     var DEFAULT_WARNING_ACTION = ACTION_WARN_ONLY;
-    var DEFAULT_OVER_BUDGET_ACTION = ACTION_WARN_ONLY;
+    var DEFAULT_OVER_BUDGET_ACTION = ACTION_HARD_STOP;
 
     var prefsByProject = {};
     var budgetByKey = {};
@@ -275,6 +281,7 @@ define(['N/currentRecord', 'N/search', 'N/ui/dialog', 'N/log'], function (curren
             return budgetByKey[key];
         }
 
+        var budgetItemIdCol = search.createColumn({ name: 'internalid' });
         var estimateCol = search.createColumn({ name: BUDGET_ESTIMATE_FIELD });
 
         var rows = search.create({
@@ -288,25 +295,78 @@ define(['N/currentRecord', 'N/search', 'N/ui/dialog', 'N/log'], function (curren
                 'AND',
                 ['isinactive', 'is', 'F']
             ],
-            columns: [estimateCol]
-        }).run().getRange({ start: 0, end: 1 });
+            columns: [budgetItemIdCol, estimateCol]
+        }).run().getRange({ start: 0, end: 1000 });
 
+        var budgetItemIds = [];
+        var baseEstimate = 0;
+        var approvedChangeAmount = 0;
         var currentBudget = 0;
+
         if (rows && rows.length) {
-            currentBudget = toNumber(rows[0].getValue(estimateCol));
+            rows.forEach(function (row) {
+                var budgetItemId = row.getValue(budgetItemIdCol) || row.id;
+                if (budgetItemId) {
+                    budgetItemIds.push(String(budgetItemId));
+                }
+
+                baseEstimate += toNumber(row.getValue(estimateCol));
+            });
+
+            approvedChangeAmount = getApprovedChangeAmount(budgetItemIds);
+            currentBudget = baseEstimate + approvedChangeAmount;
         }
 
         logDebug('budget loaded', {
+            budgetItemIds: budgetItemIds,
+            budgetItemCount: budgetItemIds.length,
             projectId: projectId,
             costCodeId: costCodeId,
             costTypeId: costTypeId,
             budgetFieldId: BUDGET_ESTIMATE_FIELD,
             budgetRecordFound: !!(rows && rows.length),
+            baseEstimate: baseEstimate,
+            approvedChangeAmount: approvedChangeAmount,
             currentBudget: currentBudget
         });
 
         budgetByKey[key] = currentBudget;
         return currentBudget;
+    }
+
+    function getApprovedChangeAmount(budgetItemIds) {
+        if (!budgetItemIds || !budgetItemIds.length) {
+            return 0;
+        }
+
+        var proposedChangeCol = search.createColumn({
+            name: CHANGE_REQUEST_PROPOSED_CHANGE_FIELD,
+            summary: search.Summary.SUM
+        });
+
+        var rows = search.create({
+            type: CHANGE_REQUEST_BUDGET_ITEM_RECORD_TYPE,
+            filters: [
+                [CHANGE_REQUEST_BUDGET_ITEM_FIELD, 'anyof', budgetItemIds],
+                'AND',
+                [CHANGE_REQUEST_STATUS_FIELD, 'anyof', CHANGE_REQUEST_APPROVED_STATUS]
+            ],
+            columns: [proposedChangeCol]
+        }).run().getRange({ start: 0, end: 1 });
+
+        var approvedChangeAmount = rows && rows.length ? toNumber(rows[0].getValue(proposedChangeCol)) : 0;
+
+        logDebug('approved change requests loaded', {
+            budgetItemIds: budgetItemIds,
+            changeRequestRecordType: CHANGE_REQUEST_BUDGET_ITEM_RECORD_TYPE,
+            changeRequestBudgetItemFieldId: CHANGE_REQUEST_BUDGET_ITEM_FIELD,
+            changeRequestStatusFieldId: CHANGE_REQUEST_STATUS_FIELD,
+            changeRequestStatusId: CHANGE_REQUEST_APPROVED_STATUS,
+            proposedChangeFieldId: CHANGE_REQUEST_PROPOSED_CHANGE_FIELD,
+            approvedChangeAmount: approvedChangeAmount
+        });
+
+        return approvedChangeAmount;
     }
 
     function getProjectCost(recordType, projectId, costCodeId, costTypeId, currentTransactionId) {
