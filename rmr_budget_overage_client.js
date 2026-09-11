@@ -32,7 +32,7 @@ define(['N/currentRecord', 'N/search', 'N/ui/dialog', 'N/log'], function (curren
 
     var DEFAULT_WARNING_PERCENT = 85;
     var DEFAULT_WARNING_ACTION = ACTION_WARN_ONLY;
-    var DEFAULT_OVER_BUDGET_ACTION = ACTION_HARD_STOP;
+    var DEFAULT_OVER_BUDGET_ACTION = ACTION_WARN_ONLY;
 
     var prefsByProject = {};
     var budgetByKey = {};
