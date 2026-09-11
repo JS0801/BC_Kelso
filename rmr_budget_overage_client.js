@@ -27,7 +27,7 @@ define(['N/currentRecord', 'N/search', 'N/ui/dialog', 'N/log'], function (curren
     var BUDGET_PROJECT_FIELD = 'custrecord_bc_budget_project';
     var BUDGET_COST_CODE_FIELD = 'custrecord_bc_budget_code';
     var BUDGET_COST_TYPE_FIELD = 'custrecord_bc_budget_cost_type';
-    var BUDGET_CURRENT_FIELD = 'custrecord_bc_budget_current_estimate';
+    var BUDGET_CURRENT_FIELD = 'custrecord_bc_budget_estimate';
     var BUDGET_ORIGINAL_FIELD = 'custrecord_bc_budget_estimate';
 
     var DEFAULT_WARNING_PERCENT = 85;
