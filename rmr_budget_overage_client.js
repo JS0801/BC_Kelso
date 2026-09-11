@@ -10,6 +10,8 @@
 define(['N/currentRecord', 'N/search', 'N/ui/dialog', 'N/log'], function (currentRecord, search, dialog, log) {
     'use strict';
 
+    var LOG_TITLE = 'RMR Budget Client';
+
     var ACTION_WARN_ONLY = '1';
     var ACTION_HARD_STOP = '2';
 
@@ -27,8 +29,7 @@ define(['N/currentRecord', 'N/search', 'N/ui/dialog', 'N/log'], function (curren
     var BUDGET_PROJECT_FIELD = 'custrecord_bc_budget_project';
     var BUDGET_COST_CODE_FIELD = 'custrecord_bc_budget_code';
     var BUDGET_COST_TYPE_FIELD = 'custrecord_bc_budget_cost_type';
-    var BUDGET_CURRENT_FIELD = 'custrecord_bc_budget_estimate';
-    var BUDGET_ORIGINAL_FIELD = 'custrecord_bc_budget_estimate';
+    var BUDGET_ESTIMATE_FIELD = 'custrecord_bc_budget_estimate';
 
     var DEFAULT_WARNING_PERCENT = 85;
     var DEFAULT_WARNING_ACTION = ACTION_WARN_ONLY;
@@ -46,15 +47,39 @@ define(['N/currentRecord', 'N/search', 'N/ui/dialog', 'N/log'], function (curren
                 return true;
             }
 
+            logDebug('validateLine start', {
+                recordType: rec.type,
+                recordId: rec.id || 'new',
+                sublistId: context.sublistId
+            });
+
             var line = getCurrentLine(rec, context.sublistId);
             if (!line) {
+                logDebug('validateLine skipped', {
+                    sublistId: context.sublistId,
+                    reason: 'Missing project, cost code, cost type, or positive amount'
+                });
                 return true;
             }
 
-            line.amount = line.amount + getOtherUnsavedAmount(rec, context.sublistId, line);
-            return handleBudgetResult(checkBudget(rec, line));
+            var otherUnsavedAmount = getOtherUnsavedAmount(rec, context.sublistId, line);
+            line.amount = line.amount + otherUnsavedAmount;
+
+            logDebug('validateLine budget bucket', {
+                line: summarizeLine(line),
+                otherUnsavedAmount: otherUnsavedAmount
+            });
+
+            var result = checkBudget(rec, line);
+            logDebug('validateLine decision', result ? summarizeResult(result) : {
+                line: summarizeLine(line),
+                decision: 'Allow',
+                reason: 'Under configured budget threshold'
+            });
+
+            return handleBudgetResult(result);
         } catch (e) {
-            log.error('RMR Budget Client validateLine', e.message);
+            logError('validateLine error', e);
             return true;
         }
     }
@@ -66,16 +91,32 @@ define(['N/currentRecord', 'N/search', 'N/ui/dialog', 'N/log'], function (curren
                 return true;
             }
 
+            logDebug('saveRecord start', {
+                recordType: rec.type,
+                recordId: rec.id || 'new'
+            });
+
             var groups = groupLines(rec);
+            var groupKeys = Object.keys(groups);
             var messages = [];
             var blockSave = false;
 
-            Object.keys(groups).forEach(function (key) {
+            logDebug('saveRecord grouped lines', {
+                groupCount: groupKeys.length,
+                groups: groupKeys
+            });
+
+            groupKeys.forEach(function (key) {
                 var result = checkBudget(rec, groups[key]);
                 if (!result) {
+                    logDebug('saveRecord group allowed', {
+                        line: summarizeLine(groups[key]),
+                        reason: 'Under configured budget threshold'
+                    });
                     return;
                 }
 
+                logDebug('saveRecord group decision', summarizeResult(result));
                 messages.push(result.message);
                 if (result.action === ACTION_HARD_STOP) {
                     blockSave = true;
@@ -86,9 +127,14 @@ define(['N/currentRecord', 'N/search', 'N/ui/dialog', 'N/log'], function (curren
                 showMessage(blockSave ? 'Budget Over Current Budget' : 'Budget Warning', messages.join('\n\n'));
             }
 
+            logDebug('saveRecord finish', {
+                messageCount: messages.length,
+                blockSave: blockSave
+            });
+
             return !blockSave;
         } catch (e) {
-            log.error('RMR Budget Client saveRecord', e.message);
+            logError('saveRecord error', e);
             return true;
         }
     }
@@ -96,6 +142,10 @@ define(['N/currentRecord', 'N/search', 'N/ui/dialog', 'N/log'], function (curren
     function checkBudget(rec, line) {
         var prefs = getPreferences(line.projectId);
         if (prefs.unlockBudget) {
+            logDebug('checkBudget skipped', {
+                line: summarizeLine(line),
+                reason: 'Unlock budget is enabled on project preferences'
+            });
             return null;
         }
 
@@ -104,6 +154,18 @@ define(['N/currentRecord', 'N/search', 'N/ui/dialog', 'N/log'], function (curren
         var thisTransactionCost = getCurrentTransactionCost(rec, line);
         var totalAfterThisTransaction = existingCost + thisTransactionCost;
         var usedPercent = currentBudget > 0 ? (totalAfterThisTransaction / currentBudget) * 100 : 101;
+
+        logDebug('checkBudget amounts', {
+            line: summarizeLine(line),
+            currentBudget: currentBudget,
+            existingCost: existingCost,
+            thisTransactionCost: thisTransactionCost,
+            totalAfterThisTransaction: totalAfterThisTransaction,
+            usedPercent: usedPercent,
+            warningPercent: prefs.warningPercent,
+            warningAction: actionName(prefs.warningAction),
+            overBudgetAction: actionName(prefs.overBudgetAction)
+        });
 
         if (totalAfterThisTransaction > currentBudget) {
             return buildResult('Over Current Budget', prefs.overBudgetAction, line, currentBudget, existingCost, totalAfterThisTransaction, usedPercent);
@@ -118,7 +180,20 @@ define(['N/currentRecord', 'N/search', 'N/ui/dialog', 'N/log'], function (curren
 
     function buildResult(reason, action, line, currentBudget, existingCost, totalAfterThisTransaction, usedPercent) {
         return {
+            reason: reason,
             action: action,
+            projectId: line.projectId,
+            projectText: line.projectText,
+            costCodeId: line.costCodeId,
+            costCodeText: line.costCodeText,
+            costTypeId: line.costTypeId,
+            costTypeText: line.costTypeText,
+            amount: line.amount,
+            currentBudget: currentBudget,
+            existingCost: existingCost,
+            thisTransactionCost: totalAfterThisTransaction - existingCost,
+            totalAfterThisTransaction: totalAfterThisTransaction,
+            usedPercent: usedPercent,
             message: [
                 reason,
                 'Project: ' + line.projectText,
@@ -138,12 +213,17 @@ define(['N/currentRecord', 'N/search', 'N/ui/dialog', 'N/log'], function (curren
             return true;
         }
 
+        logDebug('show budget message', summarizeResult(result));
         showMessage(result.action === ACTION_HARD_STOP ? 'Budget Over Current Budget' : 'Budget Warning', result.message);
         return result.action !== ACTION_HARD_STOP;
     }
 
     function getPreferences(projectId) {
         if (prefsByProject[projectId]) {
+            logDebug('preferences cache hit', {
+                projectId: projectId,
+                preferences: summarizePreferences(prefsByProject[projectId])
+            });
             return prefsByProject[projectId];
         }
 
@@ -174,6 +254,15 @@ define(['N/currentRecord', 'N/search', 'N/ui/dialog', 'N/log'], function (curren
             prefs.warningPercent = toPercent(rows[0].getValue(warningPercentCol)) || DEFAULT_WARNING_PERCENT;
             prefs.warningAction = String(rows[0].getValue(warningActionCol) || DEFAULT_WARNING_ACTION);
             prefs.overBudgetAction = String(rows[0].getValue(overBudgetActionCol) || DEFAULT_OVER_BUDGET_ACTION);
+            logDebug('preferences loaded', {
+                projectId: projectId,
+                preferences: summarizePreferences(prefs)
+            });
+        } else {
+            logDebug('preferences missing - defaults used', {
+                projectId: projectId,
+                preferences: summarizePreferences(prefs)
+            });
         }
 
         prefsByProject[projectId] = prefs;
@@ -186,8 +275,7 @@ define(['N/currentRecord', 'N/search', 'N/ui/dialog', 'N/log'], function (curren
             return budgetByKey[key];
         }
 
-        var currentBudgetCol = search.createColumn({ name: BUDGET_CURRENT_FIELD });
-        var originalBudgetCol = search.createColumn({ name: BUDGET_ORIGINAL_FIELD });
+        var estimateCol = search.createColumn({ name: BUDGET_ESTIMATE_FIELD });
 
         var rows = search.create({
             type: BUDGET_RECORD_TYPE,
@@ -200,13 +288,22 @@ define(['N/currentRecord', 'N/search', 'N/ui/dialog', 'N/log'], function (curren
                 'AND',
                 ['isinactive', 'is', 'F']
             ],
-            columns: [currentBudgetCol, originalBudgetCol]
+            columns: [estimateCol]
         }).run().getRange({ start: 0, end: 1 });
 
         var currentBudget = 0;
         if (rows && rows.length) {
-            currentBudget = toNumber(rows[0].getValue(currentBudgetCol)) || toNumber(rows[0].getValue(originalBudgetCol));
+            currentBudget = toNumber(rows[0].getValue(estimateCol));
         }
+
+        logDebug('budget loaded', {
+            projectId: projectId,
+            costCodeId: costCodeId,
+            costTypeId: costTypeId,
+            budgetFieldId: BUDGET_ESTIMATE_FIELD,
+            budgetRecordFound: !!(rows && rows.length),
+            currentBudget: currentBudget
+        });
 
         budgetByKey[key] = currentBudget;
         return currentBudget;
@@ -227,6 +324,19 @@ define(['N/currentRecord', 'N/search', 'N/ui/dialog', 'N/log'], function (curren
         var billsCreatedFromPurchaseOrders = getBillsCreatedFromPurchaseOrders(projectId, costCodeId, costTypeId, null, linkedBillCreatedFromExcludeId);
         var committedCost = Math.max(0, openPurchaseOrders - billsCreatedFromPurchaseOrders);
 
+        logDebug('project cost loaded', {
+            recordType: recordType,
+            currentTransactionId: currentTransactionId || '',
+            projectId: projectId,
+            costCodeId: costCodeId,
+            costTypeId: costTypeId,
+            actualBills: actualBills,
+            openPurchaseOrders: openPurchaseOrders,
+            billsCreatedFromPurchaseOrders: billsCreatedFromPurchaseOrders,
+            committedCost: committedCost,
+            totalProjectCost: actualBills + committedCost
+        });
+
         costsByKey[key] = actualBills + committedCost;
         return costsByKey[key];
     }
@@ -244,7 +354,16 @@ define(['N/currentRecord', 'N/search', 'N/ui/dialog', 'N/log'], function (curren
             null
         );
 
-        return Math.max(0, line.amount - billedAgainstCurrentPo);
+        var thisTransactionCost = Math.max(0, line.amount - billedAgainstCurrentPo);
+
+        logDebug('current transaction PO cost', {
+            recordId: rec.id,
+            lineAmount: line.amount,
+            billedAgainstCurrentPo: billedAgainstCurrentPo,
+            thisTransactionCost: thisTransactionCost
+        });
+
+        return thisTransactionCost;
     }
 
     function getTransactionAmount(type, projectId, costCodeId, costTypeId, excludeTransactionId, openPoOnly) {
@@ -506,6 +625,86 @@ define(['N/currentRecord', 'N/search', 'N/ui/dialog', 'N/log'], function (curren
             title: title,
             message: message.replace(/\n/g, '<br>')
         });
+    }
+
+    function summarizeLine(line) {
+        return {
+            projectId: line.projectId,
+            projectText: line.projectText,
+            costCodeId: line.costCodeId,
+            costCodeText: line.costCodeText,
+            costTypeId: line.costTypeId,
+            costTypeText: line.costTypeText,
+            amount: line.amount
+        };
+    }
+
+    function summarizeResult(result) {
+        return {
+            reason: result.reason,
+            actionId: result.action,
+            actionText: actionName(result.action),
+            projectId: result.projectId,
+            projectText: result.projectText,
+            costCodeId: result.costCodeId,
+            costCodeText: result.costCodeText,
+            costTypeId: result.costTypeId,
+            costTypeText: result.costTypeText,
+            currentBudget: result.currentBudget,
+            existingCost: result.existingCost,
+            thisTransactionCost: result.thisTransactionCost,
+            totalAfterThisTransaction: result.totalAfterThisTransaction,
+            usedPercent: result.usedPercent
+        };
+    }
+
+    function summarizePreferences(prefs) {
+        return {
+            unlockBudget: prefs.unlockBudget,
+            warningPercent: prefs.warningPercent,
+            warningActionId: prefs.warningAction,
+            warningActionText: actionName(prefs.warningAction),
+            overBudgetActionId: prefs.overBudgetAction,
+            overBudgetActionText: actionName(prefs.overBudgetAction)
+        };
+    }
+
+    function actionName(action) {
+        return action === ACTION_HARD_STOP ? 'Hard Stop' : 'Warn Only';
+    }
+
+    function logDebug(title, details) {
+        writeLog('debug', title, details);
+    }
+
+    function logError(title, err) {
+        writeLog('error', title, {
+            message: err && err.message ? err.message : String(err),
+            stack: err && err.stack ? err.stack : ''
+        });
+    }
+
+    function writeLog(level, title, details) {
+        try {
+            log[level]({
+                title: LOG_TITLE + ' | ' + title,
+                details: stringify(details)
+            });
+        } catch (e) {
+            // Logging should never affect transaction entry.
+        }
+    }
+
+    function stringify(value) {
+        if (typeof value === 'string') {
+            return value;
+        }
+
+        try {
+            return JSON.stringify(value);
+        } catch (e) {
+            return String(value);
+        }
     }
 
     return {
