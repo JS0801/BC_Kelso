@@ -100,8 +100,9 @@ define(['N/currentRecord', 'N/search', 'N/ui/dialog', 'N/log'], function (curren
         }
 
         var currentBudget = getCurrentBudget(line.projectId, line.costCodeId, line.costTypeId);
-        var existingCost = getProjectCost(line.projectId, line.costCodeId, line.costTypeId, rec.id);
-        var totalAfterThisTransaction = existingCost + line.amount;
+        var existingCost = getProjectCost(rec.type, line.projectId, line.costCodeId, line.costTypeId, rec.id);
+        var thisTransactionCost = getCurrentTransactionCost(rec, line);
+        var totalAfterThisTransaction = existingCost + thisTransactionCost;
         var usedPercent = currentBudget > 0 ? (totalAfterThisTransaction / currentBudget) * 100 : 101;
 
         if (totalAfterThisTransaction > currentBudget) {
@@ -125,7 +126,7 @@ define(['N/currentRecord', 'N/search', 'N/ui/dialog', 'N/log'], function (curren
                 'Cost Type: ' + line.costTypeText,
                 'Current Budget: ' + formatCurrency(currentBudget),
                 'Existing Cost: ' + formatCurrency(existingCost),
-                'This Transaction: ' + formatCurrency(line.amount),
+                'This Transaction: ' + formatCurrency(totalAfterThisTransaction - existingCost),
                 'Total After This Transaction: ' + formatCurrency(totalAfterThisTransaction) + ' (' + usedPercent.toFixed(1) + '%)',
                 'Action: ' + (action === ACTION_HARD_STOP ? 'Hard Stop' : 'Warn Only')
             ].join('\n')
@@ -211,19 +212,39 @@ define(['N/currentRecord', 'N/search', 'N/ui/dialog', 'N/log'], function (curren
         return currentBudget;
     }
 
-    function getProjectCost(projectId, costCodeId, costTypeId, currentTransactionId) {
-        var key = [projectId, costCodeId, costTypeId, currentTransactionId || 'new'].join('|');
+    function getProjectCost(recordType, projectId, costCodeId, costTypeId, currentTransactionId) {
+        var key = [recordType, projectId, costCodeId, costTypeId, currentTransactionId || 'new'].join('|');
         if (costsByKey[key] !== undefined) {
             return costsByKey[key];
         }
 
-        var actualBills = getTransactionAmount('VendBill', projectId, costCodeId, costTypeId, currentTransactionId, false);
-        var allBills = getTransactionAmount('VendBill', projectId, costCodeId, costTypeId, null, false);
-        var openPurchaseOrders = getTransactionAmount('PurchOrd', projectId, costCodeId, costTypeId, currentTransactionId, true);
-        var committedCost = Math.max(0, openPurchaseOrders - allBills);
+        var actualBillExcludeId = recordType === 'vendorbill' ? currentTransactionId : null;
+        var purchaseOrderExcludeId = recordType === 'purchaseorder' ? currentTransactionId : null;
+        var linkedBillCreatedFromExcludeId = recordType === 'purchaseorder' ? currentTransactionId : null;
+
+        var actualBills = getTransactionAmount('VendBill', projectId, costCodeId, costTypeId, actualBillExcludeId, false);
+        var openPurchaseOrders = getTransactionAmount('PurchOrd', projectId, costCodeId, costTypeId, purchaseOrderExcludeId, true);
+        var billsCreatedFromPurchaseOrders = getBillsCreatedFromPurchaseOrders(projectId, costCodeId, costTypeId, null, linkedBillCreatedFromExcludeId);
+        var committedCost = Math.max(0, openPurchaseOrders - billsCreatedFromPurchaseOrders);
 
         costsByKey[key] = actualBills + committedCost;
         return costsByKey[key];
+    }
+
+    function getCurrentTransactionCost(rec, line) {
+        if (rec.type !== 'purchaseorder' || !rec.id) {
+            return line.amount;
+        }
+
+        var billedAgainstCurrentPo = getBillsCreatedFromPurchaseOrders(
+            line.projectId,
+            line.costCodeId,
+            line.costTypeId,
+            rec.id,
+            null
+        );
+
+        return Math.max(0, line.amount - billedAgainstCurrentPo);
     }
 
     function getTransactionAmount(type, projectId, costCodeId, costTypeId, excludeTransactionId, openPoOnly) {
@@ -252,6 +273,45 @@ define(['N/currentRecord', 'N/search', 'N/ui/dialog', 'N/log'], function (curren
 
         if (openPoOnly) {
             filters.push('AND', ['status', 'noneof', 'PurchOrd:G', 'PurchOrd:H']);
+        }
+
+        var rows = search.create({
+            type: search.Type.TRANSACTION,
+            filters: filters,
+            columns: [amountCol]
+        }).run().getRange({ start: 0, end: 1 });
+
+        return rows && rows.length ? Math.abs(toNumber(rows[0].getValue(amountCol))) : 0;
+    }
+
+    function getBillsCreatedFromPurchaseOrders(projectId, costCodeId, costTypeId, createdFromId, excludeCreatedFromId) {
+        var amountCol = search.createColumn({
+            name: 'amount',
+            summary: search.Summary.SUM
+        });
+
+        var filters = [
+            ['type', 'anyof', 'VendBill'],
+            'AND',
+            ['mainline', 'is', 'F'],
+            'AND',
+            ['taxline', 'is', 'F'],
+            'AND',
+            ['line.' + BC_PROJECT_FIELD, 'anyof', projectId],
+            'AND',
+            ['line.' + BC_COST_CODE_FIELD, 'anyof', costCodeId],
+            'AND',
+            ['account', 'anyof', costTypeId]
+        ];
+
+        if (createdFromId) {
+            filters.push('AND', ['createdfrom', 'anyof', String(createdFromId)]);
+        } else {
+            filters.push('AND', ['createdfrom', 'noneof', '@NONE@']);
+        }
+
+        if (excludeCreatedFromId) {
+            filters.push('AND', ['createdfrom', 'noneof', String(excludeCreatedFromId)]);
         }
 
         var rows = search.create({
