@@ -31,7 +31,7 @@ define(['N/search', 'N/error', 'N/log'], function (search, error, log) {
 
     var DEFAULT_WARNING_PERCENT = 85;
     var DEFAULT_WARNING_ACTION = ACTION_WARN_ONLY;
-    var DEFAULT_OVER_BUDGET_ACTION = ACTION_HARD_STOP;
+    var DEFAULT_OVER_BUDGET_ACTION = ACTION_WARN_ONLY;
     var VALIDATION_ERROR_NAME = 'RMR_BUDGET_VALIDATION';
 
     var prefsByProject = {};
