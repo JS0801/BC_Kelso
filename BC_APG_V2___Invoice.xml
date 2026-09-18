@@ -1,290 +1,194 @@
 <?xml version="1.0"?>
-<!DOCTYPE pdfset PUBLIC "-//big.faceless.org//report" "report-1.1.dtd">
+<!DOCTYPE pdf PUBLIC "-//big.faceless.org//report" "report-1.1.dtd">
 <pdf>
-  <head>
-    <macrolist>
-
-      <!-- ═══════════════════════════════════════════
-           HEADER: Logo | INVOICE title | Services list
-           ═══════════════════════════════════════════ -->
-      <macro id="nlheader">
-        <table width="100%" border="0" cellspacing="0" cellpadding="0"
-               style="font-family: Arial, sans-serif;">
-          <tr>
-            <!-- Left: subsidiary logo + remit-to address -->
-            <td width="25%" align="left" valign="middle">
-              <#if subsidiary.logo?has_content>
-                <img src="${subsidiary.logo@url}"
-                     style="width:140px; height:auto;"/>
-              </#if>
-              <br/>
-              <span style="font-size:8pt; color:#1a3a6e;">
-                Remit To: &nbsp;${subsidiary.mainaddress_text!''}
-                <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-              </span>
-            </td>
-
-            <!-- Center: INVOICE title -->
-            <td width="65%" align="center" valign="middle">
-              <span style="font-size:22pt; font-weight:bold; letter-spacing:4px; color:#1a3a6e;">INVOICE</span>
-            </td>
-
-            <!-- Right: services sidebar -->
-            <td width="10%" align="left" valign="top">
-              <table width="100%" border="0" cellspacing="0" cellpadding="2"
-                     style="font-size:8pt; font-weight:bold; letter-spacing:1px; color:#1a3a6e;">
-                <tr><td style="border-left:2px solid #add8e6; padding-left:5px;">&nbsp;ELECTRIC</td></tr>
-                <tr><td style="border-left:2px solid #add8e6; padding-left:5px;">&nbsp;ENGINEERING</td></tr>
-                <tr><td style="border-left:2px solid #add8e6; padding-left:5px;">&nbsp;TECHNOLOGY</td></tr>
-                <tr><td style="border-left:2px solid #add8e6; padding-left:5px;">&nbsp;LIFE SAFETY</td></tr>
-                <tr><td style="border-left:2px solid #add8e6; padding-left:5px;">&nbsp;SECURITY</td></tr>
-              </table>
-            </td>
-          </tr>
-        </table>
-        <!-- <hr style="width:100%;"/> -->
-      </macro>
-
-      <!-- ═══════════════════════════════════════════
-           FOOTER: License info | Page n of N
-           ═══════════════════════════════════════════ -->
-      <macro id="nlfooter">
-        <hr style="width:100%;"/>
-        <table width="100%" border="0" cellspacing="0" cellpadding="0"
-               style="font-family:Arial, sans-serif; font-size:7pt; color:#1a3a6e;">
-          <tr>
-            <td align="center">
-              Contractors EC13012118 &nbsp;|&nbsp; 
-              Engineers CA5947 &nbsp;|&nbsp;
-              ${record.subsidiary.address1!''} &nbsp;|&nbsp; 
-              ${record.subsidiary.city!''} ${record.subsidiary.state!''} ${record.subsidiary.zip!''} &nbsp;|&nbsp;
-              T 727.530.0077 &nbsp;|&nbsp;
-              F ${subsidiary.fax!''} &nbsp;|&nbsp; 
-              www.apg.company
-            </td>
-          </tr>
-          <tr>
-              <td align="right" style="white-space:nowrap;">
-                Page <pagenumber/> of <totalpages/>
-          </td>
-          </tr>
-        </table>
-      </macro>
-
-    </macrolist>
-
-    <style type="text/css">
-      table  { font-size:9pt; font-family:Arial, sans-serif; }
-      td     { padding:3px 5px; }
-      b      { font-weight:bold; }
-
-      /* Bill-To / Project boxes */
-      .box-header {
-        font-weight:bold; font-size:9pt; text-align:center;
-        background-color:#ffffff; padding:5px 8px;
-        border-bottom:1px solid #999;
-      }
-      .box-body { padding:8px 10px; min-height:60px; }
-
-      /* Invoice meta row + line-items table share this */
-      .grid { border-collapse:collapse; width:100%; }
-      .grid th {
-        border:1px solid #999; padding:5px 6px;
-        background-color:#c8e4ff; font-weight:bold;
-        font-size:8pt; vertical-align:middle; text-align:center;
-      }
-      .grid td { border:1px solid #999; padding:4px 6px; }
-
-      /* Subtotal row in line-items table */
-      tr.subtotalrow td {
-        background-color:#e3e3e3; font-weight:bold;
-        border:1px solid #999; padding:4px 6px;
-      }
-    </style>
-  </head>
-
-  <body header="nlheader" header-height="110px"
-        footer="nlfooter" footer-height="30px"
-        size="Letter" padding="0.35in 0.5in 0.5in 0.5in"
-        style="font-family:Arial, sans-serif; font-size:9pt;">
-
-    <!-- ═══════════════════════════════════════════
-         SECTION 1: Bill To / Project boxes
-         ═══════════════════════════════════════════ -->
-    <table width="100%" class="grid" style="margin-top:10px;">
-      <tr>
-        <th align="center" width="48%">BILL TO</th>
-        <th width="4%" style="border:none; background-color:transparent;">&nbsp;</th>
-        <th align="center" width="48%">PROJECT</th>
-      </tr>
-      <tr>
-        <td width="48%" valign="top" class="box-body" style="border:1px solid #999; border-top:none;">${record.billaddress!''}</td>
-        <td width="4%" style="border:none;">&nbsp;</td>
-        <td width="48%" valign="top" class="box-body" style="border:1px solid #999; border-top:none;">${record.custpage_apg_proj_name!''}<br />${record.custpage_apg_proj_address!''}</td>
-      </tr>
-    </table>
-
-    <!-- ═══════════════════════════════════════════
-         SECTION 2: Invoice meta (5-column row)
-         ═══════════════════════════════════════════ -->
-    <table class="grid" style="margin-top:8px;">
-      <tr>
-        <th>INVOICE #</th>
-        <th>INVOICE DATE</th>
-        <th>PAYMENT TERMS</th>
-        <th>CUSTOMER REFERENCE / PO</th>
-        <th>CUSTOMER</th>
-      </tr>
-      <tr>
-        <td style="text-align:center;">${record.tranid}</td>
-        <td style="text-align:center;">${record.trandate}</td>
-        <td style="text-align:center;">${record.terms}</td>
-        <td style="text-align:center;">${record.otherrefnum}</td>
-        <td style="text-align:center;">${record.entity.entityid!''}</td>
-      </tr>
-    </table>
-
-    <!-- ═══════════════════════════════════════════
-         SECTION 3: Work-completed-through date
-         ═══════════════════════════════════════════ -->
-    <table width="100%" border="0" cellspacing="0" cellpadding="2"
-           style="margin-top:8px;">
-      <tr>
-        <td style="font-weight:bold; font-size:9pt;">
-          FOR WORK COMPLETED THROUGH: &nbsp;${record.enddate!''}
-        </td>
-      </tr>
-    </table>
-
-    <!-- ═══════════════════════════════════════════
-         SECTION 4: Line items table
-         Accumulators are initialised before the list,
-         then populated inside the single list pass
-         so summary totals require no second iteration.
-         ═══════════════════════════════════════════ -->
-    <#assign accContractAmt   = 0 />
-    <#assign accWorkComplete  = 0 />
-    <#assign accPrevInvoiced  = 0 />
-    <#assign accCurrentBill   = 0 />
-    <#assign accLessRetention = 0 />
-
-    <table class="grid" style="margin-top:6px;">
-      <thead>
-        <tr>
-          <!-- Columns 1-2 share the project-number label via colspan -->
-          <th colspan="2" width="40%" align="left">
-            APG PROJECT &nbsp;${record.custpage_apg_proj_number!''}&nbsp; CONTRACT ITEMS
-          </th>
-          <th align="center" width="15%" >CONTRACT<br/>AMOUNT</th>
-          <th align="center" width="10%" >%<br/>COMPLETE</th>
-          <th align="center" width="17%" >TOTAL<br/>TO DATE</th>
-          <th align="center" width="18%" >CURRENT<br/>BILLING</th>
-        </tr>
-      </thead>
-
-      <tbody>
-        <#if record.item?has_content>
-        <#list record.item as item>
-
-          <!-- Pull numeric values safely, defaulting to 0 -->
-          <#assign _origVal  = ((item.custpage_apg_orig_value!'')?has_content)?then((item.custpage_apg_orig_value)?number, 0) />
-          <#assign _prevInv  = ((item.custpage_apg_prev_invoiced!'')?has_content)?then((item.custpage_apg_prev_invoiced)?number, 0) />
-          <#assign _workComp = ((item.custpage_apg_amt_work_complete!'')?has_content)?then((item.custpage_apg_amt_work_complete)?number, 0) />
-          <#assign _grossDue = ((item.custpage_apg_gross_due!'')?has_content)?then((item.custpage_apg_gross_due)?number, 0) />
-          <#assign _totRet   = ((item.custpage_apg_total_retention!'')?has_content)?then((item.custpage_apg_total_retention)?number, 0) />
-          <#assign _pct      = ((item.custpage_apg_pct_work_completed!'')?has_content)?then((item.custpage_apg_pct_work_completed)?number, 0) />
-
-          <!-- Accumulate column totals -->
-          <#assign accContractAmt   = accContractAmt   + _origVal  />
-          <#assign accWorkComplete  = accWorkComplete  + _workComp />
-          <#assign accPrevInvoiced  = accPrevInvoiced  + _prevInv  />
-          <#assign accCurrentBill   = accCurrentBill   + _grossDue />
-          <#assign accLessRetention = accLessRetention + _totRet   />
-
-          <tr>
-            <!-- Col 1: project name - department -->
-            <td width="30%" valign="top" style="border-right:none;">
-              ${record.custpage_apg_proj_number!''}
-              <#if (item.custpage_apg_dept!'')?has_content> - ${item.custpage_apg_dept}</#if> -
-            </td>
-
-            <!-- Col 2: invoice line item -->
-            <td width="20%" valign="top" style="border-left:none;">${item.item!''}</td>
-
-            <!-- Col 3: Contract Amount -->
-            <td align="right">${_origVal?string("#,##0.00")}</td>
-
-            <!-- Col 4: % Complete -->
-            <td align="center">${_pct?string("#,##0.00")}%</td>
-
-            <!-- Col 5: Total to Date (previously billed) -->
-            <td align="right">${_prevInv?string("#,##0.00")}</td>
-
-            <!-- Col 6: Current Billing (gross due) -->
-            <td align="right">${_grossDue?string("#,##0.00")}</td>
-          </tr>
-
-        </#list>
-        <!-- Subtotal row — outside list, inside tbody, avoids unsupported <tfoot> -->
-        <tr class="subtotalrow">
-          <td colspan="2">&nbsp;</td>
-          <td align="right">${accContractAmt?string("#,##0.00")}</td>
-          <td align="center">
-            <#if accContractAmt != 0>
-              ${(accWorkComplete / accContractAmt * 100)?string("#,##0.00")}%
-            <#else>
-              0.00%
-            </#if>
-          </td>
-          <td align="right">${accPrevInvoiced?string("#,##0.00")}</td>
-          <td align="right">${accCurrentBill?string("#,##0.00")}</td>
-        </tr>
+<head>
+  <link name="NotoSans" type="font" subtype="truetype" src="${nsfont.NotoSans_Regular}" src-bold="${nsfont.NotoSans_Bold}" bytes="2" />
+  <!-- Existing custpage_apg_* fields must continue to be supplied by the invoice renderer.
+       Amount uses the existing gross-due value when supplied, otherwise the invoice line amount.
+       Retainage retains the original template's total-retention mapping.
+       Total Due always comes from the invoice record; no tax or retainage is deducted twice. -->
+  <#assign invoiceSubtotal = 0 />
+  <#assign invoiceRetainage = 0 />
+  <#if record.item?has_content>
+    <#list record.item as line>
+      <#if (line.custpage_apg_gross_due!'')?has_content>
+        <#assign lineAmount = (line.custpage_apg_gross_due) />
+        <#if lineAmount?is_number == false>
+          <#assign lineAmount = lineAmount?string?trim?replace(",", "")?replace("$", "")?replace(" ", "")?replace(" ", "")?replace("(", "-")?replace(")", "") />
+          <#if lineAmount?has_content>
+            <#assign lineAmount = lineAmount?number />
+          <#else>
+            <#assign lineAmount = 0 />
+          </#if>
         </#if>
-      </tbody>
-    </table>
-
-    <!-- ═══════════════════════════════════════════
-         SECTION 5: Summary totals block (right-aligned)
-         ═══════════════════════════════════════════ -->
-    <table width="100%" border="0" cellspacing="0" cellpadding="0"
-           style="margin-top:12px;">
-      <tr>
-        <!-- Left spacer -->
-        <td width="52%">&nbsp;</td>
-
-        <!-- Right: totals -->
-        <td width="48%">
-          <table width="100%" border="0" cellspacing="0" cellpadding="3"
-                 style="font-size:9pt;">
-            <tr>
-              <td align="right" style="padding-right:12px;">Total To Date</td>
-              <td align="right" style="min-width:100px;">
-                ${accWorkComplete?string("#,##0.00")}
-              </td>
-            </tr>
-            <tr>
-              <td align="right" style="padding-right:12px;">Sales Tax</td>
-              <td align="right">${(record.taxtotal!'0')?replace('$','')?replace(',','')?number?string("#,##0.00")}</td>
-            </tr>
-            <tr>
-              <td align="right" style="padding-right:12px;">Less Retainage</td>
-              <td align="right">${accLessRetention?string("#,##0.00")}</td>
-            </tr>
-            <tr>
-              <td align="right" style="padding-right:12px;">Less Previous Billed</td>
-              <td align="right">${accPrevInvoiced?string("#,##0.00")}</td>
-            </tr>
-            <tr>
-              <td align="right" style="padding-right:12px;"><b>Total Tax This Invoice</b></td>
-              <td align="right"><b>${(record.taxtotal!'0')?replace('$','')?replace(',','')?number?string("#,##0.00")}</b></td>
-            </tr>
-            <tr>
-              <td align="right" style="padding-right:12px;"><b>Total Due This Invoice</b></td>
-              <td align="right"><b>${record.total}</b></td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
-  </body>
+        <#assign invoiceSubtotal = invoiceSubtotal + lineAmount />
+      <#else>
+        <#assign lineAmount = (line.amount!0) />
+        <#if lineAmount?is_number == false>
+          <#assign lineAmount = lineAmount?string?trim?replace(",", "")?replace("$", "")?replace(" ", "")?replace(" ", "")?replace("(", "-")?replace(")", "") />
+          <#if lineAmount?has_content>
+            <#assign lineAmount = lineAmount?number />
+          <#else>
+            <#assign lineAmount = 0 />
+          </#if>
+        </#if>
+        <#assign invoiceSubtotal = invoiceSubtotal + lineAmount />
+      </#if>
+      <#assign lineRetainage = (line.custpage_apg_total_retention!0) />
+      <#if lineRetainage?is_number == false>
+        <#assign lineRetainage = lineRetainage?string?trim?replace(",", "")?replace("$", "")?replace(" ", "")?replace(" ", "")?replace("(", "-")?replace(")", "") />
+        <#if lineRetainage?has_content>
+          <#assign lineRetainage = lineRetainage?number />
+        <#else>
+          <#assign lineRetainage = 0 />
+        </#if>
+      </#if>
+      <#assign invoiceRetainage = invoiceRetainage + lineRetainage />
+    </#list>
+  </#if>
+  <#assign invoiceTax = (record.taxtotal!0) />
+  <#if invoiceTax?is_number == false>
+    <#assign invoiceTax = invoiceTax?string?trim?replace(",", "")?replace("$", "")?replace(" ", "")?replace(" ", "")?replace("(", "-")?replace(")", "") />
+    <#if invoiceTax?has_content>
+      <#assign invoiceTax = invoiceTax?number />
+    <#else>
+      <#assign invoiceTax = 0 />
+    </#if>
+  </#if>
+  <#assign invoiceTotal = (record.total!0) />
+  <#if invoiceTotal?is_number == false>
+    <#assign invoiceTotal = invoiceTotal?string?trim?replace(",", "")?replace("$", "")?replace(" ", "")?replace(" ", "")?replace("(", "-")?replace(")", "") />
+    <#if invoiceTotal?has_content>
+      <#assign invoiceTotal = invoiceTotal?number />
+    <#else>
+      <#assign invoiceTotal = 0 />
+    </#if>
+  </#if>
+  <macrolist>
+    <macro id="nlheader">
+      <table class="brand" width="100%">
+        <tr>
+          <td width="30%" valign="middle" style="padding-top:22pt;">
+            <#if (subsidiary.logo@url)?has_content>
+              <img src="${subsidiary.logo@url}" width="125" height="29" />
+            </#if>
+            <table width="100%" style="margin-top:4pt; color:#00aeef; font-size:7pt;">
+              <tr><td width="25%">Remit To:</td><td width="75%">${subsidiary.mainaddress_text!''}</td></tr>
+            </table>
+          </td>
+          <td width="51%" align="center" valign="middle" style="font-size:23pt; color:#002e6d;"><b>INVOICE</b></td>
+          <td width="19%" valign="middle" style="border-left:0.6pt solid #00aeef; padding:10pt 0 0 17pt;">
+            <table class="services" width="100%">
+              <tr><td>ELECTRIC</td></tr><tr><td>ENGINEERING</td></tr>
+              <tr><td>TECHNOLOGY</td></tr><tr><td>LIFE SAFETY</td></tr><tr><td>SECURITY</td></tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+      <table width="100%" style="margin-top:15pt; margin-bottom:12pt;">
+        <tr><td style="font-weight:bold;">Email To:&#160; ${record.email!''}</td></tr>
+      </table>
+      <table width="100%" class="addresses">
+        <tr>
+          <th width="44.5%" align="center">BILL TO</th>
+          <td width="11%" style="border:0; padding:0;">&#160;</td>
+          <th width="44.5%" align="center">PROJECT</th>
+        </tr>
+        <tr>
+          <td class="address" height="68pt">${record.billaddress!''}</td>
+          <td style="border:0; padding:0;">&#160;</td>
+          <td class="address" height="68pt">${record.custpage_apg_proj_name!''}<br />${record.custpage_apg_proj_address!''}</td>
+        </tr>
+      </table>
+      <table class="meta" width="100%" style="margin-top:9pt;">
+        <tr>
+          <th width="17.5%" align="center">INVOICE #</th>
+          <th width="17.5%" align="center">INVOICE DATE</th>
+          <th width="18%" align="center">PAYMENT TERMS</th>
+          <th width="31%" align="center">CUSTOMER REFERENCE / PO</th>
+          <th width="16%" align="center">CUSTOMER</th>
+        </tr>
+        <tr>
+          <td align="center">${record.tranid!''}</td><td align="center">${record.trandate!''}</td>
+          <td align="center">${record.terms!''}</td><td align="center">${record.otherrefnum!''}</td>
+          <td align="center">${record.entity.entityid!''}</td>
+        </tr>
+      </table>
+      <table width="100%" style="margin-top:6pt;">
+        <tr><td style="font-size:8pt; font-weight:bold; padding-left:5pt;">APG PROJECT ${record.custpage_apg_proj_number!''}</td></tr>
+      </table>
+    </macro>
+    <macro id="nlfooter">
+      <table width="100%" style="font-size:6.1pt; color:#002e6d;">
+        <tr><td align="center">Contractors EC13012118 | Engineers CA5947 | 4825 140th Avenue North | Clearwater, Florida 33762 | T 727.530.0077 | F 727.530.0045 | www.apg.company</td></tr>
+        <tr><td align="right" style="font-size:8pt; color:#000000; padding-top:7pt;">Page <pagenumber /> of <totalpages /></td></tr>
+      </table>
+    </macro>
+  </macrolist>
+  <style type="text/css">
+    * { font-family:NotoSans, sans-serif; }
+    table { font-size:9pt; table-layout:fixed; border-collapse:collapse; }
+    td { padding:0; vertical-align:top; }
+    th { background-color:#c6e2f8; font-weight:bold; color:#000000; }
+    .brand { height:91pt; }
+    .services td { font-size:9pt; font-weight:bold; color:#002e6d; padding-bottom:5pt; }
+    .addresses th { border:1.2pt solid #000000; padding:1pt 3pt; }
+    .addresses td.address { border:1.2pt solid #000000; padding:6pt 12pt 6pt 35pt; font-weight:bold; }
+    .meta th { border:1pt solid #000000; font-size:7.5pt; padding:2pt 1pt; }
+    .meta td { border:1pt solid #000000; padding:2pt 2pt; font-size:8.5pt; }
+    .items { border:1.2pt solid #000000; }
+    .items th { padding:3pt 4pt; border-bottom:1.2pt solid #000000; font-size:8pt; }
+    .items td { padding:2pt 4pt; font-size:8.5pt; }
+    .amount { border-left:0.6pt solid #000000; }
+    .totals td { padding:3pt 8pt; font-size:9pt; }
+  </style>
+</head>
+<body header="nlheader" header-height="285pt" footer="nlfooter" footer-height="30pt"
+      size="Letter" padding="18pt 23pt 20pt 23pt">
+  <table class="items" width="100%">
+    <thead><tr>
+      <th width="15%" align="left">ITEM</th>
+      <th width="69%" align="left">DESCRIPTION</th>
+      <th width="16%" align="right" class="amount">AMOUNT</th>
+    </tr></thead>
+    <#if record.item?has_content>
+      <#list record.item as item>
+        <#assign displayAmount = item.amount!0 />
+        <#if (item.custpage_apg_gross_due!'')?has_content>
+          <#assign displayAmount = item.custpage_apg_gross_due />
+        </#if>
+        <#assign displayAmount = (displayAmount) />
+        <#if displayAmount?is_number == false>
+          <#assign displayAmount = displayAmount?string?trim?replace(",", "")?replace("$", "")?replace(" ", "")?replace(" ", "")?replace("(", "-")?replace(")", "") />
+          <#if displayAmount?has_content>
+            <#assign displayAmount = displayAmount?number />
+          <#else>
+            <#assign displayAmount = 0 />
+          </#if>
+        </#if>
+        <tr>
+          <td>${item.item!''}</td>
+          <td>${item.description!''}</td>
+          <td align="right" class="amount">${displayAmount?string("#,##0.00")}</td>
+        </tr>
+      </#list>
+    <#else>
+      <tr><td>&#160;</td><td>&#160;</td><td class="amount">&#160;</td></tr>
+    </#if>
+  </table>
+  <!-- Flow directly after items so the totals are not forced onto an otherwise empty page. -->
+  <table width="100%" style="page-break-inside:avoid;">
+    <tr>
+      <td width="62%">&#160;</td>
+      <td width="38%" style="border:1.2pt solid #000000; border-top:0;">
+        <table class="totals" width="100%">
+          <tr><td width="55%" align="right">Subtotal</td><td width="45%" align="right">${invoiceSubtotal?string("#,##0.00")}</td></tr>
+          <tr><td align="right">Sales Tax</td><td align="right">${invoiceTax?string("#,##0.00")}</td></tr>
+          <tr><td align="right">Less Retainage</td><td align="right">${invoiceRetainage?string("#,##0.00")}</td></tr>
+          <tr><td align="right" style="padding-top:7pt;">Total Due</td><td align="right" style="padding-top:7pt;"><b>${invoiceTotal?string("#,##0.00")}</b></td></tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
 </pdf>
