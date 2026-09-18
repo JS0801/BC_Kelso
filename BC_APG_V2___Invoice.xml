@@ -110,7 +110,7 @@
         </tr>
         <tr>
           <td align="center">${record.tranid!''}</td><td align="center">${record.trandate!''}</td>
-          <td align="center">${record.terms!''}</td><td align="center">${record.createdfrom.otherrefnum!''}</td>
+          <td align="center">${record.terms!''}</td><td align="center">${record.createdfrom.terms!''}</td>
           <td align="center">${record.entity.entityid!''}</td>
         </tr>
       </table>
