@@ -72,12 +72,12 @@
             <#if (subsidiary.logo@url)?has_content>
               <img src="${subsidiary.logo@url}" width="125" height="29" />
             </#if>
-            <table width="100%" style="margin-top:4pt; color:#00aeef; font-size:7pt;">
+            <table width="100%" style="margin-top:4pt; color:#1a3a6e; font-size:7pt;">
               <tr><td width="25%">Remit To:</td><td width="75%">${subsidiary.mainaddress_text!''}</td></tr>
             </table>
           </td>
-          <td width="51%" align="center" valign="middle" style="font-size:23pt; color:#002e6d;"><b>INVOICE</b></td>
-          <td width="19%" valign="middle" style="border-left:0.6pt solid #00aeef; padding:10pt 0 0 17pt;">
+          <td width="51%" align="center" valign="middle" style="font-size:23pt; color:#1a3a6e;"><b>INVOICE</b></td>
+          <td width="19%" valign="middle" style="border-left:0.6pt solid #add8e6; padding:10pt 0 0 17pt;">
             <table class="services" width="100%">
               <tr><td>ELECTRIC</td></tr><tr><td>ENGINEERING</td></tr>
               <tr><td>TECHNOLOGY</td></tr><tr><td>LIFE SAFETY</td></tr><tr><td>SECURITY</td></tr>
@@ -119,7 +119,7 @@
       </table>
     </macro>
     <macro id="nlfooter">
-      <table width="100%" style="font-size:6.1pt; color:#002e6d;">
+      <table width="100%" style="font-size:6.1pt; color:#1a3a6e;">
         <tr><td align="center">Contractors EC13012118 | Engineers CA5947 | 4825 140th Avenue North | Clearwater, Florida 33762 | T 727.530.0077 | F 727.530.0045 | www.apg.company</td></tr>
         <tr><td align="right" style="font-size:8pt; color:#000000; padding-top:7pt;">Page <pagenumber /> of <totalpages /></td></tr>
       </table>
@@ -129,17 +129,17 @@
     * { font-family:NotoSans, sans-serif; }
     table { font-size:9pt; table-layout:fixed; border-collapse:collapse; }
     td { padding:0; vertical-align:top; }
-    th { background-color:#c6e2f8; font-weight:bold; color:#000000; }
+    th { background-color:#c8e4ff; font-weight:bold; color:#000000; }
     .brand { height:91pt; }
-    .services td { font-size:9pt; font-weight:bold; color:#002e6d; padding-bottom:5pt; }
-    .addresses th { border:1.2pt solid #000000; padding:1pt 3pt; }
-    .addresses td.address { border:1.2pt solid #000000; padding:6pt 12pt 6pt 35pt; font-weight:bold; }
-    .meta th { border:1pt solid #000000; font-size:7.5pt; padding:2pt 1pt; }
-    .meta td { border:1pt solid #000000; padding:2pt 2pt; font-size:8.5pt; }
-    .items { border:1.2pt solid #000000; }
-    .items th { padding:3pt 4pt; border-bottom:1.2pt solid #000000; font-size:8pt; }
+    .services td { font-size:9pt; font-weight:bold; color:#1a3a6e; padding-bottom:5pt; }
+    .addresses th { border:1.2pt solid #999; padding:1pt 3pt; }
+    .addresses td.address { border:1.2pt solid #999; padding:6pt 12pt 6pt 35pt; font-weight:bold; }
+    .meta th { border:1pt solid #999; font-size:7.5pt; padding:2pt 1pt; }
+    .meta td { border:1pt solid #999; padding:2pt 2pt; font-size:8.5pt; }
+    .items { border:1.2pt solid #999; }
+    .items th { padding:3pt 4pt; border-bottom:1.2pt solid #999; font-size:8pt; }
     .items td { padding:2pt 4pt; font-size:8.5pt; }
-    .amount { border-left:0.6pt solid #000000; }
+    .amount { border-left:0.6pt solid #999; }
     .totals td { padding:3pt 8pt; font-size:9pt; }
   </style>
 </head>
@@ -180,7 +180,7 @@
   <table width="100%" style="page-break-inside:avoid;">
     <tr>
       <td width="62%">&#160;</td>
-      <td width="38%" style="border:1.2pt solid #000000; border-top:0;">
+      <td width="38%" style="border:1.2pt solid #999; border-top:0;">
         <table class="totals" width="100%">
           <tr><td width="55%" align="right">Subtotal</td><td width="45%" align="right">${invoiceSubtotal?string("#,##0.00")}</td></tr>
           <tr><td align="right">Sales Tax</td><td align="right">${invoiceTax?string("#,##0.00")}</td></tr>
