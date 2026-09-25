@@ -1,0 +1,224 @@
+<?xml version="1.0"?>
+<!DOCTYPE pdfset PUBLIC "-//big.faceless.org//report" "report-1.1.dtd">
+<pdf>
+  <head>
+    <macrolist>
+
+      <!-- ═══════════════════════════════════════════
+           HEADER: Logo | PURCHASE ORDER title | Services list
+           ═══════════════════════════════════════════ -->
+      <macro id="nlheader">
+        <table width="100%" border="0" cellspacing="0" cellpadding="0"
+               style="font-family: Arial, sans-serif;">
+          <tr>
+            <!-- Left: subsidiary logo -->
+            <td width="25%" align="left" valign="middle">
+              <#if subsidiary.logo?has_content>
+                <img src="${subsidiary.logo@url}"
+                     style="width:140px; height:auto;"/>
+              </#if>
+              <br/>
+              <span style="font-size:8pt; color:#1a3a6e;">
+                ${subsidiary.mainaddress_text!''}
+                <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+              </span>
+            </td>
+
+            <!-- Center: PURCHASE ORDER title -->
+            <td width="65%" align="center" valign="middle">
+              <span style="font-size:22pt; font-weight:bold; letter-spacing:4px; color:#1a3a6e;">PURCHASE ORDER</span>
+            </td>
+
+            <!-- Right: services sidebar -->
+            <td width="10%" align="left" valign="top">
+              <table width="100%" border="0" cellspacing="0" cellpadding="2"
+                     style="font-size:8pt; font-weight:bold; letter-spacing:1px; color:#1a3a6e;">
+                <tr><td style="border-left:2px solid #add8e6; padding-left:5px;">&nbsp;ELECTRIC</td></tr>
+                <tr><td style="border-left:2px solid #add8e6; padding-left:5px;">&nbsp;ENGINEERING</td></tr>
+                <tr><td style="border-left:2px solid #add8e6; padding-left:5px;">&nbsp;TECHNOLOGY</td></tr>
+                <tr><td style="border-left:2px solid #add8e6; padding-left:5px;">&nbsp;LIFE SAFETY</td></tr>
+                <tr><td style="border-left:2px solid #add8e6; padding-left:5px;">&nbsp;SECURITY</td></tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </macro>
+
+      <!-- ═══════════════════════════════════════════
+           FOOTER: License info | Page n of N
+           ═══════════════════════════════════════════ -->
+      <macro id="nlfooter">
+        <hr style="width:100%;"/>
+        <table width="100%" border="0" cellspacing="0" cellpadding="0"
+               style="font-family:Arial, sans-serif; font-size:7pt; color:#1a3a6e;">
+          <tr>
+            <td align="center">
+              Contractors EC13012118 &nbsp;|&nbsp;
+              Engineers CA5947 &nbsp;|&nbsp;
+              ${record.subsidiary.address1!''} &nbsp;|&nbsp;
+              ${record.subsidiary.city!''} ${record.subsidiary.state!''} ${record.subsidiary.zip!''} &nbsp;|&nbsp;
+              T 727.530.0077 &nbsp;|&nbsp;
+              F ${subsidiary.fax!''} &nbsp;|&nbsp;
+              www.apg.company
+            </td>
+          </tr>
+          <tr>
+            <td align="right" style="white-space:nowrap;">
+              Page <pagenumber/> of <totalpages/>
+            </td>
+          </tr>
+        </table>
+      </macro>
+
+    </macrolist>
+
+    <style type="text/css">
+      table  { font-size:9pt; font-family:Arial, sans-serif; }
+      td     { padding:3px 5px; }
+      b      { font-weight:bold; }
+
+      /* Address boxes */
+      .box-header {
+        font-weight:bold; font-size:9pt; text-align:center;
+        background-color:#ffffff; padding:5px 8px;
+        border-bottom:1px solid #999;
+      }
+      .box-body { padding:8px 10px; min-height:60px; }
+
+      /* Meta row + line-items table */
+      .grid { border-collapse:collapse; width:100%; }
+      .grid th {
+        border:1px solid #999; padding:5px 6px;
+        background-color:#c8e4ff; font-weight:bold;
+        font-size:8pt; color:#000000; vertical-align:middle; text-align:center;
+      }
+      .grid td { border:1px solid #999; padding:4px 6px; }
+
+      /* Subtotal row in line-items table */
+      tr.subtotalrow td {
+        background-color:#e3e3e3; font-weight:bold;
+        border:1px solid #999; padding:4px 6px;
+      }
+    </style>
+  </head>
+
+  <body header="nlheader" header-height="110px"
+        footer="nlfooter" footer-height="30px"
+        size="Letter" padding="0.35in 0.5in 0.5in 0.5in"
+        style="font-family:Arial, sans-serif; font-size:9pt;">
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 1: Project info (top right)
+         ═══════════════════════════════════════════ -->
+    <table width="100%" class="grid" style="margin-top:6px;">
+      <tr>
+        <td width="52%" style="border:none;">&nbsp;</td>
+        <th align="center" width="48%">PROJECT</th>
+      </tr>
+      <tr>
+        <td width="52%" style="border:none;">&nbsp;</td>
+        <td width="48%" valign="top" class="box-body"
+            style="border:1px solid #999; border-top:none;">
+          <#if (record.cseg_bc_project!'')?has_content>
+            ${record.cseg_bc_project}<br/>
+            ${record.custbody_bc_project_address_details!''}
+          </#if>
+        </td>
+      </tr>
+    </table>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 2: Vendor / Ship To (two-column)
+         ═══════════════════════════════════════════ -->
+    <table width="100%" class="grid" style="margin-top:6px;">
+      <tr>
+        <th align="center" width="48%">VENDOR</th>
+        <th width="4%" style="border:none; background-color:transparent;">&nbsp;</th>
+        <th align="center" width="48%">SHIP TO</th>
+      </tr>
+      <tr>
+        <td width="48%" valign="top" class="box-body"
+            style="border:1px solid #999; border-top:none;">${record.billaddress!''}</td>
+        <td width="4%" style="border:none;">&nbsp;</td>
+        <td width="48%" valign="top" class="box-body"
+            style="border:1px solid #999; border-top:none;">${record.shipaddress!''}</td>
+      </tr>
+    </table>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 3: PO metadata row
+         PO # | VENDOR # | ORDERED DATE | ORDERED BY | EXPECTED DATE | SHIPPING INSTRUCTIONS
+         ═══════════════════════════════════════════ -->
+    <table class="grid" style="margin-top:8px;">
+      <tr>
+        <th>PO #</th>
+        <th>VENDOR #</th>
+        <th>ORDERED DATE</th>
+        <th>ORDERED BY</th>
+        <th>EXPECTED DATE</th>
+        <th>SHIPPING INSTRUCTIONS</th>
+      </tr>
+      <tr>
+        <td style="text-align:center;">${record.tranid!''}</td>
+        <td style="text-align:center;">${record.entity.entityid!''}</td>
+        <td style="text-align:center;">${record.trandate!''}</td>
+        <td style="text-align:center;">${record.employee!''}</td>
+        <td style="text-align:center;">${record.shipdate!''}</td>
+        <td style="text-align:left;">${record.shipinstruct!''}</td>
+      </tr>
+    </table>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 4: Line items table
+         ═══════════════════════════════════════════ -->
+    <table class="grid" style="margin-top:8px;">
+      <thead>
+        <tr>
+          <th align="center" width="10%">ITEM #</th>
+          <th align="left"   width="75%">DESCRIPTION</th>
+          <th align="center" width="15%">TOTAL</th>
+        </tr>
+      </thead>
+      <tbody>
+        <#if record.item?has_content>
+        <#list record.item as item>
+          <tr>
+            <td align="center">${item_index + 1}</td>
+            <td>
+              <#if (item.item!'')?has_content><b>${item.item}</b><br/></#if>
+              ${item.description!''}
+            </td>
+            <td align="right">${item.amount!''}</td>
+          </tr>
+        </#list>
+
+        <!-- Subtotal row -->
+        <tr class="subtotalrow" style="height:40px;">
+          <td colspan="2" align="right">SubTotal</td>
+          <td align="right">${record.subtotal!''}</td>
+        </tr>
+        </#if>
+      </tbody>
+    </table>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 5: Memo / Notes
+         ═══════════════════════════════════════════ -->
+    <table width="100%" border="0" cellspacing="0" cellpadding="4"
+           style="margin-top:10px;">
+      <tr>
+        <td style="font-size:8.5pt; color:#333333;">
+          All invoices, packing slips, etc. must reference purchase order number &amp; project name.
+        </td>
+      </tr>
+      <#if (record.memo!'')?has_content>
+      <tr>
+        <td style="font-size:8.5pt; color:#333333;">
+          ${record.memo?replace("\n", "<br/>")}
+        </td>
+      </tr>
+      </#if>
+    </table>
+
+  </body>
+</pdf>
