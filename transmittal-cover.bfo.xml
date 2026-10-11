@@ -1,672 +1,348 @@
-/**
- * @NApiVersion 2.1
- * @NModuleScope Public
- *
- * PDF rendering — wraps N/render with the BFO/FreeMarker templates
- * shipped under templates/pdf/. Subsidiary co-branding is resolved
- * inline (subsidiary record → display name + main address + logo URL);
- * the more elaborate bc_branding_resolver scoping chain ships later.
- *
- * Templates:
- *   - _shared.bfo.xml              CSS partial (mirrors design tokens)
- *   - transmittal-cover.bfo.xml    REAL — Phase 3.2 Section D
- *   - closeout-external.bfo        deferred
- *   - closeout-internal.bfo        deferred
- *   - submittal-export.bfo         deferred
- */
-define([
-  'N/render', 'N/file', 'N/query', 'N/record', 'N/search', 'N/runtime', 'N/log',
-  '../../Shared/lib/bc_submittal_constants',
-  '../../Shared/lib/bc_submittal_errors',
-  './bc_line_dao',
-  './bc_response_dao',
-  './bc_file_dao',
-  './bc_workflow_logic',
-  './bc_branding_resolver',
-  './bc_project_dao',
-  './bc_event_log'
-], (render, file, query, record, search, runtime, log, C, errors, lineDao, responseDao, fileDao, workflowLogic, brandingResolver, projectDao, eventLog) => {
+<?xml version="1.0"?>
+<!DOCTYPE pdf PUBLIC "-//big.faceless.org//report" "report-1.1.dtd">
+<!--
+  NTD-reference cover layout. Annotation colors are intentionally omitted.
+  record is the custom OBJECT supplied by bc_pdf_renderer.renderTransmittalCover,
+  not a native transaction record binding.
+  Green reference areas remain blank for handwritten/manual completion.
+  General Contractor remains blank pending confirmation (red reference area).
+  Optional values not currently supplied by the renderer:
+  supplierAddress, supplierCityStateZip,
+  supplierContact, supplierPhone, supplierFax, manufacturer.
+  Missing optional values render blank; example-project data is never hard-coded.
+  Product Summary appears on page 2 only when items exist.
+-->
+<pdf>
+<#function clean value>
+  <#local text = value?string?trim />
+  <#if text == "null" || text == "undefined"><#return "" /></#if>
+  <#return text />
+</#function>
 
-  // sourceName → human label for the change-history "PDF generated" row.
-  const _GENERATED_PDF_LABELS = {
-    generated_transmittal_cover: 'Cover PDF generated',
-    generated_submittal_pdf:     'Submittal PDF generated',
-    generated_closeout_external: 'Closeout PDF generated',
-    generated_closeout_internal: 'Closeout PDF generated'
-  };
+<!-- Mirrors the spec-section options in the supplied SPA bundle. -->
+<#assign specSectionTitles = {
+  "03 11 00": "Concrete Forming",
+  "03 15 00": "Concrete Accessories",
+  "03 20 00": "Concrete Reinforcing",
+  "03 30 00": "Cast-in-Place Concrete",
+  "03 35 00": "Concrete Finishing",
+  "03 41 00": "Precast Structural Concrete",
+  "03 45 00": "Precast Architectural Concrete",
+  "03 54 00": "Cast Underlayment",
+  "04 20 00": "Unit Masonry",
+  "04 22 00": "Concrete Unit Masonry",
+  "04 23 00": "Glass Unit Masonry",
+  "04 40 00": "Stone Assemblies",
+  "05 12 00": "Structural Steel Framing",
+  "05 21 00": "Steel Joist Framing",
+  "05 31 00": "Steel Decking",
+  "05 40 00": "Cold-Formed Metal Framing",
+  "05 50 00": "Metal Fabrications",
+  "05 51 00": "Metal Stairs",
+  "05 52 00": "Metal Railings",
+  "05 73 00": "Decorative Metal Railings",
+  "06 10 00": "Rough Carpentry",
+  "06 16 00": "Sheathing",
+  "06 20 00": "Finish Carpentry",
+  "06 40 00": "Architectural Woodwork",
+  "06 41 00": "Architectural Wood Casework",
+  "06 60 00": "Plastic Fabrications",
+  "06 61 00": "Solid Surfacing Fabrications",
+  "07 11 00": "Dampproofing",
+  "07 13 00": "Sheet Waterproofing",
+  "07 14 00": "Fluid-Applied Waterproofing",
+  "07 19 00": "Water Repellents",
+  "07 21 00": "Thermal Insulation",
+  "07 22 00": "Roof and Deck Insulation",
+  "07 26 00": "Vapor Retarders",
+  "07 27 00": "Air Barriers",
+  "07 41 00": "Roof Panels",
+  "07 42 00": "Wall Panels",
+  "07 52 00": "Modified Bituminous Membrane Roofing",
+  "07 53 00": "Elastomeric Membrane Roofing",
+  "07 54 00": "Thermoplastic Membrane Roofing",
+  "07 62 00": "Sheet Metal Flashing and Trim",
+  "07 71 00": "Roof Specialties",
+  "07 84 00": "Firestopping",
+  "07 92 00": "Joint Sealants",
+  "08 11 13": "Hollow Metal Doors and Frames",
+  "08 14 00": "Wood Doors",
+  "08 14 16": "Flush Wood Doors",
+  "08 16 00": "Composite Doors",
+  "08 31 00": "Access Doors and Panels",
+  "08 33 00": "Coiling Doors and Grilles",
+  "08 34 00": "Special Function Doors",
+  "08 36 00": "Panel Doors",
+  "08 41 13": "Aluminum-Framed Storefronts",
+  "08 41 26": "All-Glass Entrances and Storefronts",
+  "08 42 00": "Entrances",
+  "08 43 00": "Storefronts",
+  "08 44 13": "Glazed Aluminum Curtain Walls",
+  "08 45 00": "Translucent Wall and Roof Assemblies",
+  "08 51 13": "Aluminum Windows",
+  "08 53 13": "Vinyl Windows",
+  "08 54 13": "Fiberglass Windows",
+  "08 56 00": "Special Function Windows",
+  "08 62 00": "Unit Skylights",
+  "08 71 00": "Door Hardware",
+  "08 80 00": "Glazing",
+  "08 81 00": "Glass Glazing",
+  "08 83 00": "Mirrors",
+  "08 87 00": "Glazing Surface Films",
+  "08 91 00": "Louvers and Vents",
+  "09 22 00": "Supports for Plaster and Gypsum Board",
+  "09 24 00": "Portland Cement Plastering",
+  "09 29 00": "Gypsum Board",
+  "09 30 00": "Tiling",
+  "09 51 00": "Acoustical Ceilings",
+  "09 53 00": "Acoustical Ceiling Suspension Assemblies",
+  "09 65 00": "Resilient Flooring",
+  "09 65 13": "Resilient Base and Accessories",
+  "09 68 00": "Carpeting",
+  "09 72 00": "Wall Coverings",
+  "09 84 00": "Acoustic Room Components",
+  "09 91 00": "Painting",
+  "09 96 00": "High-Performance Coatings",
+  "10 14 00": "Signage",
+  "10 21 00": "Compartments and Cubicles",
+  "10 22 00": "Partitions",
+  "10 26 00": "Wall and Door Protection",
+  "10 28 00": "Toilet, Bath, and Laundry Accessories",
+  "10 44 00": "Fire Protection Specialties",
+  "10 51 00": "Lockers",
+  "12 24 00": "Window Shades",
+  "12 36 00": "Countertops",
+  "14 21 00": "Electric Traction Elevators",
+  "14 24 00": "Hydraulic Elevators",
+  "22 11 00": "Facility Water Distribution",
+  "22 13 00": "Facility Sanitary Sewerage",
+  "22 14 00": "Facility Storm Drainage",
+  "22 33 00": "Electric Domestic Water Heaters",
+  "22 40 00": "Plumbing Fixtures",
+  "22 42 13": "Commercial Water Closets",
+  "22 42 16": "Commercial Lavatories",
+  "23 05 00": "Common Work Results for HVAC",
+  "23 07 00": "HVAC Insulation",
+  "23 09 00": "Instrumentation and Control for HVAC",
+  "23 21 00": "Hydronic Piping and Pumps",
+  "23 31 00": "HVAC Ducts and Casings",
+  "23 33 00": "Air Duct Accessories",
+  "23 34 00": "HVAC Fans",
+  "23 37 00": "Air Outlets and Inlets",
+  "23 73 13": "Modular Indoor Central-Station Air-Handling Units",
+  "23 81 00": "Decentralized Unitary HVAC Equipment",
+  "23 82 00": "Convection Heating and Cooling Units",
+  "26 05 00": "Common Work Results for Electrical",
+  "26 05 19": "Low-Voltage Electrical Power Conductors and Cables",
+  "26 05 26": "Grounding and Bonding for Electrical Systems",
+  "26 05 33": "Raceways and Boxes for Electrical Systems",
+  "26 22 00": "Low-Voltage Transformers",
+  "26 24 13": "Switchboards",
+  "26 24 16": "Panelboards",
+  "26 27 26": "Wiring Devices",
+  "26 28 13": "Fuses",
+  "26 28 16": "Enclosed Switches and Circuit Breakers",
+  "26 51 00": "Interior Lighting",
+  "26 56 00": "Exterior Lighting",
+  "27 05 00": "Common Work Results for Communications",
+  "27 11 00": "Communications Equipment Room Fittings",
+  "27 21 00": "Data Communications Network Equipment",
+  "28 13 00": "Access Control",
+  "28 23 00": "Video Surveillance",
+  "28 31 00": "Fire Detection and Alarm",
+  "28 31 11": "Digital, Addressable Fire-Alarm System",
+  "31 23 00": "Excavation and Fill",
+  "31 31 00": "Soil Treatment",
+  "32 12 00": "Flexible Paving",
+  "32 13 00": "Rigid Paving",
+  "32 31 00": "Fences and Gates",
+  "32 90 00": "Planting"
+} />
+<#assign specSectionCode = clean(record.specSection!"") />
+<#assign mappedSpecTitle = (specSectionTitles[specSectionCode])!"" />
 
-  const TEMPLATE_PATHS = {
-    TRANSMITTAL_COVER: '/SuiteScripts/BlueCollarSubmittals/templates/pdf/transmittal-cover.bfo.xml',
-    CLOSEOUT:          '/SuiteScripts/BlueCollarSubmittals/templates/pdf/closeout.bfo.xml',
-    SUBMITTAL_EXPORT:  '/SuiteScripts/BlueCollarSubmittals/templates/pdf/submittal-export.bfo.xml'
-  };
-
-  // -------------------------------------------------------------------
-  // Helpers
-  // -------------------------------------------------------------------
-
-  const _fmtCurrency = (n) => {
-    if (n == null) return '';
-    return Number(n).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 });
-  };
-
-  const _fmtDate = (d) => {
-    if (!d) return '';
-    const dt = (d instanceof Date) ? d : new Date(d);
-    if (isNaN(dt.getTime())) return String(d);
-    return `${dt.getMonth() + 1}/${dt.getDate()}/${dt.getFullYear()}`;
-  };
-
-  const _fmtTimestamp = (d) => {
-    if (!d) return '';
-    const dt = (d instanceof Date) ? d : new Date(d);
-    if (isNaN(dt.getTime())) return String(d);
-    return `${_fmtDate(dt)} ${dt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`;
-  };
-
-  // (Inline _loadSubsidiaryBranding superseded by bc_branding_resolver.resolve
-  //  in Section J — the resolver walks the full submittal → subsidiary →
-  //  parent-chain → tenant-default hierarchy per spec §7.6.)
-
-  /**
-   * Single SuiteQL to gather every header field the cover template needs.
-   * One round-trip is materially faster than loading the records, given
-   * NS's record.load cost (~10-20 governance units each + a network hop).
-   */
-  const _loadCoverContext = (transmittalId) => {
-    const rows = query.runSuiteQL({
-      query: `
-        SELECT
-          xmit.id                                              AS xmit_id,
-          xmit.custrecord_bc_xmits_revision                     AS revision_id,
-          rev.custrecord_bc_revs_number                         AS rev_number,
-          rev.custrecord_bc_revs_submittal                      AS submittal_id,
-          xmit.custrecord_bc_xmits_subject                      AS subject,
-          xmit.custrecord_bc_xmits_sent_by                      AS sent_by_id,
-          BUILTIN.DF(xmit.custrecord_bc_xmits_sent_by)          AS sent_by_name,
-          TO_CHAR(xmit.custrecord_bc_xmits_sent_date, 'YYYY-MM-DD"T"HH24:MI:SSTZH:TZM')
-                                                               AS sent_at,
-          sub.name                                             AS sub_number,
-          sub.custrecord_bc_subs_title                          AS title,
-          BUILTIN.DF(sub.custrecord_bc_subs_spec_section)       AS spec_section,
-          BUILTIN.DF(sub.custrecord_bc_subs_type)               AS type_name,
-          BUILTIN.DF(sub.custrecord_bc_subs_status)             AS status_name,
-          sub.custrecord_bc_subs_due_date                       AS due_date,
-          BUILTIN.DF(sub.custrecord_bc_subs_ball_in_court)      AS bic_name,
-          COALESCE(vendor.companyname, vendor.entityid)          AS vendor_name,
-          sub.custrecord_bc_subs_project                        AS project_id,
-          BUILTIN.DF(sub.custrecord_bc_subs_project)            AS project_name,
-          proj.custrecord_bc_proj_number                      AS project_number,
-          proj.custrecord_bc_proj_subsidiary                  AS project_subsidiary_id
-        FROM customrecord_bc_submittals_transmittal xmit
-        INNER JOIN customrecord_bc_submittals_revision rev
-          ON rev.id = xmit.custrecord_bc_xmits_revision
-        INNER JOIN customrecord_bc_submittals sub
-          ON sub.id = rev.custrecord_bc_revs_submittal
-        LEFT JOIN customrecord_cseg_bc_project proj
-          ON proj.id = sub.custrecord_bc_subs_project
-        LEFT JOIN vendor vendor
-          ON vendor.id = sub.custrecord_bc_subs_vendor
-        WHERE xmit.id = ?
-      `,
-      params: [Number(transmittalId)]
-    }).asMappedResults();
-    if (!rows.length) throw errors.notFound('transmittal', transmittalId);
-    return rows[0];
-  };
-
-  // -------------------------------------------------------------------
-  // Luke-revisions §7.4 — load cover context from a submittal + revision
-  // (no transmittal exists yet — used by revision-create auto-cover and
-  // the on-demand "Generate Cover PDF" UI affordances).
-  // -------------------------------------------------------------------
-
-  const _loadCoverContextBySubRev = (submittalId, revisionId) => {
-    const rows = query.runSuiteQL({
-      query: `
-        SELECT
-          rev.id                                               AS revision_id,
-          rev.custrecord_bc_revs_number                         AS rev_number,
-          sub.id                                               AS submittal_id,
-          sub.name                                             AS sub_number,
-          sub.custrecord_bc_subs_title                          AS title,
-          BUILTIN.DF(sub.custrecord_bc_subs_spec_section)       AS spec_section,
-          BUILTIN.DF(sub.custrecord_bc_subs_type)               AS type_name,
-          BUILTIN.DF(sub.custrecord_bc_subs_status)             AS status_name,
-          sub.custrecord_bc_subs_due_date                       AS due_date,
-          BUILTIN.DF(sub.custrecord_bc_subs_ball_in_court)      AS bic_name,
-          COALESCE(vendor.companyname, vendor.entityid)          AS vendor_name,
-          sub.custrecord_bc_subs_lead_time                      AS lead_time,
-          sub.custrecord_bc_subs_project                        AS project_id,
-          BUILTIN.DF(sub.custrecord_bc_subs_project)            AS project_name,
-          proj.custrecord_bc_proj_number                      AS project_number,
-          proj.custrecord_bc_proj_subsidiary                  AS project_subsidiary_id
-        FROM customrecord_bc_submittals_revision rev
-        INNER JOIN customrecord_bc_submittals sub
-          ON sub.id = rev.custrecord_bc_revs_submittal
-        LEFT JOIN customrecord_cseg_bc_project proj
-          ON proj.id = sub.custrecord_bc_subs_project
-        LEFT JOIN vendor vendor
-          ON vendor.id = sub.custrecord_bc_subs_vendor
-        WHERE rev.id = ?
-          AND sub.id = ?
-      `,
-      params: [Number(revisionId), Number(submittalId)]
-    }).asMappedResults();
-    if (!rows.length) throw errors.notFound('revision', revisionId);
-    return rows[0];
-  };
-
-  // -------------------------------------------------------------------
-  // renderTransmittalCover — REAL (Phase 3.2 Section D)
-  //
-  // Renders the cover PDF, saves to /BlueCollar Submittals/Generated/,
-  // returns { fileId, fileName, fileSize }. Callers (a future "Download
-  // PDF" SPA button, bc_revision_dao.create auto-cover, SubmittalDetail
-  // ⋯ More menu) decide what to do with the file id.
-  //
-  // Luke-revisions §7.4 — function decoupled from `send`. Accepts either:
-  //   - a transmittalId (legacy, when invoked from a transmittal record), or
-  //   - { submittalId, revisionId } (new — auto-cover-on-revision-create,
-  //     on-demand "Generate Cover PDF" from SubmittalDetail)
-  //
-  // When invoked via submittal+revision, transmittal-specific fields
-  // (sentDate, subject, complianceLine) are blank — those only make
-  // sense for an actual sent transmittal.
-  // -------------------------------------------------------------------
-
-  // Cover-only branding enrichment. Use the subsidiary record/address
-  // subrecord instead of unavailable SuiteQL address columns.
-  const _formatCoverPhone = (value) => {
-    const raw = String(value || '').trim();
-    let digits = raw.replace(/\D/g, '');
-    if (digits.length === 11 && digits.charAt(0) === '1') {
-      digits = digits.slice(1);
-    }
-    return digits.length === 10
-      ? `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
-      : raw;
-  };
-
-  const _loadCoverBranding = (submittalId, subsidiaryId) => {
-    const branding = Object.assign({}, brandingResolver.resolve(submittalId));
-    const id = Number(subsidiaryId) || Number(branding.subsidiaryId);
-    if (!id) return branding;
-    try {
-      const subsidiary = record.load({ type: record.Type.SUBSIDIARY || 'subsidiary', id, isDynamic: false });
-      const read = (rec, fieldId) => {
-        try { return String(rec.getValue({ fieldId }) || '').trim(); }
-        catch (e) { return ''; }
-      };
-      branding.name = read(subsidiary, 'legalname') || read(subsidiary, 'name') || branding.name;
-      branding.phone = read(subsidiary, 'phone');
-      let addressText = '';
-      try {
-        const address = subsidiary.getSubrecord({ fieldId: 'mainaddress' });
-        if (address) {
-          // Keep company name in its own header line; omit the duplicate addressee.
-          const street = ['addr1', 'addr2', 'addr3'].map((f) => read(address, f)).filter(Boolean);
-          const city = read(address, 'city');
-          const stateZip = [read(address, 'state'), read(address, 'zip')].filter(Boolean).join(' ');
-          const locality = [city, stateZip].filter(Boolean).join(', ');
-          if (locality) street.push(locality);
-          addressText = street.join('\n') || read(address, 'addrtext');
-          branding.phone = branding.phone || read(address, 'addrphone');
-        }
-      } catch (e) {
-        log.error({ title: 'Cover PDF: subsidiary main address unavailable', details: `subsidiaryId=${id}: ${e.message}` });
-      }
-      addressText = addressText || read(subsidiary, 'mainaddress_text');
-      if (addressText) branding.address = addressText.replace(/\r\n|\r|\n/g, '<br/>');
-    } catch (e) {
-      log.error({ title: 'Cover PDF: subsidiary branding unavailable', details: `subsidiaryId=${id}: ${e.message}` });
-    }
-    return branding;
-  };
-
-  const renderTransmittalCover = (params) => {
-    // Argument shape detection — accept either a primitive (legacy
-    // transmittalId) or an object with submittalId + revisionId.
-    let ctx, xmitId = 0, subId = 0, revisionId = 0;
-
-    // Suppress the generated-PDF history row when the caller already logs the
-    // originating action (revision-create auto-generates a cover and logs its
-    // own "Revision created"). Manual "Generate Cover PDF" clicks omit this.
-    const skipHistory = !!(params && typeof params === 'object' && params.skipHistory);
-
-    if (params && typeof params === 'object' && (params.submittalId || params.revisionId)) {
-      subId      = Number(params.submittalId) || 0;
-      revisionId = Number(params.revisionId)  || 0;
-      if (!subId || !revisionId) {
-        throw errors.badInput('renderTransmittalCover({submittalId, revisionId}): both required');
-      }
-      ctx = _loadCoverContextBySubRev(subId, revisionId);
-    } else {
-      xmitId = Number(params);
-      if (!xmitId) throw errors.badInput('transmittalId or {submittalId, revisionId} is required');
-      ctx = _loadCoverContext(xmitId);
-      subId      = Number(ctx.submittal_id) || 0;
-      revisionId = Number(ctx.revision_id)  || 0;
-    }
-
-    const linesResult = subId ? lineDao.list(subId) : { rows: [] };
-    const branding    = _loadCoverBranding(subId, ctx.project_subsidiary_id);
-
-    // Luke-revisions §7.6 — pull architect/engineer/GC stub addresses.
-    // Currently returns three nulls; cover template renders blank labeled
-    // blocks until the field-binding details land.
-    const addresses = projectDao.getAddresses(Number(ctx.project_id) || 0);
-
-    const revLabel = `R${ctx.rev_number != null ? Number(ctx.rev_number) : 0}`;
-
-    const data = {
-      subsidiaryName:    branding.name,
-      subsidiaryAddress: branding.address,
-      subsidiaryPhone:   _formatCoverPhone(branding.phone),
-      subsidiaryLogo:    branding.logoUrl,
-      projectName:       ctx.project_name || '',
-      projectNumber:     ctx.project_number == null ? '' : String(ctx.project_number),
-      submittalNumber:   ctx.sub_number || '',
-      title:             ctx.title || '',
-      revisionLabel:     revLabel,
-      specSection:       ctx.spec_section || '',
-      type:              ctx.type_name || '',
-      status:            ctx.status_name || '',
-      dueDate:           _fmtDate(ctx.due_date),
-      ballInCourt:       ctx.bic_name || '',
-      vendor:            ctx.vendor_name || '',
-      // Luke-revisions §3.1 / §7.6 — lead time + submittal date on cover.
-      leadTime:          ctx.lead_time || '',
-      submittalDate:     _fmtDate(new Date()),
-      sentDate:          _fmtTimestamp(ctx.sent_at),
-      subject:           ctx.subject || '',
-      // Luke-revisions §7.6 — Architect / Engineer / GC stubs (null until
-      // bc_project_dao.getAddresses is wired to the project address sub-record).
-      architect:           addresses.architect,
-      engineer:            addresses.engineer,
-      generalContractor:   addresses.generalContractor,
-      lines:             linesResult.rows.map((l) => ({
-        position:     l.position || '',
-        description:  l.description || '',
-        model:        l.model || '',
-        manufacturer: l.manufacturer || '',
-        qty:          l.qty != null ? String(l.qty) : '',
-        uom:          l.uom || '',
-        unitCost:     _fmtCurrency(l.unitCost),
-        outcome:      l.outcome || ''
-      })),
-      complianceLine: ctx.sent_by_name
-        ? `Submitted by ${ctx.sent_by_name} on ${_fmtDate(ctx.sent_at)}`
-        : null
-    };
-
-    const renderer = render.create();
-    renderer.templateContent = file.load({ id: TEMPLATE_PATHS.TRANSMITTAL_COVER }).getContents();
-    renderer.addCustomDataSource({
-      format: render.DataSource.OBJECT,
-      alias:  'record',
-      data:   data
-    });
-
-    const pdfFile = renderer.renderAsPdf();
-    // File naming: when there's no transmittal, use submittal+revision only.
-    pdfFile.name   = xmitId
-      ? `Transmittal-${ctx.sub_number || subId}-${revLabel}-${xmitId}.pdf`
-      : `Cover-${ctx.sub_number || subId}-${revLabel}.pdf`;
-    pdfFile.folder = _resolveGeneratedFolderId();
-
-    const fileId = pdfFile.save();
-    _attachGeneratedFile(subId, revisionId, fileId, pdfFile.name, 'generated_transmittal_cover', skipHistory);
-
-    return {
-      fileId:   Number(fileId),
-      fileName: pdfFile.name,
-      submittalNumber: ctx.sub_number || '',
-      revisionLabel:   revLabel
-    };
-  };
-
-  // -------------------------------------------------------------------
-  // _attachGeneratedFile — wire a saved PDF into the Files section by
-  // creating the customrecord_bc_submittals_file junction row. Without
-  // this the PDF lands in /BlueCollar Submittals/Generated/ but is
-  // invisible to bc_file_dao.listForSubmittal (which only joins through
-  // the junction). Section U fix.
-  //
-  // source ∈ generated_transmittal_cover | generated_closeout_external |
-  //          generated_closeout_internal | generated_submittal_pdf
-  // Non-fatal — junction failure logs an error but doesn't roll back the
-  // PDF itself (the file still exists in the cabinet; users can find it
-  // there manually).
-  // -------------------------------------------------------------------
-
-  let _fileSourceIdCache = null;
-  const _resolveFileSourceId = (sourceName) => {
-    if (!_fileSourceIdCache) _fileSourceIdCache = {};
-    if (sourceName in _fileSourceIdCache) return _fileSourceIdCache[sourceName];
-    try {
-      const results = search.create({
-        type:    C.LISTS.FILE_SOURCE,
-        filters: [['name', 'is', sourceName]],
-        columns: []
-      }).run().getRange({ start: 0, end: 1 });
-      const id = results.length ? Number(results[0].id) : '';
-      _fileSourceIdCache[sourceName] = id;
-      return id;
-    } catch (e) {
-      _fileSourceIdCache[sourceName] = '';
-      return '';
-    }
-  };
-
-  const _attachGeneratedFile = (submittalId, revisionId, nsFileId, fileName, sourceName, skipHistory) => {
-    try {
-      const sourceId = _resolveFileSourceId(sourceName);
-      if (!sourceId) return;     // file_source list value missing — skip junction
-
-      // Bugfix sweep #8 — file.save() is idempotent by (name, folder), so a
-      // re-export returns the SAME ns file id (contents refreshed). Upsert on
-      // the (submittal, ns_file, source) tuple or every re-export piles up a
-      // duplicate Files row pointing at one file. Exists-check failure falls
-      // through to insert — never block the PDF over the dedup query.
-      let existingId = null;
-      try {
-        const existing = query.runSuiteQL({
-          query: `SELECT id FROM customrecord_bc_submittals_file
-                   WHERE custrecord_bc_files_submittal = ?
-                     AND custrecord_bc_files_ns_file = ?
-                     AND custrecord_bc_files_source = ?
-                   FETCH FIRST 1 ROWS ONLY`,
-          params: [Number(submittalId), Number(nsFileId), sourceId]
-        }).asMappedResults();
-        if (existing.length) existingId = Number(existing[0].id);
-      } catch (e) {
-        // exists-check failed — fall through to insert
-      }
-      if (existingId) {
-        // Update failure is swallowed by the outer catch — it must NOT
-        // fall through to insert (the row exists; inserting would
-        // recreate the duplicate this upsert removes).
-        record.submitFields({
-          type:    C.RECORDS.SUBMITTAL_FILE,
-          id:      existingId,
-          values:  { custrecord_bc_files_uploaded_date: new Date() },
-          options: { enableSourcing: false, ignoreMandatoryFields: true }
-        });
-        return;
-      }
-
-      const now    = new Date();
-      const userId = (() => {
-        try {
-          const u = runtime.getCurrentUser ? runtime.getCurrentUser() : null;
-          return u && u.id ? Number(u.id) : 0;
-        } catch (e) { return 0; }
-      })();
-      const rec = record.create({ type: C.RECORDS.SUBMITTAL_FILE, isDynamic: false });
-      rec.setValue({ fieldId: 'name',                              value: `Sub ${submittalId} R${revisionId || 0} ${fileName}` });
-      rec.setValue({ fieldId: 'custrecord_bc_files_submittal',      value: Number(submittalId) });
-      if (revisionId) rec.setValue({ fieldId: 'custrecord_bc_files_revision', value: Number(revisionId) });
-      rec.setValue({ fieldId: 'custrecord_bc_files_ns_file',        value: Number(nsFileId) });
-      rec.setValue({ fieldId: 'custrecord_bc_files_source',         value: sourceId });
-      if (userId) rec.setValue({ fieldId: 'custrecord_bc_files_uploaded_by', value: userId });
-      rec.setValue({ fieldId: 'custrecord_bc_files_uploaded_date',  value: now });
-      rec.save({ enableSourcing: false, ignoreMandatoryFields: false });
-
-      // Change-history: a brand-new generated PDF landed in Files — log it so
-      // it's visible in the audit trail (was previously invisible). Only on
-      // the INSERT path: a re-export of the same (sub, rev) hits the upsert
-      // branch above and returns early, so we don't spam a row per re-export.
-      // skipHistory suppresses the auto-cover row on revision-create, which
-      // already logs its own "Revision created" event.
-      if (!skipHistory && Number(submittalId) > 0) {
-        eventLog.logEvent(Number(submittalId), {
-          category: 'attachment',
-          label:    _GENERATED_PDF_LABELS[sourceName] || 'PDF generated',
-          from:     '',
-          to:       fileName || ''
-        });
-      }
-    } catch (e) {
-      // Junction creation failure is non-fatal — PDF still exists in cabinet.
-      // Caller can choose to log; we don't have N/log here without bloating
-      // the require list.
-    }
-  };
-
-  /**
-   * Resolve the /BlueCollar Submittals/Generated/ folder id. The install
-   * Suitelet seeds folder 1763 by spec; we look it up by path each time
-   * the renderer is invoked to stay sandbox-portable. The lookup is cheap
-   * (NS folder index) and avoids hard-coding the id.
-   */
-  let _generatedFolderId = null;
-  const _resolveGeneratedFolderId = () => {
-    if (_generatedFolderId) return _generatedFolderId;
-    const rows = query.runSuiteQL({
-      query:  `SELECT folder.id FROM mediaitemfolder folder
-                WHERE folder.name = 'Generated'
-                  AND folder.parent IN (
-                    SELECT id FROM mediaitemfolder WHERE name = 'BlueCollar Submittals' AND parent IS NULL
-                  )`,
-      params: []
-    }).asMappedResults();
-    if (!rows.length) {
-      throw errors.notFound('folder', '/BlueCollar Submittals/Generated');
-    }
-    _generatedFolderId = Number(rows[0].id);
-    return _generatedFolderId;
-  };
-
-  // -------------------------------------------------------------------
-  // Loaders for the submittal header used by closeout + export.
-  // -------------------------------------------------------------------
-
-  const _loadSubmittalHeader = (submittalId) => {
-    const rows = query.runSuiteQL({
-      query: `
-        SELECT
-          sub.id                                                AS id,
-          sub.name                                              AS sub_number,
-          sub.custrecord_bc_subs_title                           AS title,
-          BUILTIN.DF(sub.custrecord_bc_subs_spec_section)        AS spec_section,
-          BUILTIN.DF(sub.custrecord_bc_subs_type)                AS type_name,
-          BUILTIN.DF(sub.custrecord_bc_subs_status)              AS status_name,
-          sub.custrecord_bc_subs_due_date                        AS due_date,
-          sub.custrecord_bc_subs_closed_date                     AS closed_date,
-          BUILTIN.DF(sub.custrecord_bc_subs_ball_in_court)       AS bic_name,
-          BUILTIN.DF(sub.custrecord_bc_subs_vendor)              AS vendor_name,
-          sub.custrecord_bc_subs_project                         AS project_id,
-          BUILTIN.DF(sub.custrecord_bc_subs_project)             AS project_name,
-          sub.custrecord_bc_subs_notes                           AS internal_notes,
-          sub.custrecord_bc_subs_current_revision                AS current_rev_id
-        FROM customrecord_bc_submittals sub
-        WHERE sub.id = ?
-      `,
-      params: [Number(submittalId)]
-    }).asMappedResults();
-    if (!rows.length) throw errors.notFound('submittal', submittalId);
-    return rows[0];
-  };
-
-  const _formatLines = (lineRows) => lineRows.map((l) => ({
-    position:     l.position || '',
-    description:  l.description || '',
-    model:        l.model || '',
-    manufacturer: l.manufacturer || '',
-    qty:          l.qty != null ? String(l.qty) : '',
-    uom:          l.uom || '',
-    unitCost:     _fmtCurrency(l.unitCost),
-    outcome:      l.outcome || ''
-  }));
-
-  const _formatComments = (commentRows) => commentRows.map((c) => ({
-    revisionLabel: c.revisionLabel || '',
-    source:        c.source || 'internal',
-    commentType:   c.commentType || 'general_comment',
-    authorName:    c.authorName || '',
-    createdAt:     _fmtTimestamp(c.createdAt),
-    bodyHtml:      c.bodyHtml || '',
-    outcome:       c.outcome || ''
-  }));
-
-  // -------------------------------------------------------------------
-  // renderCloseout — REAL (Phase 3.2 Section I)
-  //
-  // Pulls submittal header + lines + full workflow + comments + files,
-  // renders the closeout template. Variant ∈ {'external','internal'}:
-  // 'internal' includes PM notes block + internal-only comments (today
-  // every comment ships in the bundle; refinement to "only formal_response
-  // + external-visible" for external variant lands when we have the
-  // external-visibility flag plumbing per spec §7.5).
-  // -------------------------------------------------------------------
-
-  const renderCloseout = (submittalId, variant) => {
-    const subId = Number(submittalId);
-    if (!subId) throw errors.badInput('submittalId is required');
-    const v = (variant === 'internal') ? 'internal' : 'external';
-
-    const header = _loadSubmittalHeader(subId);
-
-    let workflowSteps = [];
-    try {
-      const wf = workflowLogic.getSubmittalWorkflow(subId);
-      workflowSteps = (wf.steps || []).map((s) => ({
-        name:          s.name || '',
-        status:        s.status || 'pending',
-        completedDate: _fmtDate(s.completedDate),
-        completedBy:   s.completedByName || '',
-        approvers: (s.approvers || []).map((a) => ({
-          displayName:  a.displayName || '',
-          type:         a.type || 'employee',
-          required:     a.required === true,
-          responded:    a.responded === true,
-          outcome:      a.outcome || '',
-          responseDate: _fmtDate(a.responseDate)
-        }))
-      }));
-    } catch (e) { /* workflow absent or errored — render closeout anyway */ }
-
-    const lineRows  = (lineDao.list(subId).rows) || [];
-    const responses = (responseDao.listForSubmittal(subId).rows) || [];
-    const files     = (fileDao.listForSubmittal(subId).rows) || [];
-    const branding  = brandingResolver.resolve(subId);
-
-    const data = {
-      variant:           v,
-      includeInternal:   (v === 'internal'),
-      generatedAt:       _fmtTimestamp(new Date()),
-      subsidiaryName:    branding.name,
-      subsidiaryAddress: branding.address,
-      subsidiaryLogo:    branding.logoUrl,
-      projectName:       header.project_name || '',
-      submittalNumber:   header.sub_number || '',
-      title:             header.title || '',
-      specSection:       header.spec_section || '',
-      type:              header.type_name || '',
-      status:            header.status_name || '',
-      closedDate:        _fmtDate(header.closed_date),
-      ballInCourt:       header.bic_name || '',
-      vendor:            header.vendor_name || '',
-      internalNotes:     v === 'internal' ? (header.internal_notes || '') : '',
-      lines:             _formatLines(lineRows),
-      workflowSteps:     workflowSteps,
-      responses:         _formatComments(responses),
-      files:             files.map((f) => ({
-        name:           f.fileName,
-        source:         f.source,
-        revisionLabel:  f.revisionLabel,
-        uploadedByName: f.uploadedByName
-      }))
-    };
-
-    const renderer = render.create();
-    renderer.templateContent = file.load({ id: TEMPLATE_PATHS.CLOSEOUT }).getContents();
-    renderer.addCustomDataSource({
-      format: render.DataSource.OBJECT,
-      alias:  'record',
-      data:   data
-    });
-    const pdfFile = renderer.renderAsPdf();
-    pdfFile.name   = `Closeout-${header.sub_number || subId}-${v}.pdf`;
-    pdfFile.folder = _resolveGeneratedFolderId();
-    const fileId   = pdfFile.save();
-    const closeoutSource = v === 'internal' ? 'generated_closeout_internal' : 'generated_closeout_external';
-    _attachGeneratedFile(subId, Number(header.current_rev_id) || 0, fileId, pdfFile.name, closeoutSource);
-
-    return {
-      fileId:          Number(fileId),
-      fileName:        pdfFile.name,
-      variant:         v,
-      submittalNumber: header.sub_number || ''
-    };
-  };
-
-  // -------------------------------------------------------------------
-  // renderSubmittalExport — REAL (Phase 3.2 Section I)
-  //
-  // On-demand "give me this submittal as a PDF right now." Same brand
-  // bar + meta + items as the cover, plus 10 most recent comments.
-  // No workflow timeline, no PM-notes; that's closeout territory.
-  // -------------------------------------------------------------------
-
-  const renderSubmittalExport = (submittalId) => {
-    const subId = Number(submittalId);
-    if (!subId) throw errors.badInput('submittalId is required');
-
-    const header = _loadSubmittalHeader(subId);
-    const revisionRows = query.runSuiteQL({
-      query:  'SELECT custrecord_bc_revs_number AS n FROM customrecord_bc_submittals_revision WHERE id = ?',
-      params: [Number(header.current_rev_id) || 0]
-    }).asMappedResults();
-    const revNum   = revisionRows.length ? Number(revisionRows[0].n) : 0;
-    const revLabel = `R${revNum}`;
-
-    const lineRows  = (lineDao.list(subId).rows) || [];
-    const comments  = (responseDao.listForSubmittal(subId).rows || []).slice(0, 10);
-    const branding  = brandingResolver.resolve(subId);
-
-    const data = {
-      generatedAt:       _fmtTimestamp(new Date()),
-      subsidiaryName:    branding.name,
-      subsidiaryAddress: branding.address,
-      subsidiaryLogo:    branding.logoUrl,
-      projectName:       header.project_name || '',
-      submittalNumber:   header.sub_number || '',
-      title:             header.title || '',
-      revisionLabel:     revLabel,
-      specSection:       header.spec_section || '',
-      type:              header.type_name || '',
-      status:            header.status_name || '',
-      dueDate:           _fmtDate(header.due_date),
-      ballInCourt:       header.bic_name || '',
-      vendor:            header.vendor_name || '',
-      lines:             _formatLines(lineRows),
-      recentComments:    _formatComments(comments)
-    };
-
-    const renderer = render.create();
-    renderer.templateContent = file.load({ id: TEMPLATE_PATHS.SUBMITTAL_EXPORT }).getContents();
-    renderer.addCustomDataSource({
-      format: render.DataSource.OBJECT,
-      alias:  'record',
-      data:   data
-    });
-    const pdfFile = renderer.renderAsPdf();
-    pdfFile.name   = `Submittal-${header.sub_number || subId}-${revLabel}-export.pdf`;
-    pdfFile.folder = _resolveGeneratedFolderId();
-    const fileId   = pdfFile.save();
-    _attachGeneratedFile(subId, Number(header.current_rev_id) || 0, fileId, pdfFile.name, 'generated_submittal_pdf');
-
-    return {
-      fileId:          Number(fileId),
-      fileName:        pdfFile.name,
-      submittalNumber: header.sub_number || '',
-      revisionLabel:   revLabel
-    };
-  };
-
-  // _attachGeneratedFile is exported for tests only — it stays an internal
-  // helper of the three render paths.
-  return { renderCloseout, renderTransmittalCover, renderSubmittalExport, _attachGeneratedFile };
-});
+<head>
+  <link name="NotoSans" type="font" subtype="truetype"
+        src="${nsfont.NotoSans_Regular}" src-bold="${nsfont.NotoSans_Bold}"
+        src-italic="${nsfont.NotoSans_Italic}" src-bolditalic="${nsfont.NotoSans_BoldItalic}" bytes="2" />
+  <style>
+    * { font-family: NotoSans, sans-serif; color: #000000; }
+    body { font-size: 9pt; }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    td, th { vertical-align: top; padding: 2pt 3pt; }
+    .brand td { padding: 0; }
+    .title { font-size: 15pt; font-weight: bold; }
+    .company { font-size: 10pt; font-weight: bold; }
+    .project { margin-top: 7pt; margin-bottom: 10pt; font-size: 11pt; font-weight: bold; }
+    .grid td { border: 0.5pt solid #000000; }
+    .label { font-size: 7pt; font-weight: normal; }
+    .value { font-size: 9pt; font-weight: bold; }
+    .section { font-size: 11pt; font-weight: bold; }
+    .cert { font-size: 8pt; line-height: 12pt; }
+    .party td { border: 0.5pt solid #000000; padding: 2pt 3pt; }
+    .blank { height: 24pt; }
+    .supplier-row { height: 28pt; }
+    .party-title { font-size: 11pt; font-weight: bold; }
+    .lines-head { font-size: 12pt; font-weight: bold; margin-bottom: 6pt; }
+    .lines table th { font-size: 9pt; font-weight: bold; border-bottom: 1pt solid #000000; }
+    .lines table td { font-size: 9pt; border-bottom: 0.5pt solid #999999; }
+    .lines .right { text-align: right; }
+    .lines .num { width: 24pt; text-align: center; }
+    .lines .empty { padding: 16pt; font-style: italic; }
+    .pageinfo { font-size: 7pt; }
+  </style>
+  <macrolist>
+    <macro id="footer">
+      <table><tr>
+        <td class="pageinfo">${clean(record.submittalNumber!"")?xml} ${clean(record.revisionLabel!"")?xml}</td>
+        <td class="pageinfo" align="right">Page <pagenumber/> of <totalpages/></td>
+      </tr></table>
+    </macro>
+  </macrolist>
+</head>
+<body padding="0.3in 0.3in 0.45in 0.3in" size="Letter" footer="footer" footer-height="0.25in">
+  <table class="brand">
+    <tr>
+      <td width="30%" height="70pt">
+        <img src="https://6962009-sb2.app.netsuite.com/core/media/media.nl?id=604574&amp;c=6962009_SB2&amp;h=DDkKiZ53eOxFt_PfdQbc8rBBU-vyU8msiyhY9n4oPZNkBdKK" width="105pt" height="65pt" />
+      </td>
+      <td width="40%" align="center" class="title">Submittal Cover</td>
+      <td width="30%" align="right" class="company">
+        <p align="right" style="margin: 0; padding: 0; text-align: right;">${clean(record.subsidiaryName!"")?xml}</p>
+        <#if (record.subsidiaryAddress!"")?has_content>
+          <#list record.subsidiaryAddress?replace("<br />", "<br/>")?replace("<br>", "<br/>")?split("<br/>") as addressLine>
+            <p align="right" style="margin: 0; padding: 0; text-align: right;">${addressLine?xml}</p>
+          </#list>
+        </#if>
+        <#if (record.subsidiaryPhone!"")?has_content>
+          <p align="right" style="margin: 0; padding: 0; text-align: right;">${record.subsidiaryPhone?xml}</p>
+        </#if>
+      </td>
+    </tr>
+  </table>
+  <table class="project"><tr><td>
+    Project: ${clean(record.projectName!"")?xml}<br/>
+    Project No. ${clean(record.projectNumber!"")?xml}
+  </td></tr></table>
+  <table class="grid">
+    <tr>
+      <td width="25%"><span class="label">Submittal No.</span><br/><span class="value">${clean(record.submittalNumber!"")?xml}</span></td>
+      <td width="75%"><span class="label">Date:</span><br/><span class="value">${clean(record.submittalDate!"")?xml}</span></td>
+    </tr>
+    <tr><td colspan="2"><span class="label">Product Submitted:</span><br/>
+      <table><tr><td align="center" class="value" style="border: none;">${clean(record.title!"")?xml}</td></tr></table>
+    </td></tr>
+    <tr><td colspan="2"><span class="label">Manufacturer</span><br/>
+      <table><tr><td align="center" class="value" style="border: none;">
+        <#if (record.manufacturer!"")?has_content>
+          ${record.manufacturer?xml}
+        <#else>
+          <#assign manufacturers = [] />
+          <#list (record.lines![]) as item>
+            <#assign manufacturer = (item.manufacturer!"")?trim />
+            <#if manufacturer?has_content && !(manufacturers?seq_contains(manufacturer))>
+              <#assign manufacturers = manufacturers + [manufacturer] />
+            </#if>
+          </#list>
+          <#list manufacturers as manufacturer>${manufacturer?xml}<#if manufacturer_has_next>, </#if></#list>
+        </#if>
+      </td></tr></table>
+    </td></tr>
+    <tr>
+      <td><span class="label">Spec. Section</span><br/><span class="value">${clean(record.specSection!"")?xml}</span></td>
+      <td><span class="label">Spec. Title</span><br/><span class="value">${mappedSpecTitle?xml}</span></td>
+    </tr>
+  </table>
+  <!-- One six-column grid keeps supplier and certification exactly half-width. -->
+  <table class="grid" width="568pt" style="width: 568pt; table-layout: fixed;">
+    <tr>
+      <td width="100pt" style="width: 100pt; border: none; padding: 0; height: 0pt;"></td>
+      <td width="92pt" style="width: 92pt; border: none; padding: 0; height: 0pt;"></td>
+      <td width="92pt" style="width: 92pt; border: none; padding: 0; height: 0pt;"></td>
+      <td width="100pt" style="width: 100pt; border: none; padding: 0; height: 0pt;"></td>
+      <td width="92pt" style="width: 92pt; border: none; padding: 0; height: 0pt;"></td>
+      <td width="92pt" style="width: 92pt; border: none; padding: 0; height: 0pt;"></td>
+    </tr>
+    <tr><td colspan="6" class="section" style="border: none; padding: 4pt 0 3pt 0;">Product Supplier</td></tr>
+    <tr>
+      <td colspan="3" height="28pt" class="supplier-row"><span class="label">Company</span><br/><span class="value">${clean(record.vendor!"")?xml}&#160;</span></td>
+      <td colspan="3" rowspan="4" width="284pt" style="width: 284pt; padding: 6pt; vertical-align: top;" class="cert">
+        <b><u>Subcontractor Certification of Compliance:</u></b><br/>
+        I hereby certify that the product data contained in this submittal package has been reviewed for compliance with the intent of the Contract Documents and coordinated with the project requirements.
+        <br/><br/>By: ____________________&#160;&#160; ${clean(record.submittalDate!"")?xml}
+      </td>
+    </tr>
+    <tr><td colspan="3" height="28pt" class="supplier-row"><span class="label">Address</span><br/><span class="value">${clean(record.supplierAddress!"")?xml}&#160;</span></td></tr>
+    <tr><td colspan="3" height="28pt" class="supplier-row"><span class="label">City, State, Zip</span><br/><span class="value">${clean(record.supplierCityStateZip!"")?xml}&#160;</span></td></tr>
+    <tr>
+      <td height="28pt" class="supplier-row"><span class="label">Contact:</span><br/><span class="value">${clean(record.supplierContact!"")?xml}&#160;</span></td>
+      <td height="28pt" class="supplier-row"><span class="label">Phone:</span><br/><span class="value">${clean(record.supplierPhone!"")?xml}&#160;</span></td>
+      <td height="28pt" class="supplier-row"><span class="label">Fax:</span><br/><span class="value">${clean(record.supplierFax!"")?xml}&#160;</span></td>
+    </tr>
+  </table>
+  <table width="568pt" style="width: 568pt; table-layout: fixed; margin-top: 12pt;"><tr>
+    <td width="284pt" style="width: 284pt; padding: 0;">
+      <table class="party">
+        <tr><td colspan="3" align="center" class="party-title">Architect</td></tr>
+        <tr><td colspan="3" class="blank"><span class="label">Name</span><br/>&#160;</td></tr>
+        <tr><td colspan="3" class="blank"><span class="label">Address</span><br/>&#160;</td></tr>
+        <tr><td colspan="3" class="blank"><span class="label">City, State, Zip</span><br/>&#160;</td></tr>
+        <tr>
+          <td width="35%" class="blank"><span class="label">Proj. No.</span><br/>&#160;</td>
+          <td width="31%" class="blank"><span class="label">Phone:</span><br/>&#160;</td>
+          <td width="34%" class="blank"><span class="label">Fax:</span><br/>&#160;</td>
+        </tr>
+        <tr><td colspan="3" align="center" class="party-title">Engineer</td></tr>
+        <tr><td colspan="3" class="blank"><span class="label">Name</span><br/>&#160;</td></tr>
+        <tr><td colspan="3" class="blank"><span class="label">Address</span><br/>&#160;</td></tr>
+        <tr><td colspan="3" class="blank"><span class="label">City, State, Zip</span><br/>&#160;</td></tr>
+        <tr>
+          <td width="35%" class="blank"><span class="label">Proj. No.</span><br/>&#160;</td>
+          <td width="31%" class="blank"><span class="label">Phone:</span><br/>&#160;</td>
+          <td width="34%" class="blank"><span class="label">Fax:</span><br/>&#160;</td>
+        </tr>
+        <tr><td colspan="3" align="center" class="party-title">General Contractor</td></tr>
+        <tr><td colspan="3" class="blank"><span class="label">Name</span><br/>&#160;</td></tr>
+        <tr><td colspan="3" class="blank"><span class="label">Address</span><br/>&#160;</td></tr>
+        <tr><td colspan="3" class="blank"><span class="label">City, State, Zip</span><br/>&#160;</td></tr>
+        <tr>
+          <td width="35%" class="blank"><span class="label">Proj. No.</span><br/>&#160;</td>
+          <td width="31%" class="blank"><span class="label">Phone:</span><br/>&#160;</td>
+          <td width="34%" class="blank"><span class="label">Fax:</span><br/>&#160;</td>
+        </tr>
+      </table>
+    </td>
+    <td width="16pt" style="width: 16pt; padding: 0;"></td>
+    <td width="268pt" style="width: 268pt; border: 0.5pt solid #000000; padding: 4pt;">Reviewer Stamp</td>
+  </tr></table>
+  <!-- Omit the summary page when there are no product items. -->
+  <#if (record.lines![])?size &gt; 0>
+    <pbr/>
+    <table><tr><td class="lines-head">Product Summary</td></tr></table>
+    <table class="grid" style="table-layout: fixed;">
+      <thead><tr>
+        <th width="5%">#</th>
+        <th width="29%">Description</th>
+        <th width="16%">Model</th>
+        <th width="20%">Manufacturer</th>
+        <th width="8%" align="right">Qty</th>
+        <th width="8%">UoM</th>
+        <th width="14%" align="right">Unit Cost</th>
+      </tr></thead>
+      <tbody>
+        <#list record.lines as item>
+          <tr>
+            <td>${clean(item.position!"")?xml}</td>
+            <td>${clean(item.description!"")?xml}</td>
+            <td>${clean(item.model!"")?xml}</td>
+            <td>${clean(item.manufacturer!"")?xml}</td>
+            <td align="right">${clean(item.qty!"")?xml}</td>
+            <td>${clean(item.uom!"")?xml}</td>
+            <td align="right">${clean(item.unitCost!"")?xml}</td>
+          </tr>
+        </#list>
+      </tbody>
+    </table>
+  </#if>
+</body>
+</pdf>
