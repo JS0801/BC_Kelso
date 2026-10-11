@@ -93,6 +93,7 @@ define([
           BUILTIN.DF(sub.custrecord_bc_subs_status)             AS status_name,
           sub.custrecord_bc_subs_due_date                       AS due_date,
           BUILTIN.DF(sub.custrecord_bc_subs_ball_in_court)      AS bic_name,
+          sub.custrecord_bc_subs_vendor                         AS vendor_id,
           COALESCE(vendor.companyname, vendor.entityid)          AS vendor_name,
           sub.custrecord_bc_subs_project                        AS project_id,
           BUILTIN.DF(sub.custrecord_bc_subs_project)            AS project_name,
@@ -135,6 +136,7 @@ define([
           BUILTIN.DF(sub.custrecord_bc_subs_status)             AS status_name,
           sub.custrecord_bc_subs_due_date                       AS due_date,
           BUILTIN.DF(sub.custrecord_bc_subs_ball_in_court)      AS bic_name,
+          sub.custrecord_bc_subs_vendor                         AS vendor_id,
           COALESCE(vendor.companyname, vendor.entityid)          AS vendor_name,
           sub.custrecord_bc_subs_lead_time                      AS lead_time,
           sub.custrecord_bc_subs_project                        AS project_id,
@@ -224,6 +226,44 @@ define([
     return branding;
   };
 
+  // Supplier details for the cover: default billing address, then default
+  // shipping, then the first address. Address-book labels are not printed.
+  const _loadCoverSupplier = (vendorId) => {
+    const supplier = { name: '', address: '', cityStateZip: '', phone: '', fax: '' };
+    const id = Number(vendorId);
+    if (!id) return supplier;
+    const read = (rec, fieldId) => {
+      try { return String(rec.getValue({ fieldId }) || '').trim(); }
+      catch (e) { return ''; }
+    };
+    try {
+      const vendor = record.load({ type: record.Type.VENDOR || 'vendor', id, isDynamic: false });
+      supplier.name = read(vendor, 'companyname') ||
+        [read(vendor, 'firstname'), read(vendor, 'lastname')].filter(Boolean).join(' ') ||
+        read(vendor, 'entityid');
+      supplier.phone = _formatCoverPhone(read(vendor, 'phone'));
+      supplier.fax = _formatCoverPhone(read(vendor, 'fax'));
+      const count = vendor.getLineCount({ sublistId: 'addressbook' });
+      let billing = -1, shipping = -1;
+      const checked = (value) => value === true || value === 'T';
+      for (let line = 0; line < count; line++) {
+        if (billing < 0 && checked(vendor.getSublistValue({ sublistId: 'addressbook', fieldId: 'defaultbilling', line }))) billing = line;
+        if (shipping < 0 && checked(vendor.getSublistValue({ sublistId: 'addressbook', fieldId: 'defaultshipping', line }))) shipping = line;
+      }
+      const line = billing >= 0 ? billing : shipping >= 0 ? shipping : count > 0 ? 0 : -1;
+      if (line >= 0) {
+        const address = vendor.getSublistSubrecord({ sublistId: 'addressbook', fieldId: 'addressbookaddress', line });
+        supplier.address = ['addr1', 'addr2', 'addr3'].map((fieldId) => read(address, fieldId)).filter(Boolean).join('\n');
+        const stateZip = [read(address, 'state'), read(address, 'zip')].filter(Boolean).join(' ');
+        supplier.cityStateZip = [read(address, 'city'), stateZip].filter(Boolean).join(', ');
+        supplier.phone = supplier.phone || _formatCoverPhone(read(address, 'addrphone'));
+      }
+    } catch (e) {
+      log.error({ title: 'Cover PDF: vendor details unavailable', details: `vendorId=${id}: ${e.message}` });
+    }
+    return supplier;
+  };
+
   const renderTransmittalCover = (params) => {
     // Argument shape detection — accept either a primitive (legacy
     // transmittalId) or an object with submittalId + revisionId.
@@ -249,6 +289,7 @@ define([
       revisionId = Number(ctx.revision_id)  || 0;
     }
 
+    const supplier = _loadCoverSupplier(ctx.vendor_id);
     const linesResult = subId ? lineDao.list(subId) : { rows: [] };
     const branding    = _loadCoverBranding(subId, ctx.project_subsidiary_id);
 
@@ -275,6 +316,11 @@ define([
       dueDate:           _fmtDate(ctx.due_date),
       ballInCourt:       ctx.bic_name || '',
       vendor:            ctx.vendor_name || '',
+      vendor:            supplier.name || ctx.vendor_name || '',
+      supplierAddress:   supplier.address,
+      supplierCityStateZip: supplier.cityStateZip,
+      supplierPhone:     supplier.phone,
+      supplierFax:       supplier.fax,
       // Luke-revisions §3.1 / §7.6 — lead time + submittal date on cover.
       leadTime:          ctx.lead_time || '',
       submittalDate:     _fmtDate(new Date()),
