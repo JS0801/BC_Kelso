@@ -1,0 +1,300 @@
+<?xml version="1.0"?>
+<!--
+  BlueCollar Submittals — Transmittal Cover PDF template.
+  Luke-revisions §7.5 layout (rev 2026-05-26).
+
+  Rendered by bc_pdf_renderer.renderTransmittalCover via either:
+    - transmittalId (legacy, when invoked from a transmittal record), or
+    - { submittalId, revisionId } (new — auto-cover on revision-create
+      or on-demand "Generate Cover PDF" per spec §7.4).
+
+  Data context (set by the renderer via render.create().addCustomDataSource):
+    record.subsidiaryName        string   — "Apportia Glass & Glazing" etc.
+    record.subsidiaryAddress     string   — multi-line, <br/>-separated by renderer
+    record.subsidiaryLogo        string?  — absolute URL to logo image (or null)
+    record.projectNumber         string?  — e.g. "BC-103"
+    record.projectName           string   — e.g. "Downtown Office Tower"
+    record.submittalNumber       string   — e.g. "08 41 13-003"
+    record.title                 string   — e.g. "Smoke 1.5"
+    record.revisionLabel         string   — e.g. "R2"
+    record.specSection           string?  — e.g. "08 41 13"
+    record.leadTime              string?  — e.g. "17-21 Week" (Luke-revisions §3.1)
+    record.submittalDate         string   — current date at generation
+    record.type                  string?  — submittal type display
+    record.status                string?  — submittal status display
+    record.dueDate               string?  — display-formatted, MM/DD/YYYY
+    record.ballInCourt           string?  — display name
+    record.vendor                string?  — vendor display name (Product Supplier)
+    record.sentDate              string?  — display-formatted timestamp (legacy)
+    record.subject               string?  — email subject as sent (legacy)
+    record.architect             {name, address, contact}? — STUB null until §7.6 wired
+    record.engineer              {name, address, contact}? — STUB null until §7.6 wired
+    record.generalContractor     {name, address, contact}? — STUB null until §7.6 wired
+    record.lines                 array of {position, description, model,
+                                   manufacturer, qty, uom, unitCost, outcome}
+    record.complianceLine        string?  — "Submitted by John Murphy on 5/25/2026"
+
+  Layout (Luke-revisions §7.5):
+    1. Subsidiary logo + address (top band, right-aligned)
+    2. Project name + No + Submittal Date + Submittal No (two-line row)
+    3. Spec Section + Lead Time + Description (two-line row)
+    4. Product Supplier (left) + Compliance Certification block (right)
+    5. Architect / Engineer / General Contractor (3 columns, stubbed)
+    6. Reviewer Stamp blank area (~3.5" tall)
+    7. Page 2: Product Summary line items table
+-->
+<!DOCTYPE pdf PUBLIC "-//big.faceless.org//report" "report-1.1.dtd">
+<pdf>
+<head>
+  <link name="NotoSans" type="font" subtype="truetype"
+        src="${nsfont.NotoSans_Regular}" src-bold="${nsfont.NotoSans_Bold}"
+        src-italic="${nsfont.NotoSans_Italic}" src-bolditalic="${nsfont.NotoSans_BoldItalic}" bytes="2" />
+  <style>
+    /* mirror Shared/lib/bc_ui_design.tokens */
+    * { font-family: NotoSans, sans-serif; color: #1a1f2b; }
+    body { font-size: 10pt; }
+    table { width: 100%; border-collapse: collapse; }
+    td, th { vertical-align: top; padding: 4pt 6pt; }
+
+    .brandbar td { padding: 0; }
+    .brandbar .logo { max-width: 130pt; max-height: 60pt; }
+    .brandbar .sub-name { font-weight: 700; font-size: 11pt; color: #16304d; }
+    .brandbar .sub-addr { font-size: 8pt; color: #52596a; line-height: 1.3; }
+
+    .title-band { margin-top: 10pt; padding: 6pt 0 8pt 0;
+                  border-top: 1pt solid #16304d; border-bottom: 1pt solid #16304d; }
+    .title { font-size: 18pt; font-weight: 700; color: #16304d; text-align: center; }
+
+    /* §7.5 row blocks — every meta strip uses thin rules + uppercase labels */
+    .row { border-bottom: 0.5pt solid #b9bec6; padding: 5pt 0; }
+    .row td { border: none; padding: 2pt 6pt; }
+    .lbl { font-size: 7.5pt; color: #52596a; text-transform: uppercase;
+           letter-spacing: 0.5pt; font-weight: 600; }
+    .val { font-size: 10pt; font-weight: 600; color: #1a1f2b; }
+    .val-big { font-size: 11pt; font-weight: 700; color: #16304d; }
+
+    /* Two-column block: Product Supplier (left) + Compliance Cert (right) */
+    .twocol { width: 100%; border-collapse: collapse; margin-top: 4pt; }
+    .twocol .cell { border: 0.5pt solid #b9bec6; padding: 8pt 10pt;
+                    vertical-align: top; }
+    .twocol .cell-head { font-size: 8pt; color: #52596a;
+                         text-transform: uppercase; letter-spacing: 0.5pt;
+                         font-weight: 600; margin-bottom: 4pt; }
+    .twocol .cell-body { font-size: 9.5pt; color: #1a1f2b; line-height: 1.45; }
+    .compliance-text { font-size: 8.5pt; color: #52596a; line-height: 1.4; }
+    .sigline { margin-top: 18pt; font-size: 8.5pt; color: #52596a; }
+    .sigline .ul { border-bottom: 0.5pt solid #1a1f2b;
+                   display: inline-block; min-width: 140pt; }
+
+    /* Architect / Engineer / GC — 3-col band */
+    .arch { width: 100%; border-collapse: collapse; margin-top: 4pt; }
+    .arch .cell { border: 0.5pt solid #b9bec6; padding: 8pt 10pt;
+                  vertical-align: top; width: 33.3%; }
+    .arch .cell-head { font-size: 8pt; color: #52596a;
+                       text-transform: uppercase; letter-spacing: 0.5pt;
+                       font-weight: 600; margin-bottom: 4pt; }
+    .arch .cell-name { font-size: 10pt; font-weight: 700; color: #16304d; }
+    .arch .cell-body { font-size: 8.5pt; color: #1a1f2b; line-height: 1.4;
+                       margin-top: 2pt; }
+    .arch .empty { font-size: 8.5pt; color: #a0a8b4; font-style: italic; }
+
+    /* Reviewer stamp area — blank ~3.5in tall */
+    .stamp { margin-top: 8pt; border: 0.75pt dashed #b9bec6; height: 3.4in;
+             padding: 8pt 10pt; }
+    .stamp-head { font-size: 8pt; color: #52596a;
+                  text-transform: uppercase; letter-spacing: 0.5pt;
+                  font-weight: 600; }
+
+    /* Page 2 — Product Summary */
+    .lines-head { font-size: 12pt; font-weight: 700; color: #16304d;
+                  margin-top: 6pt; margin-bottom: 4pt; padding-bottom: 2pt;
+                  border-bottom: 1pt solid #16304d; }
+    .lines table th { background: #eef0f3; color: #1a1f2b; font-weight: 600;
+                      text-align: left; border-bottom: 0.5pt solid #b9bec6;
+                      font-size: 9pt; }
+    .lines table td { border-bottom: 0.5pt solid #dde0e5; font-size: 9pt; }
+    .lines .right { text-align: right; }
+    .lines .num   { text-align: center; color: #52596a; width: 24pt; }
+    .lines .empty { font-style: italic; color: #52596a; padding: 16pt; text-align: center; }
+
+    .pageinfo { font-size: 8pt; color: #52596a; }
+  </style>
+  <macrolist>
+    <macro id="footer">
+      <table>
+        <tr>
+          <td align="left" class="pageinfo">
+            ${record.submittalNumber!""} · ${record.revisionLabel!""}
+            <#if (record.sentDate)?? && record.sentDate?length &gt; 0> · Sent ${record.sentDate}</#if>
+          </td>
+          <td align="right" class="pageinfo">
+            Page <pagenumber/> of <totalpages/>
+          </td>
+        </tr>
+      </table>
+    </macro>
+  </macrolist>
+</head>
+<body padding="0.55in 0.55in 0.75in 0.55in" size="Letter" footer="footer" footer-height="0.4in">
+
+  <!-- §7.5 Block 1: Subsidiary logo + address top band (right-aligned per layout ref) -->
+  <table class="brandbar">
+    <tr>
+      <td width="55%">
+        <#if (record.subsidiaryLogo)??>
+          <img class="logo" src="${record.subsidiaryLogo}" />
+        </#if>
+      </td>
+      <td width="45%" align="right">
+        <div class="sub-name">${record.subsidiaryName!""}</div>
+        <div class="sub-addr">${record.subsidiaryAddress!""}</div>
+      </td>
+    </tr>
+  </table>
+
+  <!-- Title band -->
+  <div class="title-band">
+    <div class="title">Submittal Cover</div>
+  </div>
+
+  <!-- §7.5 Block 2: Project / Submittal No row -->
+  <table class="row">
+    <tr>
+      <td width="50%"><span class="lbl">Project</span></td>
+      <td width="25%"><span class="lbl">Submittal Date</span></td>
+      <td width="25%"><span class="lbl">Submittal No</span></td>
+    </tr>
+    <tr>
+      <td><span class="val-big">${record.projectName!""}</span></td>
+      <td><span class="val">${record.submittalDate!""}</span></td>
+      <td><span class="val val-big">${record.submittalNumber!""} <#if (record.revisionLabel)??>· ${record.revisionLabel}</#if></span></td>
+    </tr>
+    <tr>
+      <td colspan="3"><span class="lbl">Project No</span> <span class="val">${record.projectNumber!"—"}</span></td>
+    </tr>
+  </table>
+
+  <!-- §7.5 Block 3: Spec Section / Lead Time / Description -->
+  <table class="row">
+    <tr>
+      <td width="25%"><span class="lbl">Spec Section</span></td>
+      <td width="25%"><span class="lbl">Lead Time</span></td>
+      <td width="50%"><span class="lbl">Description</span></td>
+    </tr>
+    <tr>
+      <td><span class="val">${record.specSection!""}</span></td>
+      <td><span class="val">${record.leadTime!"—"}</span></td>
+      <td><span class="val">${record.title!""}</span></td>
+    </tr>
+  </table>
+
+  <!-- §7.5 Block 4: Product Supplier (left) + Compliance Cert (right) -->
+  <table class="twocol">
+    <tr>
+      <td class="cell" width="50%">
+        <div class="cell-head">Product Supplier</div>
+        <div class="cell-body">
+          <strong>${record.vendor!"—"}</strong>
+          <#if (record.type)?? && record.type?length &gt; 0>
+            <br/><span class="lbl">Type</span> ${record.type}
+          </#if>
+        </div>
+      </td>
+      <td class="cell" width="50%">
+        <div class="cell-head">Subcontractor Certification of Compliance</div>
+        <div class="cell-body compliance-text">
+          I hereby certify that the product data submitted herewith has been
+          reviewed for compliance with the contract documents and is submitted
+          for approval.
+        </div>
+        <div class="sigline">
+          By: <span class="ul">&nbsp;</span> &nbsp;&nbsp;
+          Date: <span class="ul">&nbsp;</span>
+        </div>
+      </td>
+    </tr>
+  </table>
+
+  <!-- §7.5 Block 5: Architect / Engineer / General Contractor (STUB per §7.6) -->
+  <table class="arch">
+    <tr>
+      <td class="cell">
+        <div class="cell-head">Architect</div>
+        <#if (record.architect)??>
+          <div class="cell-name">${record.architect.name!""}</div>
+          <div class="cell-body">${record.architect.address!""}<#if (record.architect.contact)??><br/>Contact: ${record.architect.contact}</#if></div>
+        <#else>
+          <div class="empty">— address pending —</div>
+        </#if>
+      </td>
+      <td class="cell">
+        <div class="cell-head">Engineer</div>
+        <#if (record.engineer)??>
+          <div class="cell-name">${record.engineer.name!""}</div>
+          <div class="cell-body">${record.engineer.address!""}<#if (record.engineer.contact)??><br/>Contact: ${record.engineer.contact}</#if></div>
+        <#else>
+          <div class="empty">— address pending —</div>
+        </#if>
+      </td>
+      <td class="cell">
+        <div class="cell-head">General Contractor</div>
+        <#if (record.generalContractor)??>
+          <div class="cell-name">${record.generalContractor.name!""}</div>
+          <div class="cell-body">${record.generalContractor.address!""}<#if (record.generalContractor.contact)??><br/>Contact: ${record.generalContractor.contact}</#if></div>
+        <#else>
+          <div class="empty">— address pending —</div>
+        </#if>
+      </td>
+    </tr>
+  </table>
+
+  <!-- §7.5 Block 6: Reviewer Stamp blank area (~3.5" tall) -->
+  <div class="stamp">
+    <div class="stamp-head">Reviewer Stamp</div>
+  </div>
+
+  <!-- Page 2: Product Summary line items -->
+  <pbr/>
+  <div class="lines-head">Product Summary</div>
+  <div class="lines">
+    <#assign hasLines = (record.lines?? && record.lines?size &gt; 0) />
+    <#if hasLines>
+      <table>
+        <thead>
+          <tr>
+            <th class="num">#</th>
+            <th>Description</th>
+            <th>Model</th>
+            <th>Manufacturer</th>
+            <th class="right">Qty</th>
+            <th>UoM</th>
+            <th class="right">Unit Cost</th>
+          </tr>
+        </thead>
+        <tbody>
+          <#list record.lines as l>
+            <tr>
+              <td class="num">${l.position!""}</td>
+              <td>${l.description!""}</td>
+              <td>${l.model!""}</td>
+              <td>${l.manufacturer!""}</td>
+              <td class="right">${l.qty!""}</td>
+              <td>${l.uom!""}</td>
+              <td class="right">${l.unitCost!""}</td>
+            </tr>
+          </#list>
+        </tbody>
+      </table>
+    <#else>
+      <table>
+        <tr><td class="empty">No items on this submittal.</td></tr>
+      </table>
+    </#if>
+  </div>
+
+  <#if (record.complianceLine)??>
+    <div class="compliance-text" style="margin-top: 14pt;">${record.complianceLine}</div>
+  </#if>
+
+</body>
+</pdf>
