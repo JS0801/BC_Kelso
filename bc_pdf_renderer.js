@@ -93,7 +93,7 @@ define([
           BUILTIN.DF(sub.custrecord_bc_subs_status)             AS status_name,
           sub.custrecord_bc_subs_due_date                       AS due_date,
           BUILTIN.DF(sub.custrecord_bc_subs_ball_in_court)      AS bic_name,
-          BUILTIN.DF(sub.custrecord_bc_subs_vendor)             AS vendor_name,
+          COALESCE(vendor.companyname, vendor.entityid)          AS vendor_name,
           sub.custrecord_bc_subs_project                        AS project_id,
           BUILTIN.DF(sub.custrecord_bc_subs_project)            AS project_name,
           proj.custrecord_bc_proj_number                      AS project_number,
@@ -105,6 +105,8 @@ define([
           ON sub.id = rev.custrecord_bc_revs_submittal
         LEFT JOIN customrecord_cseg_bc_project proj
           ON proj.id = sub.custrecord_bc_subs_project
+        LEFT JOIN vendor vendor
+          ON vendor.id = sub.custrecord_bc_subs_vendor
         WHERE xmit.id = ?
       `,
       params: [Number(transmittalId)]
@@ -133,7 +135,7 @@ define([
           BUILTIN.DF(sub.custrecord_bc_subs_status)             AS status_name,
           sub.custrecord_bc_subs_due_date                       AS due_date,
           BUILTIN.DF(sub.custrecord_bc_subs_ball_in_court)      AS bic_name,
-          BUILTIN.DF(sub.custrecord_bc_subs_vendor)             AS vendor_name,
+          COALESCE(vendor.companyname, vendor.entityid)          AS vendor_name,
           sub.custrecord_bc_subs_lead_time                      AS lead_time,
           sub.custrecord_bc_subs_project                        AS project_id,
           BUILTIN.DF(sub.custrecord_bc_subs_project)            AS project_name,
@@ -144,6 +146,8 @@ define([
           ON sub.id = rev.custrecord_bc_revs_submittal
         LEFT JOIN customrecord_cseg_bc_project proj
           ON proj.id = sub.custrecord_bc_subs_project
+        LEFT JOIN vendor vendor
+          ON vendor.id = sub.custrecord_bc_subs_vendor
         WHERE rev.id = ?
           AND sub.id = ?
       `,
