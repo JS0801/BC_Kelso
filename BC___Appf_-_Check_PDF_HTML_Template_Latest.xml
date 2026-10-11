@@ -336,6 +336,194 @@
     </div>
 
 
+
+<!-- START NORTH TEXAS DUCTWORKS / CHASE (SUBSIDIARY 40) -->
+<#elseif check.subsidiary.id == "40">
+
+    <#-- Set true for alignment previews; false for preprinted check stock. -->
+    <#assign ntdShowAlignmentBackground = false>
+
+    <#assign ntdAmount = check.total>
+    <#if check.usertotal?has_content>
+        <#assign ntdAmount = check.usertotal>
+    </#if>
+
+    <#assign ntdPayee = check.entity>
+    <#if check.entity.companyname?has_content>
+        <#assign ntdPayee = check.entity.companyname>
+    </#if>
+
+    <#assign ntdApply = check.apply![]>
+    <#assign ntdCredits = check.credit![]>
+    <#assign ntdExpenses = check.expense![]>
+    <#assign ntdItems = check.item![]>
+    <#assign ntdRowCount = ntdApply?size + ntdCredits?size + ntdExpenses?size + ntdItems?size>
+    <#assign ntdMaxRows = 20>
+    <#assign ntdRow = 0>
+
+    <#-- Company/bank details, check numbers, signature line and MICR
+         are already printed on the check stock. -->
+    <div style="height: 780pt; width: 612pt; page-break-inside: avoid; font-size: 9pt;">
+
+        <#if ntdShowAlignmentBackground>
+            <img
+                src="https://6962009-sb2.app.netsuite.com/core/media/media.nl?id=606309&amp;c=6962009_SB2&amp;h=KMlRb7QWnkeA9P9uGLOnahcEr1i5VwzNQLQg71ak9m6Lhqcw"
+                style="position: absolute; left: 0pt; top: 0pt; width: 612pt; height: 792pt;"
+            />
+        </#if>
+
+        <!-- CHECK DATE -->
+        <table style="position: absolute; left: 482pt; top: 65pt; width: 104pt; height: 16pt;">
+            <tr>
+                <td align="right">${check.trandate}</td>
+            </tr>
+        </table>
+
+        <!-- PAYEE -->
+        <table style="position: absolute; left: 70pt; top: 96pt; width: 395pt; height: 18pt;">
+            <tr>
+                <td>${ntdPayee}</td>
+            </tr>
+        </table>
+
+        <!-- NUMERIC AMOUNT -->
+        <table style="position: absolute; left: 490pt; top: 96pt; width: 96pt; height: 18pt;">
+            <tr>
+                <td align="right">**${ntdAmount?string['#,###,##0.00']}</td>
+            </tr>
+        </table>
+
+        <!-- AMOUNT IN WORDS -->
+        <table style="position: absolute; left: 16pt; top: 122pt; width: 518pt; height: 23pt; font-size: 9pt;">
+            <tr>
+                <td>${check.totalwords}****</td>
+            </tr>
+        </table>
+
+        <!-- PAYEE ADDRESS -->
+        <table style="position: absolute; left: 70pt; top: 146pt; width: 290pt; height: 48pt; font-size: 9pt;">
+            <tr>
+                <td>
+                    <#if check.address?has_content>
+                        ${check.address?replace("United States", "")}
+                    <#elseif check.entity.address?has_content>
+                        ${check.entity.address}
+                    </#if>
+                </td>
+            </tr>
+        </table>
+
+        <!-- MEMO -->
+        <table style="position: absolute; left: 48pt; top: 199pt; width: 275pt; height: 18pt; font-size: 8pt;">
+            <tr>
+                <td>${check.memo!""}</td>
+            </tr>
+        </table>
+
+        <!-- REMITTANCE HEADER -->
+        <table style="position: absolute; left: 16pt; top: 284pt; width: 570pt; font-size: 9pt;">
+            <tr>
+                <td style="width: 420pt;">
+                    <b>Payee:</b> ${ntdPayee}
+                </td>
+                <td align="right" style="width: 150pt;">
+                    ${check.trandate}
+                </td>
+            </tr>
+        </table>
+
+        <!-- REMITTANCE DETAILS -->
+        <table style="position: absolute; left: 16pt; top: 308pt; width: 570pt; table-layout: fixed; font-size: 8pt;">
+            <thead>
+                <tr>
+                    <th style="width: 65pt;">Date</th>
+                    <th style="width: 60pt;">Type</th>
+                    <th style="width: 110pt;">Reference</th>
+                    <th style="width: 180pt;">Description</th>
+                    <th align="right" style="width: 65pt;">Discount</th>
+                    <th align="right" style="width: 90pt;">Amount</th>
+                </tr>
+            </thead>
+
+            <#list ntdApply as apply>
+                <#if ntdRow lt ntdMaxRows>
+                    <tr>
+                        <td>${apply.applydate}</td>
+                        <td>${apply.type}</td>
+                        <td>${apply.refnum}</td>
+                        <td>${(apply.memo!"")}</td>
+                        <td align="right">${apply.disc}</td>
+                        <td align="right">${apply.amount}</td>
+                    </tr>
+                </#if>
+                <#assign ntdRow = ntdRow + 1>
+            </#list>
+
+            <#list ntdCredits as credit>
+                <#if ntdRow lt ntdMaxRows>
+                    <tr>
+                        <td>${credit.creditdate}</td>
+                        <td>${credit.type}</td>
+                        <td>${credit.refnum}</td>
+                        <td>${(credit.description!"")}</td>
+                        <td align="right">${credit.discamt}</td>
+                        <td align="right">(${credit.amount})</td>
+                    </tr>
+                </#if>
+                <#assign ntdRow = ntdRow + 1>
+            </#list>
+
+            <#list ntdExpenses as expense>
+                <#if ntdRow lt ntdMaxRows>
+                    <tr>
+                        <td>${expense.date!""}</td>
+                        <td>Expense</td>
+                        <td>${(expense.account!"")}</td>
+                        <td>${(expense.description!"")}</td>
+                        <td></td>
+                        <td align="right">${expense.amount}</td>
+                    </tr>
+                </#if>
+                <#assign ntdRow = ntdRow + 1>
+            </#list>
+
+            <#list ntdItems as item>
+                <#if ntdRow lt ntdMaxRows>
+                    <tr>
+                        <td>${item.date!""}</td>
+                        <td>Item</td>
+                        <td>${(item.item!"")}</td>
+                        <td>${(item.description!"")}</td>
+                        <td></td>
+                        <td align="right">${item.amount}</td>
+                    </tr>
+                </#if>
+                <#assign ntdRow = ntdRow + 1>
+            </#list>
+
+            <#if ntdRowCount gt ntdMaxRows>
+                <tr>
+                    <td colspan="6">
+                        Showing the first ${ntdMaxRows} of ${ntdRowCount} lines.
+                        Please see vendor remittance for complete details.
+                    </td>
+                </tr>
+            </#if>
+
+            <tr>
+                <td colspan="5" style="border-top: 1pt solid #000000;">
+                    <b>CHECK TOTAL:</b>
+                </td>
+                <td align="right" style="border-top: 1pt solid #000000;">
+                    <b>${ntdAmount?string['#,###,##0.00']}</b>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+<!-- END NORTH TEXAS DUCTWORKS / CHASE (SUBSIDIARY 40) -->
+
+
 <!-- START SUBSIDIARY RJ MARTIN (58) -->
 <#elseif check.subsidiary.id == "58">
     <#assign checkTotalAmount  = 0>
