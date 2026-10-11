@@ -7,8 +7,7 @@
   Green reference areas remain blank for handwritten/manual completion.
   General Contractor remains blank pending confirmation (red reference area).
   Optional values not currently supplied by the renderer:
-  supplierAddress, supplierCityStateZip,
-  supplierContact, supplierPhone, supplierFax, manufacturer.
+  supplierContact, manufacturer (manufacturer otherwise comes from lines).
   Missing optional values render blank; example-project data is never hard-coded.
   Product Summary appears on page 2 only when items exist.
 -->
@@ -272,7 +271,7 @@
         <br/><br/>By: ____________________&#160;&#160; ${clean(record.submittalDate!"")?xml}
       </td>
     </tr>
-    <tr><td colspan="3" height="28pt" class="supplier-row"><span class="label">Address</span><br/><span class="value">${clean(record.supplierAddress!"")?xml}&#160;</span></td></tr>
+    <tr><td colspan="3" height="28pt" class="supplier-row"><span class="label">Address</span><br/><span class="value"><#list clean(record.supplierAddress!"")?split("\n") as supplierAddressLine>${supplierAddressLine?xml}<#if supplierAddressLine_has_next><br/></#if></#list>&#160;</span></td></tr>
     <tr><td colspan="3" height="28pt" class="supplier-row"><span class="label">City, State, Zip</span><br/><span class="value">${clean(record.supplierCityStateZip!"")?xml}&#160;</span></td></tr>
     <tr>
       <td height="28pt" class="supplier-row"><span class="label">Contact:</span><br/><span class="value">${clean(record.supplierContact!"")?xml}&#160;</span></td>
