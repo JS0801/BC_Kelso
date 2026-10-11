@@ -10,9 +10,14 @@
   subsidiaryPhone, projectNumber, specTitle, supplierAddress, supplierCityStateZip,
   supplierContact, supplierPhone, supplierFax, manufacturer.
   Missing optional values render blank; example-project data is never hard-coded.
-  Existing Product Summary remains on page 2.
+  Product Summary appears on page 2 only when items exist.
 -->
 <pdf>
+<#function clean value>
+  <#local text = value?string?trim />
+  <#if text == "null" || text == "undefined"><#return "" /></#if>
+  <#return text />
+</#function>
 <head>
   <link name="NotoSans" type="font" subtype="truetype"
         src="${nsfont.NotoSans_Regular}" src-bold="${nsfont.NotoSans_Bold}"
@@ -20,7 +25,7 @@
   <style>
     * { font-family: NotoSans, sans-serif; color: #000000; }
     body { font-size: 9pt; }
-    table { width: 100%; border-collapse: collapse; }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
     td, th { vertical-align: top; padding: 2pt 3pt; }
     .brand td { padding: 0; }
     .title { font-size: 15pt; font-weight: bold; }
@@ -33,6 +38,7 @@
     .cert { font-size: 8pt; line-height: 12pt; }
     .party td { border: 0.5pt solid #000000; padding: 2pt 3pt; }
     .blank { height: 24pt; }
+    .supplier-row { height: 28pt; }
     .party-title { font-size: 11pt; font-weight: bold; }
     .lines-head { font-size: 12pt; font-weight: bold; margin-bottom: 6pt; }
     .lines table th { font-size: 9pt; font-weight: bold; border-bottom: 1pt solid #000000; }
@@ -45,7 +51,7 @@
   <macrolist>
     <macro id="footer">
       <table><tr>
-        <td class="pageinfo">${(record.submittalNumber!"")?xml} ${ (record.revisionLabel!"")?xml}</td>
+        <td class="pageinfo">${clean(record.submittalNumber!"")?xml} ${clean(record.revisionLabel!"")?xml}</td>
         <td class="pageinfo" align="right">Page <pagenumber/> of <totalpages/></td>
       </tr></table>
     </macro>
@@ -57,9 +63,9 @@
       <td width="25%" height="70pt">
         <img src="https://6962009-sb2.app.netsuite.com/core/media/media.nl?id=604574&amp;c=6962009_SB2&amp;h=DDkKiZ53eOxFt_PfdQbc8rBBU-vyU8msiyhY9n4oPZNkBdKK" width="105pt" height="65pt" />
       </td>
-      <td width="40%" align="center" class="title">Submittal Cover</td>
-      <td width="35%" align="right" class="company">
-        ${(record.subsidiaryName!"")?xml}
+      <td width="50%" align="center" class="title">Submittal Cover</td>
+      <td width="25%" align="right" class="company">
+        ${clean(record.subsidiaryName!"")?xml}
         <#if (record.subsidiaryAddress!"")?has_content>
           <#list record.subsidiaryAddress?replace("<br />", "<br/>")?replace("<br>", "<br/>")?split("<br/>") as addressLine>
             <br/>${addressLine?xml}
@@ -70,16 +76,16 @@
     </tr>
   </table>
   <table class="project"><tr><td>
-    Project: ${(record.projectName!"")?xml}<br/>
-    Project No. ${(record.projectNumber!"")?xml}
+    Project: ${clean(record.projectName!"")?xml}<br/>
+    Project No. ${clean(record.projectNumber!"")?xml}
   </td></tr></table>
   <table class="grid">
     <tr>
-      <td width="25%"><span class="label">Submittal No.</span><br/><span class="value">${(record.submittalNumber!"")?xml}</span></td>
-      <td width="75%"><span class="label">Date:</span><br/><span class="value">${(record.submittalDate!"")?xml}</span></td>
+      <td width="25%"><span class="label">Submittal No.</span><br/><span class="value">${clean(record.submittalNumber!"")?xml}</span></td>
+      <td width="75%"><span class="label">Date:</span><br/><span class="value">${clean(record.submittalDate!"")?xml}</span></td>
     </tr>
     <tr><td colspan="2"><span class="label">Product Submitted:</span><br/>
-      <table><tr><td align="center" class="value" style="border: none;">${(record.title!"")?xml}</td></tr></table>
+      <table><tr><td align="center" class="value" style="border: none;">${clean(record.title!"")?xml}</td></tr></table>
     </td></tr>
     <tr><td colspan="2"><span class="label">Manufacturer</span><br/>
       <table><tr><td align="center" class="value" style="border: none;">
@@ -98,32 +104,39 @@
       </td></tr></table>
     </td></tr>
     <tr>
-      <td><span class="label">Spec. Section</span><br/><span class="value">${(record.specSection!"")?xml}</span></td>
-      <td><span class="label">Spec. Title</span><br/><span class="value">${(record.specTitle!"")?xml}</span></td>
+      <td><span class="label">Spec. Section</span><br/><span class="value">${clean(record.specSection!"")?xml}</span></td>
+      <td><span class="label">Spec. Title</span><br/><span class="value">${clean(record.specTitle!"")?xml}</span></td>
     </tr>
   </table>
-  <table><tr><td class="section" style="padding: 3pt 0;">Product Supplier</td></tr></table>
-  <table><tr>
-    <td width="50%" style="padding: 0;">
-      <table class="grid">
-        <tr><td colspan="3"><span class="label">Company</span><br/><span class="value">${(record.vendor!"")?xml}</span></td></tr>
-        <tr><td colspan="3"><span class="label">Address</span><br/><span class="value">${(record.supplierAddress!"")?xml}</span></td></tr>
-        <tr><td colspan="3"><span class="label">City, State, Zip</span><br/><span class="value">${(record.supplierCityStateZip!"")?xml}</span></td></tr>
-        <tr>
-          <td width="35%"><span class="label">Contact:</span><br/><span class="value">${(record.supplierContact!"")?xml}</span></td>
-          <td width="31%"><span class="label">Phone:</span><br/><span class="value">${(record.supplierPhone!"")?xml}</span></td>
-          <td width="34%"><span class="label">Fax:</span><br/><span class="value">${(record.supplierFax!"")?xml}</span></td>
-        </tr>
-      </table>
-    </td>
-    <td width="50%" style="border: 0.5pt solid #000000; padding: 5pt;" class="cert">
-      <b><u>Subcontractor Certification of Compliance:</u></b><br/>
-      I hereby certify that the product data contained in this submittal package has been reviewed for compliance with the intent of the Contract Documents and coordinated with the project requirements.
-      <br/><br/>By: _______________________&#160; ${ (record.submittalDate!"")?xml}
-    </td>
-  </tr></table>
-  <table style="margin-top: 12pt;"><tr>
-    <td width="50%" style="padding: 0;">
+  <!-- One six-column grid keeps supplier and certification exactly half-width. -->
+  <table class="grid" width="568pt" style="width: 568pt; table-layout: fixed;">
+    <tr>
+      <td width="100pt" style="width: 100pt; border: none; padding: 0; height: 0pt;"></td>
+      <td width="92pt" style="width: 92pt; border: none; padding: 0; height: 0pt;"></td>
+      <td width="92pt" style="width: 92pt; border: none; padding: 0; height: 0pt;"></td>
+      <td width="100pt" style="width: 100pt; border: none; padding: 0; height: 0pt;"></td>
+      <td width="92pt" style="width: 92pt; border: none; padding: 0; height: 0pt;"></td>
+      <td width="92pt" style="width: 92pt; border: none; padding: 0; height: 0pt;"></td>
+    </tr>
+    <tr><td colspan="6" class="section" style="border: none; padding: 4pt 0 3pt 0;">Product Supplier</td></tr>
+    <tr>
+      <td colspan="3" height="28pt" class="supplier-row"><span class="label">Company</span><br/><span class="value">${clean(record.vendor!"")?xml}&#160;</span></td>
+      <td colspan="3" rowspan="4" width="284pt" style="width: 284pt; padding: 6pt; vertical-align: top;" class="cert">
+        <b><u>Subcontractor Certification of Compliance:</u></b><br/>
+        I hereby certify that the product data contained in this submittal package has been reviewed for compliance with the intent of the Contract Documents and coordinated with the project requirements.
+        <br/><br/>By: ____________________&#160;&#160; ${clean(record.submittalDate!"")?xml}
+      </td>
+    </tr>
+    <tr><td colspan="3" height="28pt" class="supplier-row"><span class="label">Address</span><br/><span class="value">${clean(record.supplierAddress!"")?xml}&#160;</span></td></tr>
+    <tr><td colspan="3" height="28pt" class="supplier-row"><span class="label">City, State, Zip</span><br/><span class="value">${clean(record.supplierCityStateZip!"")?xml}&#160;</span></td></tr>
+    <tr>
+      <td height="28pt" class="supplier-row"><span class="label">Contact:</span><br/><span class="value">${clean(record.supplierContact!"")?xml}&#160;</span></td>
+      <td height="28pt" class="supplier-row"><span class="label">Phone:</span><br/><span class="value">${clean(record.supplierPhone!"")?xml}&#160;</span></td>
+      <td height="28pt" class="supplier-row"><span class="label">Fax:</span><br/><span class="value">${clean(record.supplierFax!"")?xml}&#160;</span></td>
+    </tr>
+  </table>
+  <table width="568pt" style="width: 568pt; table-layout: fixed; margin-top: 12pt;"><tr>
+    <td width="284pt" style="width: 284pt; padding: 0;">
       <table class="party">
         <tr><td colspan="3" align="center" class="party-title">Architect</td></tr>
         <tr><td colspan="3" class="blank"><span class="label">Name</span><br/>&#160;</td></tr>
@@ -154,48 +167,37 @@
         </tr>
       </table>
     </td>
-    <td width="3%" style="padding: 0;"></td>
-    <td width="47%" style="border: 0.5pt solid #000000; padding: 4pt;">Reviewer Stamp</td>
+    <td width="16pt" style="width: 16pt; padding: 0;"></td>
+    <td width="268pt" style="width: 268pt; border: 0.5pt solid #000000; padding: 4pt;">Reviewer Stamp</td>
   </tr></table>
-  <!-- Page 2: Product Summary line items -->
-  <pbr/>
-  <div class="lines-head">Product Summary</div>
-  <div class="lines">
-    <#assign hasLines = (record.lines?? && record.lines?size &gt; 0) />
-    <#if hasLines>
-      <table>
-        <thead>
+  <!-- Omit the summary page when there are no product items. -->
+  <#if (record.lines![])?size &gt; 0>
+    <pbr/>
+    <table><tr><td class="lines-head">Product Summary</td></tr></table>
+    <table class="grid" style="table-layout: fixed;">
+      <thead><tr>
+        <th width="5%">#</th>
+        <th width="29%">Description</th>
+        <th width="16%">Model</th>
+        <th width="20%">Manufacturer</th>
+        <th width="8%" align="right">Qty</th>
+        <th width="8%">UoM</th>
+        <th width="14%" align="right">Unit Cost</th>
+      </tr></thead>
+      <tbody>
+        <#list record.lines as item>
           <tr>
-            <th class="num">#</th>
-            <th>Description</th>
-            <th>Model</th>
-            <th>Manufacturer</th>
-            <th class="right">Qty</th>
-            <th>UoM</th>
-            <th class="right">Unit Cost</th>
+            <td>${clean(item.position!"")?xml}</td>
+            <td>${clean(item.description!"")?xml}</td>
+            <td>${clean(item.model!"")?xml}</td>
+            <td>${clean(item.manufacturer!"")?xml}</td>
+            <td align="right">${clean(item.qty!"")?xml}</td>
+            <td>${clean(item.uom!"")?xml}</td>
+            <td align="right">${clean(item.unitCost!"")?xml}</td>
           </tr>
-        </thead>
-        <tbody>
-          <#list record.lines as l>
-            <tr>
-              <td class="num">${(l.position!"")?xml}</td>
-              <td>${(l.description!"")?xml}</td>
-              <td>${(l.model!"")?xml}</td>
-              <td>${(l.manufacturer!"")?xml}</td>
-              <td class="right">${(l.qty!"")?xml}</td>
-              <td>${(l.uom!"")?xml}</td>
-              <td class="right">${(l.unitCost!"")?xml}</td>
-            </tr>
-          </#list>
-        </tbody>
-      </table>
-    <#else>
-      <table>
-        <tr><td class="empty">No items on this submittal.</td></tr>
-      </table>
-    </#if>
-  </div>
-
-
+        </#list>
+      </tbody>
+    </table>
+  </#if>
 </body>
 </pdf>
