@@ -15,7 +15,7 @@
  *   - submittal-export.bfo         deferred
  */
 define([
-  'N/render', 'N/file', 'N/query', 'N/record', 'N/search', 'N/runtime',
+  'N/render', 'N/file', 'N/query', 'N/record', 'N/search', 'N/runtime', 'N/log',
   '../../Shared/lib/bc_submittal_constants',
   '../../Shared/lib/bc_submittal_errors',
   './bc_line_dao',
@@ -25,7 +25,7 @@ define([
   './bc_branding_resolver',
   './bc_project_dao',
   './bc_event_log'
-], (render, file, query, record, search, runtime, C, errors, lineDao, responseDao, fileDao, workflowLogic, brandingResolver, projectDao, eventLog) => {
+], (render, file, query, record, search, runtime, log, C, errors, lineDao, responseDao, fileDao, workflowLogic, brandingResolver, projectDao, eventLog) => {
 
   // sourceName → human label for the change-history "PDF generated" row.
   const _GENERATED_PDF_LABELS = {
@@ -95,12 +95,16 @@ define([
           BUILTIN.DF(sub.custrecord_bc_subs_ball_in_court)      AS bic_name,
           BUILTIN.DF(sub.custrecord_bc_subs_vendor)             AS vendor_name,
           sub.custrecord_bc_subs_project                        AS project_id,
-          BUILTIN.DF(sub.custrecord_bc_subs_project)            AS project_name
+          BUILTIN.DF(sub.custrecord_bc_subs_project)            AS project_name,
+          proj.custrecord_bc_proj_number                      AS project_number,
+          proj.custrecord_bc_proj_subsidiary                  AS project_subsidiary_id
         FROM customrecord_bc_submittals_transmittal xmit
         INNER JOIN customrecord_bc_submittals_revision rev
           ON rev.id = xmit.custrecord_bc_xmits_revision
         INNER JOIN customrecord_bc_submittals sub
           ON sub.id = rev.custrecord_bc_revs_submittal
+        LEFT JOIN customrecord_cseg_bc_project proj
+          ON proj.id = sub.custrecord_bc_subs_project
         WHERE xmit.id = ?
       `,
       params: [Number(transmittalId)]
@@ -132,10 +136,14 @@ define([
           BUILTIN.DF(sub.custrecord_bc_subs_vendor)             AS vendor_name,
           sub.custrecord_bc_subs_lead_time                      AS lead_time,
           sub.custrecord_bc_subs_project                        AS project_id,
-          BUILTIN.DF(sub.custrecord_bc_subs_project)            AS project_name
+          BUILTIN.DF(sub.custrecord_bc_subs_project)            AS project_name,
+          proj.custrecord_bc_proj_number                      AS project_number,
+          proj.custrecord_bc_proj_subsidiary                  AS project_subsidiary_id
         FROM customrecord_bc_submittals_revision rev
         INNER JOIN customrecord_bc_submittals sub
           ON sub.id = rev.custrecord_bc_revs_submittal
+        LEFT JOIN customrecord_cseg_bc_project proj
+          ON proj.id = sub.custrecord_bc_subs_project
         WHERE rev.id = ?
           AND sub.id = ?
       `,
@@ -163,6 +171,44 @@ define([
   // sense for an actual sent transmittal.
   // -------------------------------------------------------------------
 
+  // Cover-only branding enrichment. Use the subsidiary record/address
+  // subrecord instead of unavailable SuiteQL address columns.
+  const _loadCoverBranding = (submittalId, subsidiaryId) => {
+    const branding = Object.assign({}, brandingResolver.resolve(submittalId));
+    const id = Number(subsidiaryId) || Number(branding.subsidiaryId);
+    if (!id) return branding;
+    try {
+      const subsidiary = record.load({ type: record.Type.SUBSIDIARY || 'subsidiary', id, isDynamic: false });
+      const read = (rec, fieldId) => {
+        try { return String(rec.getValue({ fieldId }) || '').trim(); }
+        catch (e) { return ''; }
+      };
+      branding.name = read(subsidiary, 'legalname') || read(subsidiary, 'name') || branding.name;
+      branding.phone = read(subsidiary, 'phone');
+      let addressText = '';
+      try {
+        const address = subsidiary.getSubrecord({ fieldId: 'mainaddress' });
+        if (address) {
+          // Keep company name in its own header line; omit the duplicate addressee.
+          const street = ['addr1', 'addr2', 'addr3'].map((f) => read(address, f)).filter(Boolean);
+          const city = read(address, 'city');
+          const stateZip = [read(address, 'state'), read(address, 'zip')].filter(Boolean).join(' ');
+          const locality = [city, stateZip].filter(Boolean).join(', ');
+          if (locality) street.push(locality);
+          addressText = street.join('\n') || read(address, 'addrtext');
+          branding.phone = branding.phone || read(address, 'addrphone');
+        }
+      } catch (e) {
+        log.error({ title: 'Cover PDF: subsidiary main address unavailable', details: `subsidiaryId=${id}: ${e.message}` });
+      }
+      addressText = addressText || read(subsidiary, 'mainaddress_text');
+      if (addressText) branding.address = addressText.replace(/\r\n|\r|\n/g, '<br/>');
+    } catch (e) {
+      log.error({ title: 'Cover PDF: subsidiary branding unavailable', details: `subsidiaryId=${id}: ${e.message}` });
+    }
+    return branding;
+  };
+
   const renderTransmittalCover = (params) => {
     // Argument shape detection — accept either a primitive (legacy
     // transmittalId) or an object with submittalId + revisionId.
@@ -189,7 +235,7 @@ define([
     }
 
     const linesResult = subId ? lineDao.list(subId) : { rows: [] };
-    const branding    = brandingResolver.resolve(subId);
+    const branding    = _loadCoverBranding(subId, ctx.project_subsidiary_id);
 
     // Luke-revisions §7.6 — pull architect/engineer/GC stub addresses.
     // Currently returns three nulls; cover template renders blank labeled
@@ -201,9 +247,10 @@ define([
     const data = {
       subsidiaryName:    branding.name,
       subsidiaryAddress: branding.address,
+      subsidiaryPhone:   branding.phone || '',
       subsidiaryLogo:    branding.logoUrl,
       projectName:       ctx.project_name || '',
-      projectNumber:     null,                          // future: pull custrecord_bc_proj_number when bc_project records exist
+      projectNumber:     ctx.project_number == null ? '' : String(ctx.project_number),
       submittalNumber:   ctx.sub_number || '',
       title:             ctx.title || '',
       revisionLabel:     revLabel,
