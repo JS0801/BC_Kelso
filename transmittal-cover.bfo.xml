@@ -180,7 +180,7 @@
     .cert { font-size: 8pt; line-height: 12pt; }
     .party td { border: 0.5pt solid #000000; padding: 2pt 3pt; }
     .blank { height: 24pt; }
-    .supplier-row { height: 28pt; }
+    .supplier-row { height: 34pt; padding: 4pt 3pt; }
     .party-title { font-size: 11pt; font-weight: bold; }
     .lines-head { font-size: 12pt; font-weight: bold; margin-bottom: 6pt; }
     .lines table th { font-size: 9pt; font-weight: bold; border-bottom: 1pt solid #000000; }
@@ -264,19 +264,19 @@
     </tr>
     <tr><td colspan="6" class="section" style="border: none; padding: 4pt 0 3pt 0;">Product Supplier</td></tr>
     <tr>
-      <td colspan="3" height="28pt" class="supplier-row"><span class="label">Company</span><br/><span class="value">${clean(record.vendor!"")?xml}&#160;</span></td>
+      <td colspan="3" height="34pt" class="supplier-row"><span class="label">Company</span><br/><span style="font-size: 4pt; line-height: 4pt;">&#160;</span><br/><span class="value">${clean(record.vendor!"")?xml}&#160;</span></td>
       <td colspan="3" rowspan="4" width="284pt" style="width: 284pt; padding: 6pt; vertical-align: top;" class="cert">
         <b><u>Subcontractor Certification of Compliance:</u></b><br/>
         I hereby certify that the product data contained in this submittal package has been reviewed for compliance with the intent of the Contract Documents and coordinated with the project requirements.
         <br/><br/>By: ____________________&#160;&#160; ${clean(record.submittalDate!"")?xml}
       </td>
     </tr>
-    <tr><td colspan="3" height="28pt" class="supplier-row"><span class="label">Address</span><br/><span class="value"><#list clean(record.supplierAddress!"")?split("\n") as supplierAddressLine>${supplierAddressLine?xml}<#if supplierAddressLine_has_next><br/></#if></#list>&#160;</span></td></tr>
-    <tr><td colspan="3" height="28pt" class="supplier-row"><span class="label">City, State, Zip</span><br/><span class="value">${clean(record.supplierCityStateZip!"")?xml}&#160;</span></td></tr>
+    <tr><td colspan="3" height="34pt" class="supplier-row"><span class="label">Address</span><br/><span style="font-size: 4pt; line-height: 4pt;">&#160;</span><br/><span class="value"><#list clean(record.supplierAddress!"")?split("\n") as supplierAddressLine>${supplierAddressLine?xml}<#if supplierAddressLine_has_next><br/></#if></#list>&#160;</span></td></tr>
+    <tr><td colspan="3" height="34pt" class="supplier-row"><span class="label">City, State, Zip</span><br/><span style="font-size: 4pt; line-height: 4pt;">&#160;</span><br/><span class="value">${clean(record.supplierCityStateZip!"")?xml}&#160;</span></td></tr>
     <tr>
-      <td height="28pt" class="supplier-row"><span class="label">Contact:</span><br/><span class="value">${clean(record.supplierContact!"")?xml}&#160;</span></td>
-      <td height="28pt" class="supplier-row"><span class="label">Phone:</span><br/><span class="value">${clean(record.supplierPhone!"")?xml}&#160;</span></td>
-      <td height="28pt" class="supplier-row"><span class="label">Fax:</span><br/><span class="value">${clean(record.supplierFax!"")?xml}&#160;</span></td>
+      <td height="34pt" class="supplier-row"><span class="label">Contact:</span><br/><span style="font-size: 4pt; line-height: 4pt;">&#160;</span><br/><span class="value">${clean(record.supplierContact!"")?xml}&#160;</span></td>
+      <td height="34pt" class="supplier-row"><span class="label">Phone:</span><br/><span style="font-size: 4pt; line-height: 4pt;">&#160;</span><br/><span class="value">${clean(record.supplierPhone!"")?xml}&#160;</span></td>
+      <td height="34pt" class="supplier-row"><span class="label">Fax:</span><br/><span style="font-size: 4pt; line-height: 4pt;">&#160;</span><br/><span class="value">${clean(record.supplierFax!"")?xml}&#160;</span></td>
     </tr>
   </table>
   <table width="568pt" style="width: 568pt; table-layout: fixed; margin-top: 12pt;"><tr>
