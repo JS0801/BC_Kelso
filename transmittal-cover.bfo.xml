@@ -7,7 +7,7 @@
   Green reference areas remain blank for handwritten/manual completion.
   General Contractor remains blank pending confirmation (red reference area).
   Optional values not currently supplied by the renderer:
-  subsidiaryPhone, projectNumber, specTitle, supplierAddress, supplierCityStateZip,
+  specTitle, supplierAddress, supplierCityStateZip,
   supplierContact, supplierPhone, supplierFax, manufacturer.
   Missing optional values render blank; example-project data is never hard-coded.
   Product Summary appears on page 2 only when items exist.
@@ -60,11 +60,11 @@
 <body padding="0.3in 0.3in 0.45in 0.3in" size="Letter" footer="footer" footer-height="0.25in">
   <table class="brand">
     <tr>
-      <td width="25%" height="70pt">
+      <td width="30%" height="70pt">
         <img src="https://6962009-sb2.app.netsuite.com/core/media/media.nl?id=604574&amp;c=6962009_SB2&amp;h=DDkKiZ53eOxFt_PfdQbc8rBBU-vyU8msiyhY9n4oPZNkBdKK" width="105pt" height="65pt" />
       </td>
-      <td width="50%" align="center" class="title">Submittal Cover</td>
-      <td width="25%" align="right" class="company">
+      <td width="40%" align="center" class="title">Submittal Cover</td>
+      <td width="30%" align="right" class="company">
         ${clean(record.subsidiaryName!"")?xml}
         <#if (record.subsidiaryAddress!"")?has_content>
           <#list record.subsidiaryAddress?replace("<br />", "<br/>")?replace("<br>", "<br/>")?split("<br/>") as addressLine>
