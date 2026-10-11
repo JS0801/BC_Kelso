@@ -173,6 +173,17 @@ define([
 
   // Cover-only branding enrichment. Use the subsidiary record/address
   // subrecord instead of unavailable SuiteQL address columns.
+  const _formatCoverPhone = (value) => {
+    const raw = String(value || '').trim();
+    let digits = raw.replace(/\D/g, '');
+    if (digits.length === 11 && digits.charAt(0) === '1') {
+      digits = digits.slice(1);
+    }
+    return digits.length === 10
+      ? `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
+      : raw;
+  };
+
   const _loadCoverBranding = (submittalId, subsidiaryId) => {
     const branding = Object.assign({}, brandingResolver.resolve(submittalId));
     const id = Number(subsidiaryId) || Number(branding.subsidiaryId);
@@ -247,7 +258,7 @@ define([
     const data = {
       subsidiaryName:    branding.name,
       subsidiaryAddress: branding.address,
-      subsidiaryPhone:   branding.phone || '',
+      subsidiaryPhone:   _formatCoverPhone(branding.phone),
       subsidiaryLogo:    branding.logoUrl,
       projectName:       ctx.project_name || '',
       projectNumber:     ctx.project_number == null ? '' : String(ctx.project_number),
