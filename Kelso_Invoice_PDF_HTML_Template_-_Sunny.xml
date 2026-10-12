@@ -1635,6 +1635,7 @@ ${record.billaddress@label}
     <tr>
     <th colspan="8" style="align: left;">${record.tranid@label}</th>
 <th colspan="9" style="align: center;">${record.trandate@label}</th>
+<#if subsidiary.id == "58"><th colspan="9" style="align: center;">Project</th></#if>
 <th colspan="7" style="align: center;">${record.total@label}</th>
 <td class="item" colspan="13">&nbsp;</td>
 </tr>
@@ -1642,6 +1643,7 @@ ${record.billaddress@label}
 <tr>
     <td colspan="8" style="align: left;"><span style="color:#666666;">${record.tranid}</span></td>
     <td colspan="9" style="align: center;"><span style="color:#666666;">${record.trandate}</span></td>
+    <#if subsidiary.id == "58"><td colspan="9" style="align: center;">${record.cseg_bc_project}</td></#if>
     <td colspan="7" style="align: center;"><span style="color:#666666;">${record.total}</span></td>
     <td class="item" colspan="13">&nbsp;</td>
 </tr>
