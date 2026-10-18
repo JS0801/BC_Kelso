@@ -789,6 +789,17 @@ Phone <#if subsidiary.phone?has_content> ${subsidiary.phone}</#if>
     background-color: #707070;
     }
     </#if>
+    <#-- SUB 58: all fonts +2pt -->
+    <#if subsidiary.id == "58">
+    table { font-size: 11pt; }
+    th { font-size: 12pt; }
+    table.header td { font-size: 12pt; }
+    td.addressheader { font-size: 10pt; }
+    table.footer span { font-size: 9pt; }
+    span.title { font-size: 16pt; }
+    span.number { font-size: 18pt; }
+    span.total { font-size: 12pt; }
+    </#if>
     </#if>
   </style>
 </head>
@@ -1564,11 +1575,12 @@ ${record.billaddress@label}
 <td class="address" colspan="6"><span style="color:#666666;">${record.billaddress}</span></td>
 <td>&nbsp;</td>
 <td class="address" colspan="6"><span style="color:#666666;">
-    <#if bcLocAddress?has_content>
-        ${bcLocAddress}
-    <#else>
-        ${record.custbody_bc_entity_address}
-    </#if>
+    <#-- SUB 58: Ship To addressee + street/city/state/zip -->
+    <#if record.shipaddressee?has_content>${record.shipaddressee}<br/></#if>
+    <#if record.shipaddr1?has_content>${record.shipaddr1}<br/></#if>
+    <#if record.shipaddr2?has_content>${record.shipaddr2}<br/></#if>
+    <#if record.shipaddr3?has_content>${record.shipaddr3}<br/></#if>
+    ${record.shipcity}<#if record.shipcity?has_content && (record.shipstate?has_content || record.shipzip?has_content)>, </#if>${record.shipstate} ${record.shipzip}
 </span></td>
 <#else>
 
@@ -1630,12 +1642,32 @@ ${record.billaddress@label}
 </#if>
 </table>
 <#if subsidiary.id != "16"  && subsidiary.id != "21">
+<#if subsidiary.id == "58">
+<!-- SUB 58: Invoice # / Date / RJM Project Number / Total - full width to match the Terms / Due Date / PO # row -->
+<#assign rjmProjNum = record.cseg_bc_project.custrecord_bc_proj_number!"">
+<#if !rjmProjNum?has_content><#assign rjmProjNum = record.cseg_bc_project!""></#if>
+<table align="left" border="0" class="itemtable" width="100%">
+    <thead>
+    <tr>
+    <th colspan="7" style="align: left;">${record.tranid@label}</th>
+<th colspan="5" style="align: center;">${record.trandate@label}</th>
+<th colspan="8" style="align: center;">RJM Project Number</th>
+<th colspan="6" style="align: right;">Amount Due</th>
+</tr>
+</thead>
+<tr>
+    <td colspan="7" style="align: left;"><span style="color:#666666;">${record.tranid}</span></td>
+    <td colspan="5" style="align: center;"><span style="color:#666666;">${record.trandate}</span></td>
+    <td colspan="8" style="align: center;"><span style="color:#666666;">${rjmProjNum}</span></td>
+    <td colspan="6" style="align: right;"><span style="color:#666666;">${record.total}</span></td>
+</tr>
+</table>
+<#else>
     <table align="left" border="0" class="itemtable" width="100%">
     <thead>
     <tr>
     <th colspan="8" style="align: left;">${record.tranid@label}</th>
 <th colspan="9" style="align: center;">${record.trandate@label}</th>
-<#if subsidiary.id == "58"><th colspan="25" style="align: center;">Project</th></#if>
 <th colspan="7" style="align: center;">${record.total@label}</th>
 <td class="item" colspan="13">&nbsp;</td>
 </tr>
@@ -1643,11 +1675,11 @@ ${record.billaddress@label}
 <tr>
     <td colspan="8" style="align: left;"><span style="color:#666666;">${record.tranid}</span></td>
     <td colspan="9" style="align: center;"><span style="color:#666666;">${record.trandate}</span></td>
-    <#if subsidiary.id == "58"><td colspan="25" style="align: center;">${record.cseg_bc_project}</td></#if>
     <td colspan="7" style="align: center;"><span style="color:#666666;">${record.total}</span></td>
     <td class="item" colspan="13">&nbsp;</td>
 </tr>
 </table>
+</#if>
 <!-- Add Project No. Project Name and Project Address if Subsidiary is AZN -->
 <#assign projectAddress = ''>
     <#assign _suiteletURL = ("https://6962009.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=3022&deploy=1&compid=6962009&ns-at=AAEJ7tMQzJ_Jp02beofJ049FxjTkmrOtRTWdU4jcbdTCZUGkSPY&recid="+record.internalid+"&bcpid="+record.cseg_bc_project.id)/>
@@ -1689,18 +1721,18 @@ ${record.billaddress@label}
 </table>
 <#elseif subsidiary.id == "58">
 <!-- SUB 58: Terms / Due Date / PO table without Sales Rep -->
-<table align="left" border="0" class="itemtable" style="width: 747px;" width="100%">
+<table align="left" border="0" class="itemtable" width="100%">
     <thead>
     <tr>
-    <th colspan="12" style="width: 249px;">${record.terms@label}</th>
-<th colspan="13" style="width: 249px;">${record.duedate@label}</th>
-<th style="width: 249px;">${record.otherrefnum@label}</th>
+    <th colspan="9">${record.terms@label}</th>
+<th colspan="8">${record.duedate@label}</th>
+<th colspan="9">${record.otherrefnum@label}</th>
 </tr>
 </thead>
 <tr>
-    <td colspan="12" style="width: 249px;"><span style="color:#666666;">${record.terms}</span></td>
-    <td colspan="13" style="width: 249px;"><span style="color:#666666;">${record.duedate}</span></td>
-    <td style="width: 249px;">${record.otherrefnum}</td>
+    <td colspan="9"><span style="color:#666666;">${record.terms}</span></td>
+    <td colspan="8"><span style="color:#666666;">${record.duedate}</span></td>
+    <td colspan="9">${record.otherrefnum}</td>
 </tr>
 </table>
 <#else>
@@ -1836,22 +1868,13 @@ ${record.billaddress@label}
 
     <#elseif subsidiary.id == "58">
 
-        <!-- SUB 58: item table without the Item column (description widened to fill) -->
+        <!-- SUB 58: item table - no Item, Quantity or Rate columns; Description takes the freed space -->
         <table align="left" class="itemtable" width="100%">
             <#list record.item as item>
                 <#if item_index == 0>
                     <thead>
                         <tr>
-                            <th colspan="17">${item.description@label}</th>
-                            <th colspan="6" style="align: right;">
-                                ${item.quantity@label}
-                            </th>
-                            <th colspan="2" style="align: left;">
-                                ${item.taxrate1@label}
-                            </th>
-                            <th colspan="6" style="align: right;">
-                                ${item.rate@label}
-                            </th>
+                            <th colspan="31">${item.description@label}</th>
                             <th colspan="6" style="align: right;">
                                 ${item.amount@label}
                             </th>
@@ -1860,14 +1883,7 @@ ${record.billaddress@label}
                 </#if>
 
                 <tr style="background-color: ${((item_index % 2) == 0)?string('#ffffff', '#f0f0f0')};">
-                    <td colspan="17">${item.description}</td>
-                    <td colspan="6" style="align: right;">
-                        ${item.quantity}
-                    </td>
-                    <td colspan="2">${item.taxrate1}</td>
-                    <td colspan="6" style="align: right;">
-                        ${item.rate}
-                    </td>
+                    <td colspan="31">${item.description}</td>
                     <td colspan="6" style="align: right;">
                         ${item.amount}
                     </td>
@@ -2135,9 +2151,9 @@ ${record.billaddress@label}
 </table>
 </#if>
 <#if subsidiary.id != "16" && subsidiary.id != "21">
-    <table align="left" border="0" class="itemtable" width="100%">
-    <#-- SUB 58: Subtotal and Tax Amount rows removed -->
+    <#-- SUB 58: whole Subtotal / Tax / Shipping box removed -->
     <#if subsidiary.id != "58">
+    <table align="left" border="0" class="itemtable" width="100%">
     <tr>
     <td class="item" colspan="24">&nbsp;</td>
 <td colspan="6" style="align: right;"><b>${record.subtotal@label}</b></td>
@@ -2148,13 +2164,23 @@ ${record.billaddress@label}
     <td colspan="6" style="align: right;"><b>${tc.default.CHARGES_TAX_AMT}</b></td>
     <td colspan="7" style="align: right;"><b>${record.taxtotal}</b></td>
 </tr>
-    </#if>
 <tr>
     <td class="item" colspan="24">&nbsp;</td>
     <td colspan="6" style="align: right;"><b>${record.shippingcost@label}</b></td>
     <td colspan="7" style="align: right;"><b>${record.shippingcost}</b></td>
 </tr>
 </table>
+    </#if>
+<#if subsidiary.id == "58">
+<!-- SUB 58: no line above total; Total renamed to Amount Due (14pt bold); old Amount Due row removed -->
+<table align="left" border="0" width="100%">
+    <tr>
+        <td colspan="24">&nbsp;</td>
+        <td colspan="6" style="align: right;"><b><span style="font-size: 14pt; font-weight: bold;">Amount Due</span></b></td>
+        <td align="right" colspan="7"><b><span style="font-size: 14pt; font-weight: bold;">${record.total}</span></b></td>
+    </tr>
+</table>
+<#else>
 <hr />
 <table align="left" border="0" width="100%">
     <tr>
@@ -2168,6 +2194,7 @@ ${record.billaddress@label}
         <td align="right" colspan="7"><b>${record.amountremaining}</b></td>
     </tr>
 </table>
+</#if>
 <#if record.custbody_atlas_svcs_mm_json?has_content><#assign data = record.custbody_atlas_svcs_mm_json?trim><#assign jsonValid = false><#-- Only eval when the field holds a JSON object; skips free text like "Lorem ipsum" --><#if data?starts_with("{") && data?ends_with("}") && data?contains("charges")><#attempt><#assign m = data?eval><#assign jsonValid = true><#recover><#assign jsonValid = false></#attempt></#if><#if jsonValid && m??><#assign printEmployee = false><#assign printDescription = false><#list m["charges"] as itemList><#if (itemList.f?has_content)><#assign printDescription = true></#if><#if (itemList.g?has_content)><#assign printEmployee = true></#if></#list>
 <table align="left" border="0" class="itemtable" width="100%">
     <#list m["charges"] as itemList><#if itemList_index==0>
