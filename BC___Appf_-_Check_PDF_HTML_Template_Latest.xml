@@ -341,7 +341,7 @@
 <#elseif check.subsidiary.id == "40">
 
     <#-- Set true for alignment previews; false for preprinted check stock. -->
-    <#assign ntdShowAlignmentBackground = false>
+    <#assign ntdShowAlignmentBackground = true>
 
     <#assign ntdAmount = check.total>
     <#if check.usertotal?has_content>
