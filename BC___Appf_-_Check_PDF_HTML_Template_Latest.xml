@@ -387,7 +387,7 @@
         </table>
 
         <!-- NUMERIC AMOUNT -->
-        <table style="position: absolute; left: 490pt; top: 96pt; width: 96pt; height: 18pt;">
+        <table style="position: absolute; left: 475pt; top: 85pt; width: 96pt; height: 18pt;">
             <tr>
                 <td align="right">**${ntdAmount?string['#,###,##0.00']}</td>
             </tr>
