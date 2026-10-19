@@ -219,7 +219,16 @@ define([
         log.error({ title: 'Cover PDF: subsidiary main address unavailable', details: `subsidiaryId=${id}: ${e.message}` });
       }
       addressText = addressText || read(subsidiary, 'mainaddress_text');
-      if (addressText) branding.address = addressText.replace(/\r\n|\r|\n/g, '<br/>');
+if (addressText) {
+  addressText = addressText.trim();
+
+  const companyName = 'North Texas Ductwork, LLC';
+  if (addressText.startsWith(companyName)) {
+    addressText = addressText.slice(companyName.length).trim();
+  }
+
+  branding.address = addressText.replace(/\r\n|\r|\n/g, '<br/>');
+}
     } catch (e) {
       log.error({ title: 'Cover PDF: subsidiary branding unavailable', details: `subsidiaryId=${id}: ${e.message}` });
     }
