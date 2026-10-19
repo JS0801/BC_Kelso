@@ -401,7 +401,7 @@
         </table>
 
         <!-- PAYEE ADDRESS -->
-        <table style="position: absolute; left: 70pt; top: 146pt; width: 290pt; height: 48pt; font-size: 9pt;">
+        <table style="position: absolute; left: 70pt; top: 135pt; width: 290pt; height: 48pt; font-size: 9pt;">
             <tr>
                 <td>
                     <#if check.address?has_content>
@@ -414,7 +414,7 @@
         </table>
 
         <!-- MEMO -->
-        <table style="position: absolute; left: 48pt; top: 199pt; width: 275pt; height: 18pt; font-size: 8pt;">
+        <table style="position: absolute; left: 48pt; top: 180pt; width: 275pt; height: 18pt; font-size: 8pt;">
             <tr>
                 <td>${check.memo!""}</td>
             </tr>
