@@ -373,7 +373,7 @@
         </#if>
 
         <!-- CHECK DATE -->
-        <table style="position: absolute; left: 482pt; top: 65pt; width: 104pt; height: 12pt;">
+        <table style="position: absolute; left: 482pt; top: 55pt; width: 104pt; height: 16pt;">
             <tr>
                 <td align="right">${check.trandate}</td>
             </tr>
