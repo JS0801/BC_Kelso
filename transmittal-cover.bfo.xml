@@ -327,8 +327,6 @@
         <th width="16%">Model</th>
         <th width="20%">Manufacturer</th>
         <th width="8%" align="right">Qty</th>
-        <th width="8%">UoM</th>
-        <th width="14%" align="right">Unit Cost</th>
       </tr></thead>
       <tbody>
         <#list record.lines as item>
@@ -338,8 +336,6 @@
             <td>${clean(item.model!"")?xml}</td>
             <td>${clean(item.manufacturer!"")?xml}</td>
             <td align="right">${clean(item.qty!"")?xml}</td>
-            <td>${clean(item.uom!"")?xml}</td>
-            <td align="right">${clean(item.unitCost!"")?xml}</td>
           </tr>
         </#list>
       </tbody>
