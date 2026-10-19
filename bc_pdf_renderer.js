@@ -203,21 +203,21 @@ define([
       // branding.name = read(subsidiary, 'legalname') || read(subsidiary, 'name') || branding.name;
       // branding.phone = read(subsidiary, 'phone');
       let addressText = read(subsidiary, 'mainaddress_text');
-      try {
-        const address = subsidiary.getSubrecord({ fieldId: 'mainaddress' });
-        if (address) {
-          // Keep company name in its own header line; omit the duplicate addressee.
-          const street = ['addr1', 'addr2', 'addr3'].map((f) => read(address, f)).filter(Boolean);
-          const city = read(address, 'city');
-          const stateZip = [read(address, 'state'), read(address, 'zip')].filter(Boolean).join(' ');
-          const locality = [city, stateZip].filter(Boolean).join(', ');
-          if (locality) street.push(locality);
-          addressText = street.join('\n') || read(address, 'addrtext');
-          branding.phone = branding.phone || read(address, 'addrphone');
-        }
-      } catch (e) {
-        log.error({ title: 'Cover PDF: subsidiary main address unavailable', details: `subsidiaryId=${id}: ${e.message}` });
-      }
+      // try {
+      //   const address = subsidiary.getSubrecord({ fieldId: 'mainaddress' });
+      //   if (address) {
+      //     // Keep company name in its own header line; omit the duplicate addressee.
+      //     const street = ['addr1', 'addr2', 'addr3'].map((f) => read(address, f)).filter(Boolean);
+      //     const city = read(address, 'city');
+      //     const stateZip = [read(address, 'state'), read(address, 'zip')].filter(Boolean).join(' ');
+      //     const locality = [city, stateZip].filter(Boolean).join(', ');
+      //     if (locality) street.push(locality);
+      //     addressText = street.join('\n') || read(address, 'addrtext');
+      //     branding.phone = branding.phone || read(address, 'addrphone');
+      //   }
+      // } catch (e) {
+      //   log.error({ title: 'Cover PDF: subsidiary main address unavailable', details: `subsidiaryId=${id}: ${e.message}` });
+      // }
     //  addressText = addressText || read(subsidiary, 'mainaddress_text');
 
 if (addressText) {
