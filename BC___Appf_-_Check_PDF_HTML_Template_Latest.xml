@@ -366,9 +366,9 @@
     <div style="height: 780pt; width: 612pt; page-break-inside: avoid; font-size: 9pt;">
 
         <#if ntdShowAlignmentBackground>
-            <img
+<img
     src="https://6962009-sb2.app.netsuite.com/core/media/media.nl?id=606309&amp;c=6962009_SB2&amp;h=KMlRb7QWnkeA9P9uGLOnahcEr1i5VwzNQLQg71ak9m6Lhqcw"
-    style="position: absolute; left: 0pt; top: 0pt; width: 612pt;"
+    style="position: absolute; left: 0pt; top: 0pt; width: 612pt; height: 481.39pt;"
 />
         </#if>
 
