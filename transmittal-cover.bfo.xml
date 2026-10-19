@@ -209,14 +209,10 @@
       </td>
       <td width="40%" align="center" class="title">Submittal Cover</td>
       <td width="30%" align="right" class="company">
-        <p align="right" style="margin: 0; padding: 0; text-align: right;">${clean(record.subsidiaryName!"")?xml}</p>
         <#if (record.subsidiaryAddress!"")?has_content>
           <#list record.subsidiaryAddress?replace("<br />", "<br/>")?replace("<br>", "<br/>")?split("<br/>") as addressLine>
             <p align="right" style="margin: 0; padding: 0; text-align: right;">${addressLine?xml}</p>
           </#list>
-        </#if>
-        <#if (record.subsidiaryPhone!"")?has_content>
-          <p align="right" style="margin: 0; padding: 0; text-align: right;">${record.subsidiaryPhone?xml}</p>
         </#if>
       </td>
     </tr>
