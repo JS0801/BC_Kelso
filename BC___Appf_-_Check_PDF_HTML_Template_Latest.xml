@@ -380,7 +380,7 @@
         </table>
 
         <!-- PAYEE -->
-        <table style="position: absolute; left: 70pt; top: 75pt; width: 395pt; height: 18pt;">
+        <table style="position: absolute; left: 75pt; top: 70pt; width: 395pt; height: 18pt;">
             <tr>
                 <td>${ntdPayee}</td>
             </tr>
