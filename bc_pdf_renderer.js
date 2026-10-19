@@ -218,7 +218,7 @@ define([
       } catch (e) {
         log.error({ title: 'Cover PDF: subsidiary main address unavailable', details: `subsidiaryId=${id}: ${e.message}` });
       }
-      addressText = addressText || read(subsidiary, 'mainaddress_text');
+    //  addressText = addressText || read(subsidiary, 'mainaddress_text');
 if (addressText) {
   addressText = addressText.trim();
 
