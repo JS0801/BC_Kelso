@@ -394,7 +394,7 @@
         </table>
 
         <!-- AMOUNT IN WORDS -->
-        <table style="position: absolute; left: 20pt; top: 102pt; width: 518pt; height: 23pt; font-size: 9pt;">
+        <table style="position: absolute; left: 20pt; top: 108pt; width: 518pt; height: 23pt; font-size: 9pt;">
             <tr>
                 <td>${check.totalwords}****</td>
             </tr>
