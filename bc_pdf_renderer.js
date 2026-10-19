@@ -200,9 +200,9 @@ define([
         try { return String(rec.getValue({ fieldId }) || '').trim(); }
         catch (e) { return ''; }
       };
-      branding.name = read(subsidiary, 'legalname') || read(subsidiary, 'name') || branding.name;
-      branding.phone = read(subsidiary, 'phone');
-      let addressText = '';
+      // branding.name = read(subsidiary, 'legalname') || read(subsidiary, 'name') || branding.name;
+      // branding.phone = read(subsidiary, 'phone');
+      let addressText = read(subsidiary, 'mainaddress_text');
       try {
         const address = subsidiary.getSubrecord({ fieldId: 'mainaddress' });
         if (address) {
@@ -219,14 +219,14 @@ define([
         log.error({ title: 'Cover PDF: subsidiary main address unavailable', details: `subsidiaryId=${id}: ${e.message}` });
       }
     //  addressText = addressText || read(subsidiary, 'mainaddress_text');
-      addressText = read(subsidiary, 'mainaddress_text');
+
 if (addressText) {
   addressText = addressText.trim();
 
-  const companyName = 'North Texas Ductwork, LLC';
-  if (addressText.startsWith(companyName)) {
-    addressText = addressText.slice(companyName.length).trim();
-  }
+  // const companyName = 'North Texas Ductwork, LLC';
+  // if (addressText.startsWith(companyName)) {
+  //   addressText = addressText.slice(companyName.length).trim();
+  // }
 
   branding.address = addressText.replace(/\r\n|\r|\n/g, '<br/>');
 }
