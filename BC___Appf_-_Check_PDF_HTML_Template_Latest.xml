@@ -387,9 +387,9 @@
         </table>
 
         <!-- NUMERIC AMOUNT -->
-        <table style="position: absolute; left: 470pt; top: 85pt; width: 96pt; height: 18pt;">
+        <table style="position: absolute; left: 475pt; top: 80pt; width: 96pt; height: 18pt;">
             <tr>
-                <td align="right">**${ntdAmount?string['#,###,##0.00']}</td>
+                <td align="left">**${ntdAmount?string['#,###,##0.00']}</td>
             </tr>
         </table>
 
@@ -414,7 +414,7 @@
         </table>
 
         <!-- MEMO -->
-        <table style="position: absolute; left: 48pt; top: 185pt; width: 275pt; height: 18pt; font-size: 8pt;">
+        <table style="position: absolute; left: 48pt; top: 195pt; width: 275pt; height: 18pt; font-size: 8pt;">
             <tr>
                 <td>${check.memo!""}</td>
             </tr>
