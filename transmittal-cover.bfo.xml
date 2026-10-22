@@ -312,30 +312,6 @@
     <td width="16pt" style="width: 16pt; padding: 0;"></td>
     <td width="268pt" style="width: 268pt; border: 0.5pt solid #000000; padding: 4pt;">Reviewer Stamp</td>
   </tr></table>
-  <!-- Omit the summary page when there are no product items. -->
-  <#if (record.lines![])?size &gt; 0>
-    <pbr/>
-    <table><tr><td class="lines-head">Product Summary</td></tr></table>
-    <table class="grid" style="table-layout: fixed;">
-      <thead><tr>
-        <th width="5%">#</th>
-        <th width="29%">Description</th>
-        <th width="16%">Model</th>
-        <th width="20%">Manufacturer</th>
-        <th width="8%" align="right">Qty</th>
-      </tr></thead>
-      <tbody>
-        <#list record.lines as item>
-          <tr>
-            <td>${clean(item.position!"")?xml}</td>
-            <td>${clean(item.description!"")?xml}</td>
-            <td>${clean(item.model!"")?xml}</td>
-            <td>${clean(item.manufacturer!"")?xml}</td>
-            <td align="right">${clean(item.qty!"")?xml}</td>
-          </tr>
-        </#list>
-      </tbody>
-    </table>
-  </#if>
+
 </body>
 </pdf>
