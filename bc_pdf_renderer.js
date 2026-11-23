@@ -24,8 +24,12 @@ define([
   './bc_workflow_logic',
   './bc_branding_resolver',
   './bc_project_dao',
-  './bc_event_log'
-], (render, file, query, record, search, runtime, log, C, errors, lineDao, responseDao, fileDao, workflowLogic, brandingResolver, projectDao, eventLog) => {
+  './bc_event_log',
+  './bc_doc_builder',
+  './bc_output_data',
+  './bc_tz',
+  './bc_transmittal_dao'
+], (render, file, query, record, search, runtime, log, C, errors, lineDao, responseDao, fileDao, workflowLogic, brandingResolver, projectDao, eventLog, doc, outData, tz, transmittalDao) => {
 
   // sourceName → human label for the change-history "PDF generated" row.
   const _GENERATED_PDF_LABELS = {
@@ -553,8 +557,17 @@ if (addressText) {
     qty:          l.qty != null ? String(l.qty) : '',
     uom:          l.uom || '',
     unitCost:     _fmtCurrency(l.unitCost),
-    outcome:      l.outcome || ''
+    outcome:      l.outcome || '',
+    notes:        l.notes || ''
   }));
+
+  // BFO only accepts strict XHTML. Rich-text comment HTML often has void tags
+  // like <br> without closing, &nbsp;, or a bare "&" — any of these fails the
+  // whole PDF with "Error Parsing XML". Normalize just those cases.
+  const _toXhtml = (html) => String(html || '')
+    .replace(/<(br|hr|img|wbr|col|input)\b([^>]*?)\s*\/?>/gi, '<$1$2/>')
+    .replace(/&nbsp;/gi, '&#160;')
+    .replace(/&(?!(?:amp|lt|gt|quot|apos|#\d+|#x[0-9a-f]+);)/gi, '&amp;');
 
   const _formatComments = (commentRows) => commentRows.map((c) => ({
     revisionLabel: c.revisionLabel || '',
@@ -562,7 +575,7 @@ if (addressText) {
     commentType:   c.commentType || 'general_comment',
     authorName:    c.authorName || '',
     createdAt:     _fmtTimestamp(c.createdAt),
-    bodyHtml:      c.bodyHtml || '',
+    bodyHtml:      _toXhtml(c.bodyHtml),
     outcome:       c.outcome || ''
   }));
 
@@ -659,70 +672,265 @@ if (addressText) {
   };
 
   // -------------------------------------------------------------------
-  // renderSubmittalExport — REAL (Phase 3.2 Section I)
-  //
-  // On-demand "give me this submittal as a PDF right now." Same brand
-  // bar + meta + items as the cover, plus 10 most recent comments.
-  // No workflow timeline, no PM-notes; that's closeout territory.
+  // NTD final spec — shared pieces for the submittal cover letter + export
   // -------------------------------------------------------------------
 
-  const renderSubmittalExport = (submittalId) => {
+  const _currentUserId = () => {
+    try {
+      const u = runtime.getCurrentUser ? runtime.getCurrentUser() : null;
+      return u && Number(u.id) > 0 ? Number(u.id) : 0;
+    } catch (e) { return 0; }
+  };
+
+  /** Files on the submittal → enclosure/file-table rows keyed by NS file id. */
+  const _submittalFileRows = (subId) => {
+    const rows = (fileDao.listForSubmittal(subId).rows) || [];
+    return doc.fillUploadedBy(rows.map((f) => ({
+      nsFileId:   Number(f.nsFileId),
+      name:       f.fileName || `File #${f.nsFileId}`,
+      typeLabel:  outData.fileTypeLabel(f.fileType, f.fileName),
+      sizeLabel:  outData.fmtFileSize(f.fileSize),
+      date:       tz.fmtDate(f.uploadedAt),
+      uploadedBy: f.uploadedByName || '',
+      revision:   f.revisionLabel || '',
+      generated:  outData.isGeneratedSource(f.source)
+    })));
+  };
+
+  /** Pick rows for the requested NS file ids, in the requested order. */
+  const _pickFiles = (allRows, fileIds) => {
+    const byId = {};
+    allRows.forEach((r) => { if (!byId[r.nsFileId]) byId[r.nsFileId] = r; });
+    const seen = {};
+    return (fileIds || []).map(Number).filter((id) => id > 0 && !seen[id] && (seen[id] = true)).map((id) => byId[id] || ({
+      nsFileId: id, name: `File #${id}`, typeLabel: '', sizeLabel: '', date: '', uploadedBy: '', revision: ''
+    }));
+  };
+
+  const _brandFor = (projectId) => {
+    try { return brandingResolver.resolveForProject(projectId); }
+    catch (e) { return { name: '', addressLines: [], phone: '', logoUrlRaw: null }; }
+  };
+
+  /** Latest email on the submittal: { recipients[], sentById } or null. */
+  const _lastEmail = (subId) => {
+    try {
+      const rows = (transmittalDao.listForSubmittal(subId).rows) || [];
+      return rows.length ? rows[0] : null;
+    } catch (e) { return null; }
+  };
+
+  const _recipientRef = (r) => {
+    if (!r) return null;
+    const type = String(r.type || '').toLowerCase();
+    const id = Number(r.entityId || r.id);
+    if (id && /^(contact|vendor|customer|employee)$/.test(type)) return { type, id };
+    return r.email ? { email: r.email } : null;
+  };
+
+  /** "name · phone · email" */
+  const _personLine = (p) => [p.name, p.phone, p.email].filter(Boolean).join(' · ');
+
+  /** Sent By box: sender name, subsidiary, phone · email (— for blanks). */
+  const _sentByHtml = (sender, brand) => {
+    const contact = [sender.phone, sender.email].filter(Boolean).join(' · ');
+    return `<b>${doc.xv(sender.name)}</b><br/>${doc.xv(brand.name)}<br/>${doc.xv(contact)}`;
+  };
+
+  /**
+   * Spec §2 File names for submittal outputs, saved in the record's own
+   * Generated sub-folder: "Cover Letter - Submittal 001 R1 - Rooftop Units -
+   * 2026-11-09 - 001.pdf". create=false (preview) creates nothing.
+   */
+  const _outputFile = (documentLabel, subId, h, create) => doc.outputFile({
+    document: documentLabel,
+    record: 'Submittal',
+    number: `${h.number} ${h.revisionLabel}`,
+    title: h.title,
+    parentFolderId: _resolveGeneratedFolderId(),
+    recordId: subId,
+    create
+  });
+
+  // -------------------------------------------------------------------
+  // generateSubmittalCoverLetter (#8, #11, #12, #16, #17)
+  //
+  // params: {
+  //   submittalId,            required
+  //   fileIds:   number[],    NS file ids to append, in order (user's pick)
+  //   lineIds:   number[]?,   line ids for the items grid; omitted = all
+  //   respondBy: 'YYYY-MM-DD'?, per-email response date
+  //   to:        {type,id}|{email}?, recipient; defaults to the vendor
+  //   sentById:  number?      sender employee (defaults to current user)
+  //   makeOnline: boolean?    keep the PDF reachable by link (email sends)
+  // }
+  // Always saves to Generated and adds a Files row (source cover letter).
+  // -------------------------------------------------------------------
+  const generateSubmittalCoverLetter = (params) => {
+    const p = params || {};
+    const subId = Number(p.submittalId);
+    if (!subId) throw errors.badInput('submittalId is required');
+
+    const h = outData.loadSubmittalHeader(subId);
+    const project = outData.loadProject(h.projectId);
+    const brand = _brandFor(h.projectId);
+    const sender = outData.loadSender(Number(p.sentById) || _currentUserId());
+    // To = the email's recipients (first in full + "Also sent to"). From the
+    // ellipsis menu there is no email, so no To block at all (spec #11).
+    const toBlock = outData.resolveRecipientsBlock(Array.isArray(p.recipients) && p.recipients.length ? p.recipients : (p.to ? [p.to] : []));
+    const respondBy = tz.fmtDateOnly(p.respondBy) || '';
+
+    const allLines = (lineDao.list(subId).rows) || [];
+    const wanted = Array.isArray(p.lineIds) ? p.lineIds.map(Number) : null;
+    const lines = wanted ? allLines.filter((l) => wanted.indexOf(Number(l.id)) >= 0) : allLines;
+
+    const files = _pickFiles(_submittalFileRows(subId), p.fileIds);
+    const numRev = `${h.number} · ${h.revisionLabel}`;
+
+    const grid = doc.kvGrid([
+      { label: 'Project', value: project.name, span: 2 },
+      { label: 'Project No', value: project.number },
+      { label: 'Spec Section', value: h.specSection },
+      { label: 'Description', value: h.title, span: 2 },
+      { label: 'Date', value: tz.fmtDate(new Date()) },
+      { label: 'Due Date', value: h.dueDate, red: true },
+      // Requested By is not on the cover letter: the Sent By block covers it (QA-017).
+      respondBy ? { label: 'Please Respond By', value: respondBy, red: true, span: 4 } : null
+    ], 4);
+
+    const body = [
+      doc.brandHeader(brand),
+      doc.titleBand({ kicker: 'Submittal Transmittal', title: h.title }, { label: 'Submittal No · Rev', value: `${h.number} ·`, accentPart: h.revisionLabel }),
+      grid,
+      doc.boxes([
+        toBlock ? { title: 'To', accent: true, html: doc.toBlockHtml(toBlock) } : null,
+        { title: 'Job Site', html: doc.jobSiteHtml(project.jobSite) },
+        { title: 'Sent By', html: _sentByHtml(sender, brand) }
+      ]),
+      // Only the picked lines; no "n of m selected" text (QA-002: that was a mockup note).
+      // #40: Notes column only when "Include Notes column" is ticked.
+      doc.itemsTable(lines, { unitCost: p.includeUnitCost !== false, notes: p.includeNotes === true, title: 'Items' }),
+      doc.filesTable(files, { revision: true, title: 'Enclosed Files', emptyNote: 'No files enclosed.', note: files.length ? 'The enclosed files follow this cover page.' : '' })
+    ].join('\n');
+
+    const opts = {
+      logoUrlRaw: brand.logoUrlRaw,
+      slimTitle: `Submittal ${numRev} · ${h.title}`,
+      footerLeftBold: `Submittal ${numRev}`,
+      footerLeft: brand.name,
+      headerMode: p.headerMode
+    };
+    const mainXml = doc.pdfDoc(opts, body);
+    const out = _outputFile('Cover Letter', subId, h, !p.preview);
+    // Preview Email (#36): render only — nothing saved, attached or logged.
+    if (p.preview) {
+      return Object.assign(doc.preview((enc) => doc.assemble(opts, mainXml, enc), files, out.name), {
+        fileCount: files.length, lineCount: lines.length
+      });
+    }
+    const pdf = doc.assemble(opts, mainXml, files);
+    const saved = doc.save(pdf, out.name, out.folderId, !!p.makeOnline);
+    _attachGeneratedFile(subId, h.revisionId, saved.fileId, saved.fileName, 'generated_transmittal_cover', !!p.skipHistory);
+
+    return {
+      fileId:          saved.fileId,
+      fileName:        saved.fileName,
+      url:             saved.url,
+      submittalNumber: h.number,
+      revisionLabel:   h.revisionLabel,
+      fileCount:       files.length,
+      lineCount:       lines.length
+    };
+  };
+
+  // -------------------------------------------------------------------
+  // renderSubmittalExport (#13, #14, #15, #16, #17)
+  //
+  // Every field, every line of the current revision, the activity feed and
+  // every file on the submittal except earlier cover letters / PDF exports,
+  // all appended after the export pages. Saved to Files; re-exporting
+  // replaces the same PDF and Files row by design.
+  // -------------------------------------------------------------------
+  const renderSubmittalExport = (submittalId, extra) => {
     const subId = Number(submittalId);
     if (!subId) throw errors.badInput('submittalId is required');
 
-    const header = _loadSubmittalHeader(subId);
-    const revisionRows = query.runSuiteQL({
-      query:  'SELECT custrecord_bc_revs_number AS n FROM customrecord_bc_submittals_revision WHERE id = ?',
-      params: [Number(header.current_rev_id) || 0]
-    }).asMappedResults();
-    const revNum   = revisionRows.length ? Number(revisionRows[0].n) : 0;
-    const revLabel = `R${revNum}`;
+    const h = outData.loadSubmittalHeader(subId);
+    const project = outData.loadProject(h.projectId);
+    const brand = _brandFor(h.projectId);
+    // Vendor / Subcontractor = the vendor assigned on the submittal (QA-024).
+    const vendorCard = h.vendorId ? outData.loadEntityCard('vendor', h.vendorId) : null;
 
-    const lineRows  = (lineDao.list(subId).rows) || [];
-    const comments  = (responseDao.listForSubmittal(subId).rows || []).slice(0, 10);
-    const branding  = brandingResolver.resolve(subId);
+    const lines = (lineDao.list(subId).rows) || [];
+    const comments = (responseDao.listForSubmittal(subId).rows) || [];
+    const files = _submittalFileRows(subId).filter((f) => !f.generated);
+    const numRev = `${h.number} · ${h.revisionLabel}`;
+    const generatedAt = tz.fmtDateTime(new Date());
 
-    const data = {
-      generatedAt:       _fmtTimestamp(new Date()),
-      subsidiaryName:    branding.name,
-      subsidiaryAddress: branding.address,
-      subsidiaryLogo:    branding.logoUrl,
-      projectName:       header.project_name || '',
-      submittalNumber:   header.sub_number || '',
-      title:             header.title || '',
-      revisionLabel:     revLabel,
-      specSection:       header.spec_section || '',
-      type:              header.type_name || '',
-      status:            header.status_name || '',
-      dueDate:           _fmtDate(header.due_date),
-      ballInCourt:       header.bic_name || '',
-      vendor:            header.vendor_name || '',
-      lines:             _formatLines(lineRows),
-      recentComments:    _formatComments(comments)
+    const grid = doc.kvGrid([
+      { label: 'Project', value: project.name, span: 2 },
+      { label: 'Project No', value: project.number },
+      { label: 'Spec Section', value: h.specSection },
+      { label: 'Type', value: h.type },
+      { label: 'Package', value: h.packageLabel },
+      { label: 'Date', value: tz.fmtDate(new Date()) },
+      { label: 'Due Date', value: h.dueDate, red: true },
+      { label: 'Lead Time', value: h.leadTime },
+      { label: 'Status', value: h.status },
+      { label: 'Ball in Court', value: h.ballInCourt },
+      { label: 'Assignee', value: h.assignee },
+      { label: 'Manager', value: h.manager }
+      // No Respond By / Requested By on the export (QA-023); blanks print — (QA-026).
+    ], 5);
+
+    const activityRows = comments.map((c) => ({
+      authorName:  c.authorName || c.authorEmail || 'Unknown',
+      authorRole:  c.authorType ? c.authorType.charAt(0).toUpperCase() + c.authorType.slice(1) : '',
+      authorEmail: c.authorEmail || '',
+      scope:       String(c.source || '').toLowerCase() === 'internal' ? 'Internal' : 'External',
+      revision:    c.revisionLabel || '',
+      when:        tz.fmtDateTime(c.createdAt),
+      bodyHtml:    c.bodyHtml,
+      files:       (c.attachmentFiles || []).map((f) => ({ name: f.name, size: outData.fmtFileSize(f.size) }))
+    }));
+
+    const body = [
+      doc.brandHeader(brand),
+      doc.titleBand({ kicker: `Submittal ${numRev}`, title: h.title }, { label: 'Status', value: h.status }),
+      grid,
+      // No To or Sent By block on the export (QA-024).
+      doc.boxes([
+        { title: 'Job Site', html: doc.jobSiteHtml(project.jobSite) },
+        { title: 'Vendor / Subcontractor', accent: true, html: vendorCard ? doc.cardHtml(vendorCard, { contact: true }) : doc.EM }
+      ]),
+      // #40: the export always shows line notes.
+      doc.itemsTable(lines, { status: true, notes: true, title: 'Items' }),
+      doc.activity(activityRows, { title: 'Activity' }),
+      doc.filesTable(files, { revision: true, title: 'Files on Submittal' })
+    ].join('\n');
+
+    const opts = {
+      logoUrlRaw: brand.logoUrlRaw,
+      slimTitle: `Submittal ${numRev} · ${h.title}`,
+      footerLeftBold: `Submittal ${numRev}`,
+      footerLeft: `Generated ${generatedAt}`,
+      headerMode: extra && extra.headerMode
     };
-
-    const renderer = render.create();
-    renderer.templateContent = file.load({ id: TEMPLATE_PATHS.SUBMITTAL_EXPORT }).getContents();
-    renderer.addCustomDataSource({
-      format: render.DataSource.OBJECT,
-      alias:  'record',
-      data:   data
-    });
-    const pdfFile = renderer.renderAsPdf();
-    pdfFile.name   = `Submittal-${header.sub_number || subId}-${revLabel}-export.pdf`;
-    pdfFile.folder = _resolveGeneratedFolderId();
-    const fileId   = pdfFile.save();
-    _attachGeneratedFile(subId, Number(header.current_rev_id) || 0, fileId, pdfFile.name, 'generated_submittal_pdf');
+    const pdf = doc.assemble(opts, doc.pdfDoc(opts, body), files);
+    const out = _outputFile('PDF Export', subId, h, true);
+    const saved = doc.save(pdf, out.name, out.folderId, false);
+    _attachGeneratedFile(subId, h.revisionId, saved.fileId, saved.fileName, 'generated_submittal_pdf');
 
     return {
-      fileId:          Number(fileId),
-      fileName:        pdfFile.name,
-      submittalNumber: header.sub_number || '',
-      revisionLabel:   revLabel
+      fileId:          saved.fileId,
+      fileName:        saved.fileName,
+      url:             saved.url,
+      submittalNumber: h.number,
+      revisionLabel:   h.revisionLabel
     };
   };
 
   // _attachGeneratedFile is exported for tests only — it stays an internal
   // helper of the three render paths.
-  return { renderCloseout, renderTransmittalCover, renderSubmittalExport, _attachGeneratedFile };
+  return { renderCloseout, renderTransmittalCover, renderSubmittalExport, generateSubmittalCoverLetter, resolveGeneratedFolderId: () => _resolveGeneratedFolderId(), _attachGeneratedFile };
 });
