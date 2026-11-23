@@ -1,5 +1,116 @@
 <?xml version="1.0"?><!DOCTYPE pdf PUBLIC "-//big.faceless.org//report" "report-1.1.dtd">
 <pdf>
+<#-- Feldkamp only: use subsidiary.id, matching the existing NTD routing. -->
+<#if ((subsidiary.id)!"")?string == "12">
+<#assign letterheadUrl = "https://6962009-sb2.app.netsuite.com/core/media/media.nl?id=614012&c=6962009_SB2&h=Y2FU4jPPqvEjoIHRmw-g-fWlSVPUJMgOj-dEAD8LmUP9gue-">
+<#function yesNo value>
+  <#if value?is_boolean><#return value?string("Yes", "No")></#if>
+  <#if ["T", "TRUE", "YES", "Y", "1"]?seq_contains(value?string?trim?upper_case)><#return "Yes"></#if>
+  <#return "No">
+</#function>
+<#assign job = (record.cseg_bc_project)!"">
+<#-- If the project is line-only, show all distinct projects rather than silently choosing one. -->
+<#if !job?has_content>
+  <#assign projects = []>
+  <#list (record.item)![] as line>
+    <#assign project = (line.cseg_bc_project)!"">
+    <#if project?has_content && !projects?seq_contains(project)><#assign projects = projects + [project]></#if>
+  </#list>
+  <#list (record.expense)![] as line>
+    <#assign project = (line.cseg_bc_project)!"">
+    <#if project?has_content && !projects?seq_contains(project)><#assign projects = projects + [project]></#if>
+  </#list>
+  <#assign job = projects?join(", ")>
+</#if>
+<#assign phone = "">
+<#if ((subsidiary.mainaddress)!{})?is_hash><#assign phone = (subsidiary.mainaddress.addrphone)!""></#if>
+<#if !phone?has_content><#assign phone = (subsidiary.addrphone)!""></#if>
+<#if !phone?has_content><#assign phone = (subsidiary.phone)!""></#if>
+<#if !phone?has_content><#assign phone = "(513) 870-0601"></#if>
+<#assign fax = (subsidiary.fax)!"">
+<#if !fax?has_content><#assign fax = "(513) 870-0578"></#if>
+<head>
+  <macrolist>
+    <macro id="poheader">
+      <table width="100%"><tr><td height="98pt" align="right">
+        <#if !letterheadUrl?has_content && (subsidiary.logo)?has_content>
+          <img src="${subsidiary.logo@url}" width="190pt" height="90pt" />
+        </#if>
+      </td></tr></table>
+      <table width="100%"><tr><td align="center" font-size="20pt"><b>PURCHASE ORDER</b></td></tr></table>
+      <table width="100%"><tr>
+        <td width="80%">Feldkamp Mechanical<br />
+          <#if ((subsidiary.mainaddress)!{})?is_hash && (subsidiary.mainaddress.addr1)?has_content>
+            ${subsidiary.mainaddress.addr1}<br />
+            <#if (subsidiary.mainaddress.addr2)?has_content>${subsidiary.mainaddress.addr2}<br /></#if>
+            ${(subsidiary.mainaddress.city)!""}, ${(subsidiary.mainaddress.state)!""} ${(subsidiary.mainaddress.zip)!""}<br />
+          <#else>10036 Springfield Pike<br />Cincinnati, OH 45215<br /></#if>
+          Phone: ${phone}<br />Fax: ${fax}
+        </td>
+        <td width="20%" align="right">Page: <pagenumber /></td>
+      </tr></table>
+    </macro>
+    <macro id="pofooter">
+      <#if !letterheadUrl?has_content>
+        <table width="100%" style="border-top: 0.5pt solid #666; font-size: 8pt; color: #555;">
+          <tr><td align="center">10036 Springfield Pike, Cincinnati, OH 45215 | info@feldkampmechanical.com</td></tr>
+          <tr><td align="center">${phone} | (F) ${fax}</td></tr>
+        </table>
+      </#if>
+    </macro>
+  </macrolist>
+  <style type="text/css">
+    * { font-family: Times, serif; }
+    table { font-size: 11pt; table-layout: fixed; }
+    td { padding: 2pt 4pt; vertical-align: top; }
+    .grid { border-collapse: collapse; }
+    .grid th { background-color: #ffc000; border: 0.5pt solid #000; padding: 4pt; font-weight: bold; text-align: center; vertical-align: middle; }
+    .grid td { border: 0.5pt solid #000; }
+    .side { background-color: #ffc000; font-size: 9pt; }
+    .totals td { padding: 2pt 4pt; }
+  </style>
+</head>
+<body size="Letter" padding="0.40in 0.45in 0.60in 0.45in" header="poheader" header-height="2.85in" footer="pofooter" footer-height="0.38in"
+  <#if letterheadUrl?has_content>background-image="${letterheadUrl?xml}" background-image-dpi="120" background-image-position="top left"</#if>>
+  <table width="100%" style="margin-bottom: 20pt;">
+    <tr>
+      <td width="5%" class="side" align="center">O<br />R<br />D<br />E<br />R<br /><br />T<br />O</td>
+      <td width="45%">${record.billaddress}<br /><br />
+        <#if record.entity?is_hash && (record.entity.phone)?has_content>Phone: ${record.entity.phone}<br /></#if>
+        <#if record.entity?is_hash && (record.entity.fax)?has_content>Fax: ${record.entity.fax}</#if>
+      </td>
+      <td width="5%" class="side" align="center">S<br />H<br />I<br />P<br /><br />T<br />O</td>
+      <td width="45%">${record.shipaddress}</td>
+    </tr>
+  </table>
+  <table width="100%" class="grid">
+    <tr><th width="27%">P.O. NUMBER &amp; DATE</th><th width="13%">BUYER</th><th width="22%">VENDOR</th><th width="15%">TERMS</th><th width="23%">SHIP VIA</th></tr>
+    <tr><td>${record.tranid} &#160; ${record.trandate}</td><td>${(record.custbody_bc_buyer)!""}</td><td>${record.entity}</td><td>${(record.terms)!""}</td><td>${(record.shipmethod)!""}</td></tr>
+  </table>
+  <table width="100%"><tr><td>Job: ${job}</td></tr></table>
+  <table width="100%" class="grid">
+    <thead><tr><th width="46%">DESCRIPTION</th><th width="15%">REQUIRED<br />DATE</th><th width="12%">QUANTITY</th><th width="13%">UNIT<br />PRICE</th><th width="14%">EXT.<br />COST</th></tr></thead>
+    <#list (record.item)![] as item>
+      <tr><td>${(item.description)!""}</td><td align="center">${(item.expectedreceiptdate)!""}</td><td align="right">${(item.quantity)!""}<#if (item.units)?has_content> ${item.units}</#if></td><td align="right">${(item.rate)!""}</td><td align="right">${(item.amount)!""}</td></tr>
+    </#list>
+    <#-- Expense-only/subcontract POs retain the same grid and totals. -->
+    <#list (record.expense)![] as expense>
+      <tr><td>${(expense.memo)!""}</td><td></td><td></td><td></td><td align="right">${(expense.amount)!""}</td></tr>
+    </#list>
+  </table>
+  <table width="100%" class="totals" style="margin-top: 4pt; page-break-inside: avoid;">
+    <tr><td width="70%"></td><td width="16%" align="right">Sales Tax</td><td width="14%" align="right"><#if (record.taxtotal)?has_content>${record.taxtotal}<#else>0.00</#if></td></tr>
+    <tr><td></td><td align="right"><b>Total</b></td><td align="right"><b>${record.total}</b></td></tr>
+  </table>
+  <table width="100%" style="margin-top: 15pt; page-break-inside: avoid;">
+    <tr><td>Hold for approval: ${yesNo((record.custbody_fk_hold_for_approval)!false)}</td></tr>
+    <tr><td>Tax exempt: ${yesNo((record.custbody_fk_tax_exempt)!false)}</td></tr>
+    <tr><td>Please give ____ hours' notice before delivery 513-870-0601</td></tr>
+    <tr><td style="padding-top: 14pt;" align="center"><span background-color="#ffff00" font-size="9pt">PLEASE LIST PO NUMBER AND JOB NAME ON INVOICING TO RECEIVE PROPER PAYMENT</span></td></tr>
+  </table>
+</body>
+<#else>
+<#-- ORIGINAL NON-FELDKAMP TEMPLATE: preserved unchanged below. -->
 <#--
   Purchase Order – multi-layout template
     * Subsidiary 40  -> NTD Mechanical PO layout
@@ -565,4 +676,6 @@
 
 </#if>
 </body>
+
+</#if>
 </pdf>
