@@ -1,0 +1,568 @@
+<?xml version="1.0"?><!DOCTYPE pdf PUBLIC "-//big.faceless.org//report" "report-1.1.dtd">
+<pdf>
+<#--
+  Purchase Order – multi-layout template
+    * Subsidiary 40  -> NTD Mechanical PO layout
+    * All others     -> McClintock Electric PO + Subcontractor Agreement
+
+  McClintock FIELD MAPPING:
+    projectName  -> BlueCollar Project segment on the PO header (cseg_bc_project)
+    customerName -> record.cseg_bc_project.custrecord_bc_proj_customer
+                    (wrapped in attempt/recover so the PDF still prints if the join doesn't resolve)
+-->
+
+<#-- ===================== LAYOUT SWITCH ===================== -->
+<#assign isNTD = (subsidiary.id?has_content && subsidiary.id?string == "40")>
+
+<#-- NTD grid color: header/label backgrounds AND all cell borders use this one value -->
+<#assign ntdGrid = "#e6e6e6">
+
+<#-- Helper (NTD): turn a NetSuite currency/number/string into a number -->
+<#function toNum v>
+    <#if !v?has_content><#return 0></#if>
+    <#local raw = v?string>
+    <#local s = raw?replace("[^0-9.\\-]", "", "r")>
+    <#if !s?has_content || s == "-" || s == "."><#return 0></#if>
+    <#local n = s?number>
+    <#if raw?contains("(")><#local n = -n></#if>
+    <#return n>
+</#function>
+
+<#if isNTD>
+  <#-- ===================== NTD (SUB 40) HEADER-LEVEL VALUES ===================== -->
+
+  <#-- JOB #: header project number, fallback to first line project text before "-" -->
+  <#assign jobNo = ''>
+  <#attempt>
+    <#if record.cseg_bc_project?has_content && record.cseg_bc_project.custrecord_bc_proj_number?has_content>
+      <#assign jobNo = record.cseg_bc_project.custrecord_bc_proj_number>
+    </#if>
+  <#recover>
+    <#assign jobNo = ''>
+  </#attempt>
+  <#if !jobNo?has_content && record.item?has_content>
+    <#list record.item as item>
+      <#if !jobNo?has_content && item.cseg_bc_project?has_content>
+        <#assign projTxt = item.cseg_bc_project?string>
+        <#if projTxt?contains("-")>
+          <#assign jobNo = projTxt?keep_before("-")?trim>
+        <#else>
+          <#assign jobNo = projTxt?trim>
+        </#if>
+      </#if>
+    </#list>
+  </#if>
+
+  <#-- PO WRITER -->
+  <#assign createdBy = record.employee!''>
+  <#if createdBy?has_content && createdBy?contains('-')>
+    <#assign poWriter = createdBy?keep_before('-')?trim>
+  <#else>
+    <#assign poWriter = createdBy>
+  </#if>
+
+  <#-- TAX -->
+  <#assign taxAmt = 0>
+  <#if record.taxtotal?has_content>
+    <#assign taxAmt = toNum(record.taxtotal)>
+  </#if>
+
+  <#-- SHIP TO: the Ship-To Suitelet loads this PO by internal id, reads the FIRST item line's
+       cseg_bc_project, finds the first customrecord_bc_project_address (lowest internal id)
+       and returns custrecord_bc_address_address. -->
+  <#-- Suitelet EXTERNAL URL, ending at &ns-at=...  (the template appends &poid=<id>) -->
+  <#assign ntdShipToSuiteletUrl = "https://6962009-sb2.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=5274&deploy=1&compid=6962009_SB2&ns-at=AAEJ7tMQ3SJiAZNNYcb9lb0ht0t5WlXTfWLXAtPi-iX9EYsNeJ4">
+  <#-- PO internal id as plain digits (no locale commas) -->
+  <#assign ntdPoId = ''>
+  <#if record.id?has_content>
+    <#assign ntdPoId = (record.id?is_number)?then(record.id?c, record.id?string)?replace("[^0-9]", "", "r")>
+  </#if>
+
+  <#-- PO Writer signature: URL is written directly in the <img> tag in the body (search "PO WRITER").
+       File 604696 must be "Available Without Login" in the File Cabinet. -->
+
+<#else>
+  <#-- ===================== McCLINTOCK HEADER-LEVEL VALUES ===================== -->
+  <#assign projectName  = record.cseg_bc_project!"">
+  <#assign customerName = "">
+  <#attempt>
+    <#assign customerName = record.cseg_bc_project.custrecord_bc_proj_customer!"">
+  <#recover>
+    <#assign customerName = "">
+  </#attempt>
+  <#assign subName = subsidiary.legalname!"">
+  <#if !subName?has_content><#assign subName = subsidiary.name!""></#if>
+  <#if !subName?has_content><#assign subName = companyInformation.companyname></#if>
+  <#assign subAddr = subsidiary.mainaddress_text!"">
+  <#if !subAddr?has_content><#assign subAddr = companyInformation.mainaddress_text></#if>
+  <#assign logoUrl = "">
+  <#if subsidiary.logo?has_content && subsidiary.logo?length != 0>
+    <#assign logoUrl = subsidiary.logo@url>
+  <#elseif companyInformation.logoUrl?has_content>
+    <#assign logoUrl = companyInformation.logoUrl>
+  </#if>
+</#if>
+
+<head>
+<#if isNTD>
+  <#-- ===================== NTD (SUB 40) MACROS + STYLES ===================== -->
+  <macrolist>
+    <macro id="nlheader">
+      <table class="hdr" style="width: 100%;">
+        <tr>
+          <td width="32%" rowspan="2" vertical-align="middle">
+            <#if subsidiary.logo?length != 0>
+              <img src="${subsidiary.pagelogo@url}" style="width: 160px; height: 110px;" />
+            <#elseif companyInformation.logoUrl?length != 0>
+              <img src="${companyInformation.logoUrl}" style="width: 160px; height: 110px;" />
+            </#if>
+          </td>
+          <td width="36%" align="center" vertical-align="top">
+            <p align="center" style="font-size: 18pt; font-weight: bold; margin: 0px;">PURCHASE ORDER</p>
+          </td>
+          <td width="32%">&nbsp;</td>
+        </tr>
+        <tr>
+          <td align="center" vertical-align="top">
+            <p align="center" style="font-size: 7pt; font-weight: bold; line-height: 150%; margin: 0px;">
+              ${subsidiary.addr1} ${subsidiary.addr2}, ${subsidiary.city} ${subsidiary.state} ${subsidiary.zip}<br />
+              Office: ${subsidiary.addrphone}<br />
+              TACLA65973C / M40800
+            </p>
+          </td>
+          <td align="right" vertical-align="top">
+            <table class="info" style="width: 100%;">
+              <tr><td class="lbl" width="35%">DATE:</td><td class="val" width="65%">${record.trandate}</td></tr>
+              <tr><td class="lbl">PO #</td><td class="val">${record.tranid}</td></tr>
+              <tr><td class="lbl">JOB #</td><td class="val">${jobNo}</td></tr>
+              <tr><td class="lbl">SHIP VIA</td><td class="val">${record.custbody_bc_via}</td></tr>
+              <tr><td class="lbl">DEL DATE:</td><td class="val">${record.duedate}</td></tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+
+      <table style="width: 100%; margin-top: 10px;">
+        <tr>
+          <td width="37%" style="padding: 0px;">
+            <table class="addrbox" style="width: 100%;">
+              <tr><td class="boxhead" colspan="3">VENDOR</td></tr>
+              <tr><td colspan="3" class="boxline">${record.entity}</td></tr>
+              <#if record.billaddr1?has_content>
+                <tr><td colspan="3" class="boxline">${record.billaddr1}</td></tr>
+                <tr><td colspan="3" class="boxline">&nbsp;</td></tr>
+                <tr>
+                  <td class="boxline" width="50%">${record.billcity}</td>
+                  <td class="boxline" width="15%">${record.billstate}</td>
+                  <td class="boxline" width="35%">${record.billzip}</td>
+                </tr>
+              <#else>
+                <tr><td colspan="3" class="boxline">${record.billaddress}</td></tr>
+              </#if>
+              <tr><td colspan="3" class="boxline"><span style="font-size: 7pt;">PHONE</span>&nbsp;&nbsp;${record.entity.phone}</td></tr>
+              <tr><td colspan="3" class="boxline" style="padding-bottom: 4px;"><span style="font-size: 7pt;">FAX</span>&nbsp;&nbsp;${record.entity.fax}</td></tr>
+            </table>
+          </td>
+          <td width="26%">&nbsp;</td>
+          <td width="37%" style="padding: 0px;">
+            <table class="addrbox" style="width: 100%;">
+              <tr><td class="boxhead" colspan="3">SHIP TO</td></tr>
+              <tr>
+                <td colspan="3" class="boxline">
+                  <#-- 1) Project address from the Suitelet (returns an empty FreeMarker comment when none)
+                       2) else the PO ship-to address
+                       3) else blank - never prints "null" -->
+                  <#assign ntdShipToHtml = "">
+                  <#if ntdPoId?has_content>
+                    <#assign ntdShipToHtml><#include ntdShipToSuiteletUrl + "&poid=" + ntdPoId /></#assign>
+                    <#assign ntdShipToHtml = ntdShipToHtml?trim>
+                  </#if>
+                  <#if !ntdShipToHtml?has_content || ntdShipToHtml?lower_case == "null">
+                    <#assign ntdShipToHtml = (record.shipaddress!"")?string?trim>
+                  </#if>
+                  <#if ntdShipToHtml?has_content && ntdShipToHtml?lower_case != "null">${ntdShipToHtml}<#else>&nbsp;</#if>
+                </td>
+              </tr>
+              <tr><td colspan="3" class="boxline">&nbsp;</td></tr>
+              <tr><td colspan="3" class="boxline" style="padding-bottom: 4px;">&nbsp;</td></tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </macro>
+  </macrolist>
+
+  <style type="text/css">
+    * { font-family: sans-serif; }
+    table { font-size: 9pt; table-layout: fixed; border-collapse: collapse; }
+    td { padding: 1px 4px 1px 4px; }
+    table.hdr td { padding: 0px; }
+    table.info td { border: 0.75px solid ${ntdGrid}; font-size: 8.5pt; padding: 1px 3px 1px 3px; }
+    table.info td.lbl { background-color: ${ntdGrid}; }
+    table.info td.val { text-align: center; }
+    table.addrbox { border: 0.75px solid ${ntdGrid}; }
+    td.boxhead { background-color: ${ntdGrid}; border-bottom: 0.75px solid ${ntdGrid}; font-weight: bold; font-size: 8.5pt; text-align: center; padding: 1px; }
+    td.boxline { font-size: 9.5pt; padding: 0px 8px 0px 8px; }
+    table.items th { background-color: ${ntdGrid}; border: 0.75px solid ${ntdGrid}; font-weight: bold; font-size: 8.5pt; text-align: center; padding: 1px 3px 1px 3px; }
+    table.items td { font-size: 9.5pt; padding: 3px 4px 3px 4px; vertical-align: top; }
+    table.totals td { border: 0.75px solid ${ntdGrid}; font-size: 8.5pt; padding: 1px 3px 1px 3px; }
+    table.totals td.tlbl { background-color: ${ntdGrid}; font-weight: bold; text-align: right; }
+    table.totals td.tval { text-align: right; }
+    table.terms td { font-size: 8pt; padding: 0px 2px 1px 2px; }
+  </style>
+
+<#else>
+  <#-- ===================== McCLINTOCK MACROS + STYLES ===================== -->
+  <macrolist>
+    <macro id="nlfooter">
+      <table class="footer"><tr>
+        <td align="left">Purchase Order ${record.tranid}</td>
+        <td align="right">Page <pagenumber/> of <totalpages/></td>
+      </tr></table>
+    </macro>
+  </macrolist>
+  <style type="text/css">
+    * { font-family: sans-serif; }
+    body { font-size: 9pt; color: #2B2B2B; }
+    table { width: 100%; border-collapse: collapse; }
+    td, th { padding: 0; vertical-align: top; }
+
+    .accent-bar { background-color: #1F3A5F; height: 4px; }
+    .doc-title { font-size: 22pt; font-weight: bold; color: #1F3A5F; text-align: right; }
+    .po-num { font-size: 14pt; font-weight: bold; color: #2B2B2B; text-align: right; padding-top: 2px; }
+        .sub-name { font-size: 11pt; font-weight: bold; color: #1F3A5F; padding-top: 6px; }
+    .sub-addr { font-size: 9pt; color: #4A4A4A; line-height: 130%; }
+
+    table.meta { border: 1px solid #D5DCE4; margin-top: 8px; }
+    table.meta td { padding: 4px 8px; border-bottom: 1px solid #E6EBF0; }
+    table.meta td.lbl { background-color: #F2F5F8; color: #1F3A5F; font-weight: bold; font-size: 7.5pt; width: 40%; white-space: nowrap; }
+    table.meta td.val { font-size: 8.5pt; width: 60%; text-align: left; }
+
+    .addr-box { border: 1px solid #D5DCE4; }
+    .addr-head { background-color: #1F3A5F; color: #FFFFFF; font-weight: bold; font-size: 8.5pt; padding: 5px 8px; }
+    .addr-body { padding: 8px; font-size: 9pt; line-height: 135%; min-height: 70px; }
+
+    table.items { margin-top: 16px; }
+    table.items th { background-color: #1F3A5F; color: #FFFFFF; font-size: 8pt; font-weight: bold; padding: 6px 5px; }
+    table.items td { font-size: 8.5pt; padding: 5px; border-bottom: 1px solid #E6EBF0; }
+    table.items tr.alt td { background-color: #F7F9FB; }
+
+    table.totals { margin-top: 10px; }
+    table.totals td { padding: 5px 8px; font-size: 9pt; }
+    table.totals td.tlbl { color: #4A4A4A; text-align: right; }
+    table.totals td.tval { text-align: right; }
+    table.totals tr.grand td { background-color: #1F3A5F; color: #FFFFFF; font-weight: bold; font-size: 10.5pt; }
+
+    table.footer td { font-size: 7.5pt; color: #8A96A3; border-top: 1px solid #D5DCE4; padding-top: 4px; }
+
+    /* Legal pages */
+    .legal { font-size: 8.5pt; line-height: 125%; text-align: justify; }
+    .legal p { margin: 0 0 6px 0; }
+    .legal-title { font-size: 13pt; font-weight: bold; color: #1F3A5F; text-align: center; margin-bottom: 12px; }
+    .legal-sub { font-size: 10.5pt; font-weight: bold; text-align: center; margin-bottom: 14px; }
+    .sec { font-weight: bold; }
+    .sig td { font-size: 9.5pt; padding: 6px 0; }
+    .sig-head { font-weight: bold; color: #1F3A5F; }
+    .blank-area { border-bottom: 1px solid #B8C2CC; height: 70px; margin-bottom: 14px; }
+    .ins-item { margin: 0 0 6px 18px; }
+  </style>
+</#if>
+</head>
+
+<#if isNTD>
+<#-- =====================================================================
+     SUBSIDIARY 40 – NTD MECHANICAL PURCHASE ORDER
+     ===================================================================== -->
+<body header="nlheader" header-height="255pt" padding="0.35in 0.3in 0.4in 0.3in" size="Letter">
+
+  <#assign subtotalCalc = 0>
+  <table class="items" style="width: 100%;">
+    <thead>
+      <tr>
+        <th width="8%">QTY</th>
+        <th width="10%">UNITS</th>
+        <th width="57%">DESCRIPTION</th>
+        <th width="11%">PRICE</th>
+        <th width="14%">EXTENSION</th>
+      </tr>
+    </thead>
+
+    <#if record.item?has_content>
+      <#list record.item as item>
+        <#assign qtyN  = toNum(item.quantity)>
+        <#assign rateN = toNum(item.rate)>
+        <#assign amtN  = toNum(item.amount)>
+        <#assign subtotalCalc = subtotalCalc + amtN>
+        <tr>
+          <td align="center"><#if qtyN != 0>${qtyN?string(",##0.00")}</#if></td>
+          <td align="center">${item.units}</td>
+          <td align="left">${item.description?replace("\n", "<br />")}</td>
+          <td align="right"><#if amtN != 0>${rateN?string(",##0.00")}</#if></td>
+          <td align="right"><#if amtN != 0>${amtN?string(",##0.00")}</#if></td>
+        </tr>
+      </#list>
+    </#if>
+
+    <#if record.expense?has_content>
+      <#list record.expense as expense>
+        <#assign expAmtN = toNum(expense.amount)>
+        <#assign subtotalCalc = subtotalCalc + expAmtN>
+        <tr>
+          <td align="center">&nbsp;</td>
+          <td align="center">&nbsp;</td>
+          <td align="left"><#if expense.memo?has_content>${expense.memo}<#else>${expense.account}</#if></td>
+          <td align="right">&nbsp;</td>
+          <td align="right">${expAmtN?string(",##0.00")}</td>
+        </tr>
+      </#list>
+    </#if>
+  </table>
+
+  <#if record.subtotal?has_content>
+    <#assign subtotalN = toNum(record.subtotal)>
+  <#else>
+    <#assign subtotalN = subtotalCalc>
+  </#if>
+  <#assign totalN = toNum(record.total)>
+
+  <table style="width: 100%; margin-top: 8px; page-break-inside: avoid;">
+    <tr>
+      <td width="62%" vertical-align="top" style="padding: 0px;">
+        <table style="width: 100%;">
+          <tr>
+            <td width="22%" vertical-align="top" style="font-weight: bold; font-size: 8.5pt; background-color: ${ntdGrid}; border: 0.75px solid ${ntdGrid}; padding: 1px 3px;">PO WRITER</td>
+            <td width="78%" style="padding: 0px 6px;">&nbsp;</td>
+          </tr>
+        </table>
+      </td>
+      <td width="6%">&nbsp;</td>
+      <td width="32%" style="padding: 0px;">
+        <table class="totals" style="width: 100%;">
+          <tr><td class="tlbl" width="40%">SUBTOTAL</td><td class="tval" width="60%">${subtotalN?string(",##0.00")}</td></tr>
+          <tr><td class="tlbl">TAX</td><td class="tval">${taxAmt?string(",##0.00")}</td></tr>
+          <tr><td class="tlbl">TOTAL</td><td class="tval">${totalN?string(",##0.00")}</td></tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+
+  <table class="terms" style="width: 100%; margin-top: 30px; page-break-inside: avoid;">
+    <tr><td>1.&nbsp; TERMS - Pay when paid, Invoices received after the 20th of the month shall be considered in the following month.</td></tr>
+    <tr><td>2.&nbsp; Unless stated, FOB jobsite on shipping.</td></tr>
+    <tr><td>3.&nbsp; NTDW will not accept invoices 60 days after shipping.</td></tr>
+    <tr><td>4.&nbsp; Vendor is responsible for equipment and materials as enumerated per Plans, Specs, Addendums, ASI's etc. and includes but is not limited to quantities of items bid and /or listed herein required to complete the project.</td></tr>
+    <tr><td>5.&nbsp; Furnish electronic copy of submittals and IOM's. Payment shall not be processed until this data is received.</td></tr>
+    <tr><td>6.&nbsp; All items listed meet normal lead times unless noted.</td></tr>
+    <tr><td>7.&nbsp; PO binding unless notified within 10 days.</td></tr>
+    <tr><td>8.&nbsp; Materials and equipment shall meet building standards.</td></tr>
+    <tr><td>9.&nbsp; Freight carrier must notify this office at ${subsidiary.addrphone} 24 hours prior to delivery of material. Failure to do so will result in a charge to the manufacturer.</td></tr>
+    <tr><td>10. Additions, deletions, and/or returned items will be invoiced and/or credited without restocking charges according to the above unit price structure.</td></tr>
+  </table>
+
+<#else>
+<#-- =====================================================================
+     ALL OTHER SUBSIDIARIES – McCLINTOCK ELECTRIC PO + SUBCONTRACTOR AGREEMENT
+     ===================================================================== -->
+<body footer="nlfooter" footer-height="22px" padding="0.5in 0.5in 0.5in 0.5in" size="Letter">
+
+<!-- ===================== PAGE 1: PURCHASE ORDER ===================== -->
+<table>
+  <tr>
+    <td style="width:55%;">
+      <#if logoUrl?has_content><img src="${logoUrl}" style="width:150px; height:70px;" /></#if>
+      <p class="sub-name">${subName}</p>
+      <p class="sub-addr">${subAddr}</p>
+    </td>
+    <td style="width:45%;" align="right">
+      <p class="doc-title">PURCHASE ORDER</p>
+      <p class="po-num">${record.tranid}</p>
+      <table class="meta" align="right" style="width:260px;">
+        <tr><td class="lbl">DATE</td><td class="val">${record.trandate}</td></tr>
+        <tr><td class="lbl">MEMO</td><td class="val">${record.memo}</td></tr>
+        <tr><td class="lbl">TERMS</td><td class="val">${record.terms}</td></tr>
+        <tr><td class="lbl">PROJECT</td><td class="val">${projectName}</td></tr>
+        <tr><td class="lbl" style="border-bottom:0;">CUSTOMER NAME</td><td class="val" style="border-bottom:0;">${customerName}</td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<div class="accent-bar" style="margin-top:12px;"></div>
+
+
+<table style="margin-top:14px;">
+  <tr>
+    <td style="width:49%;">
+      <table class="addr-box">
+        <tr><td class="addr-head">BILL TO</td></tr>
+        <tr><td class="addr-body">${record.billaddress}</td></tr>
+      </table>
+    </td>
+    <td style="width:2%;"></td>
+    <td style="width:49%;">
+      <table class="addr-box">
+        <tr><td class="addr-head">SHIP TO</td></tr>
+        <tr><td class="addr-body">${record.shipaddress}</td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+<#if record.item?has_content>
+<table class="items">
+  <thead>
+    <tr>
+      <th align="center" style="width:6%;">LINE #</th>
+      <th align="left" style="width:15%;">ITEM</th>
+      <th align="left" style="width:37%;">DESCRIPTION</th>
+      <th align="right" style="width:9%;">QTY</th>
+      <th align="center" style="width:7%;">UOM</th>
+      <th align="right" style="width:13%;">UNIT COST</th>
+      <th align="right" style="width:13%;">AMOUNT</th>
+    </tr>
+  </thead>
+  <#list record.item as item>
+  <tr<#if item?index % 2 == 1> class="alt"</#if>>
+    <td align="center">${item.custcol_bc_proj_line_num}</td>
+    <td>${item.item}</td>
+    <td>${item.description}</td>
+    <td align="right"><#if item.quantity?has_content && item.quantity != 0>${item.quantity}</#if></td>
+    <td align="center">${item.units}</td>
+    <td align="right"><#if item.rate?has_content>${item.rate}</#if></td>
+    <td align="right"><#if item.amount?has_content && item.amount != 0>${item.amount}</#if></td>
+  </tr>
+  </#list>
+</table>
+</#if>
+
+<table class="totals">
+  <tr>
+    <td style="width:60%;"></td>
+    <td style="width:40%;">
+      <table>
+        <tr><td class="tlbl" align="right" style="width:55%;">Total</td><td class="tval" align="right" style="width:45%;">${record.subtotal}</td></tr>
+        <tr><td class="tlbl" align="right">Tax</td><td class="tval" align="right">${record.taxtotal}</td></tr>
+        <tr class="grand"><td class="tlbl" align="right" style="color:#FFFFFF;">Order Total</td><td class="tval" align="right">${record.total}</td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+<!-- ===================== PAGES 2-4: SUBCONTRACTOR AGREEMENT (STATIC) - p2: intro + 1-7 | p3: 8-21 | p4: 22-25 ===================== -->
+<pbr/>
+<div class="legal">
+<p class="legal-title" align="center" style="text-align:center;">SUBCONTRACTOR AGREEMENT</p>
+
+<p>This Subcontractor Agreement (“Agreement”) is entered into as of the date set forth on the signature page (“Effective Date”), by and between McClintock Electric Inc. (“Contractor”) and the undersigned subcontractor (“Subcontractor”).</p>
+
+<p><span class="sec">1. SCOPE OF WORK.</span> As used herein, the “Project” is as more fully described on Exhibit A attached hereto and made part hereof. The scope of the Project may be amended by the mutual consent of the parties by a work order, statement of work, order form, or other ordering document (each, a “Statement of Work”). A Statement of Work may be placed by email and accepted by an email confirmation receipt. Each Statement of Work is subject to the terms of, and is deemed incorporated into, this Agreement and is effective beginning on the date set forth thereon. Subcontractor agrees to follow all reasonable rules, regulations, and codes of conduct of Contractor, as Contractor may determine from time to time.</p>
+
+<p><span class="sec">2. PRIME CONTRACT.</span> Subcontractor shall be bound to Contractor by the terms of this Agreement and of the contract documents between Contractor and the customer (“Prime Contract”), and shall assume toward Contractor all the obligations and responsibilities which Contractor, by those documents, assumes toward the customer, insofar as applicable to this Agreement, provided that where any provision of the contract documents between Contractor and the customer is inconsistent with any provision of this Agreement, this Agreement shall govern.</p>
+
+<p><span class="sec">3. APPROVAL BY CUSTOMER.</span> If the customer cancels the Prime Contract, suspends work thereunder or eliminates a portion of the work, the rights of Subcontractor in reference to work already done hereunder shall be the same as the rights of Contractor against the customer under the Prime Contract, except that the amounts, if any, to be paid by Contractor to Subcontractor shall be computed on the basis of the prices used in arriving at the price of this Agreement as determined under Section 4 of this Agreement; provided, however, Contractor shall in no event be required to pay Subcontractor more than Contractor receives from the customer for the work done pursuant to this Agreement.</p>
+
+<p><span class="sec">4. PRICE.</span> As full compensation for the performance of this Agreement, Contractor shall pay Subcontractor the amount set forth on Exhibit A, subject to additions and deductions as provided for in this Agreement. Subcontractor shall comply with Federal, State, and local tax laws, social security acts, unemployment compensation acts and workers’ compensation acts related to the performance of this Agreement.</p>
+
+<p><span class="sec">5. PAYMENT.</span> Payment shall be due to Subcontractor within five (5) days after: (i) the work and materials set forth in this Agreement are fully completed and performed in accordance with Contractor’s requirements; and (ii) Contractor has received from the customer payment in full. If the customer has failed for whatever reason to issue full payment to Contractor, Contractor – under no circumstances – is responsible to Subcontractor for such unpaid sums until paid by customer. The parties to this Agreement specifically acknowledge and agree that a condition precedent to the obligation of Contractor to pay Subcontractor is the payment to Contractor by the customer; this provision does not merely set forth the time at which payment must be made to Subcontractor. Subcontractor acknowledges that this is a “pay-if-paid” provision, that the risk of the customer’s non-payment is being shifted from Contractor to Subcontractor, and that Subcontractor may not be paid if the customer fails to pay Contractor for work performed and/or materials provided by Subcontractor. Notwithstanding any provisions to the contrary, Contractor may withhold payments from Subcontractor (whether or not Contractor has been paid by customer) where Contractor, the architect/engineer, or customer discovers evidence, makes observations, or has determined that any of the following events may exist or have occurred: (a) Subcontractor has failed to timely remedy its defective work or defective materials; (b) third-party claims have been or may be filed against the customer, Contractor, architect/engineer or Project arising out of actions or transactions attributable to Subcontractor; (c) Subcontractor failed to make prompt payment to other subcontractors, laborers, or materialmen; (d) Subcontractor’s work is delayed such that the Project will not be substantially or finally complete within the time specified in the Prime Contract; or (e) Contractor may be subject to liquidated damages or actual damages as a result of anticipated delays or other events caused either in whole or in part by Subcontractor.</p>
+
+<p>In cases where Contractor, in its sole discretion, has determined that any of the foregoing events may exist or have occurred, Contractor, in addition to any other remedies, may deduct any damages, costs and expenses incurred as a result of or in any way associated with the existence or occurrence of such event(s) from any money then due or thereafter to become due to Subcontractor, including but not limited to Contractor’s attorney’s fees.</p>
+
+<p><span class="sec">6. TIME OF COMMENCEMENT AND COMPLETION.</span> Time is of the essence for all aspects of the Agreement. No extension of time will be valid without Contractor’s written consent after timely claim made by Subcontractor in accordance with this Agreement. If Subcontractor defaults on any portion of the work outlined in this Agreement, Contractor reserves the right to employ others to satisfactorily complete this portion of the work and deduct the cost for so doing from the price of this Agreement as set forth in Section 4 of this Agreement and to seek any other damages, costs or expenses incurred.</p>
+
+<p><span class="sec">7. CLAIMS.</span> Subcontractor shall make all claims to Contractor for additional work, extensions of time, and damage for delays or otherwise: in writing and within five (5) days of the occurrence of the event giving rise to such claim. The failure to notify Contractor as provided above shall constitute a waiver of Subcontractor’s right to any damages, additional compensation or extensions of time.</p>
+
+</div>
+<pbr/>
+<div class="legal">
+<p><span class="sec">8. CONFIDENTIALITY.</span> Subcontractor acknowledges that during the term of this Agreement, it may be provided with certain proprietary information, including, without limitation prices, data, reports, technical information, trade secrets, know-how, processes, and customer information (“Confidential Information”). Subcontractor agrees that it will not, either during or after the term of this Agreement, for any reason, publish or disclose to any third party, except to its corporate affiliates, without the advance, express written authorization from Contractor, any such Confidential Information of the other party, nor, except to the extent such Confidential Information is necessary in performance of this Agreement, will it use such Confidential Information. Subcontractor will use the same degree of care, but no less than a reasonable degree of care, as the Subcontractor uses with respect to its own similar information to protect the Confidential Information of the Contractor in accordance with this Agreement. The obligations and duties imposed by this Agreement with respect to any Confidential Information may be enforced by Contractor against any and all representatives of Subcontractor to whom such Confidential Information was disclosed or otherwise made available by Subcontractor. The requirements of this Section shall survive for two (2) years after the termination of this Agreement. Upon termination or expiration of this Agreement, and upon request of Contractor, all materials and copies of Confidential Information shall be immediately returned to Contractor.</p>
+
+<p><span class="sec">9. NO FURTHER SUBCONTRACTING OR ASSIGNMENT OF AGREEMENT.</span> Subcontractor shall not assign this Agreement or any aspect of the Agreement (other than the acquisition of materials), including any further subcontracting of Subcontractor’s work on the Project, without first obtaining the written approval of Contractor.</p>
+
+<p><span class="sec">10. AUDIT AND ACCESS.</span> Upon reasonable request by Contractor, Subcontractor shall provide any requested records to establish and verify Subcontractor’s compliance with this Agreement and all applicable laws.</p>
+
+<p><span class="sec">11. QUALITY OF WORK.</span> Subcontractor warrants that all work performed and materials furnished under this Agreement shall be of good quality, free from faults and defects and in conformance with the Agreement. All work and materials not conforming to these standards may be considered defective. The warranty provided in this paragraph shall be in addition to and not in limitation of any other warranty or remedy required by law or by the Agreement.</p>
+
+<p><span class="sec">12. FIELD DIMENSIONS.</span> Subcontractor is responsible for taking all appropriate field dimensions to ensure that its materials or construction work are installed satisfactorily on the Project. No request for additional funds will be allowed for items not fitting due to lack of field dimensions.</p>
+
+<p><span class="sec">13. WORKING CONDITIONS.</span> Subcontractor shall be responsible for cleaning up its own debris at all times and in a continuous fashion. In the event Contractor finds it necessary to clean up Subcontractor’s debris, any cleanup expenses incurred by Contractor—or repairs to other areas damaged by Subcontractor—shall be backcharged to Subcontractor and deducted from its final payment. Subcontractor shall verify with Contractor’s job superintendent that cleanup of Subcontractor’s debris is satisfactory.</p>
+
+<p><span class="sec">14. SAFETY.</span> Subcontractor shall take all safety precautions with respect to his work, shall comply with all safety measures initiated by Contractor and with all applicable laws, ordinances, rules, regulations and orders of any public authority for the safety of persons or property in accordance with the requirements of the Agreement. Subcontractor shall report any injury suffered by any of its employees at the site to Contractor within three (3) days of the injury.</p>
+
+<p><span class="sec">15. SAFETY AUDIT.</span> From time to time, at the sole discretion of Contractor, Contractor may perform a safety audit of Subcontractor to ensure that Subcontractor’s compliance with Section 14 of this Agreement and the Contractor’s rules, regulations, and code of conduct related to safety measures and procedures. The criteria for a safety audit shall include, but not be limited to: (i) TRIR; (ii) EMR; (iii) DART; and (iv) any other metric or standard determined to be applicable in the sole discretion of Contractor. If Subcontractor fails to pass Contractor’s safety audit, Contractor and Subcontractor shall within three (3) days of the failed safety audit shall mutually agree upon an acceptable mitigation plan to eliminate non-compliance with Contractor’s safety rules, regulations and code of conduct. If Subcontractor fails to comply with the adopted mitigation plan, Contractor shall have the right to immediately terminate this Agreement.</p>
+
+<p><span class="sec">16. PROGRESS REPORTS.</span> Subcontractor shall furnish periodic progress reports on the work as reasonably requested by Contractor, including information on the status of materials and equipment under this Agreement that may be in the course of preparation or manufacture.</p>
+
+<p><span class="sec">17. COMPLIANCE WITH LAW.</span> Subcontractor shall give all notices and comply with all laws, ordinances, rules, regulations and orders of any public authority bearing on the performance of the work under this Agreement. Subcontractor shall secure and pay for all permits, fees and licenses necessary for the execution of the work described in this Agreement, unless otherwise agreed to by the parties in writing.</p>
+
+<p><span class="sec">18. APPROVAL OF WORK.</span> Subcontractor agrees that all work shall be done subject to the final approval of Contractor. Final approval shall be in the Contractor’s sole discretion. Contractor’s decisions shall be final.</p>
+
+<p><span class="sec">19. ENTIRE AGREEMENT.</span> This Agreement together with any amendments, exhibits, or Statements of Work shall constitute the entire understanding between the parties with respect to the subject matter contained herein and supersedes all prior agreements and understandings between the parties with respect to such subject matter. Neither this Agreement nor any term or provision hereof may be changed or waived orally but only by a signed, written agreement, except as otherwise provided for herein.</p>
+
+<p><span class="sec">20. CHOICE OF LAW.</span> This Agreement and any questions with respect to its construction, interpretation or performance shall be governed by and determined in accordance with the laws of the State of Ohio; any dispute regarding this Agreement shall be venued in the Common Pleas Court of Wayne County, Ohio.</p>
+
+<p><span class="sec">21. ASSIGNMENT OF WARRANTIES.</span> Subcontractor assigns to Contractor all of its right, title and interest in and to any and all warranties, express or implied, obtained by Subcontractor from Subcontractor’s lower tier subtrades or suppliers, whether conferred by contract or imposed by law, as a result of work performed and/or materials and equipment furnished to the Project.</p>
+
+</div>
+<pbr/>
+<div class="legal">
+<p><span class="sec">22. LIQUIDATED DAMAGES.</span> In the event of a delay in the Project, Subcontractor shall pay liquidated damages to Contractor in an amount equal to the greater of (i) $500 per day or (ii) Subcontractor’s proportional share of the liquidated damages set forth in the Contract. Contractor and Subcontractor, recognizing the inherent difficulty in determining the amount of damages that would be owed in such cases, specifically agree these liquidated damages are not punitive in nature, but are intended as a reasonable estimate of compensation for Contractor’s actual damages arising out of Subcontractor’s delayed completion of the work.</p>
+
+<p><span class="sec">23. INDEMNITY.</span> To the fullest extent permitted by law, Subcontractor shall indemnify, defend (at Subcontractor’s sole expense) and hold harmless Contractor, the customer, affiliated companies of Contractor, their parents, joint ventures, representatives, members, designees, officers, directors, shareholders, employees, agents, successors, and assigns (“Indemnified Parties”), from and against any and all claims for bodily injury, death or damage to property, demands, damages, actions causes of action, suits, losses, judgments, obligations and any liabilities, costs and expenses (including but not limited to investigative and repair costs, attorneys fees and costs and consultant fees and costs) (“Claims”) which arise or are in any way connected with the work performed, materials furnished, or services provided under this Agreement by Subcontractor or its agents. These indemnity and defense obligations shall apply to any acts or omissions, negligent or willful misconduct of Indemnified Parties.</p>
+
+<p><span class="sec">24. ATTORNEYS’ FEES.</span> If Contractor employs an attorney to institute legal action against Subcontractor (or any of its lower tier subtrades) or to enforce any of the provisions of the Agreement or to defend or protect its interests in any matter arising out of this Agreement, then Contractor shall be entitled to recover from Subcontractor, in addition to any other damages, its reasonable attorneys’ fees, costs, charges and expenses incurred therein.</p>
+
+<p><span class="sec">25. INDEPENDENT CONTRACTOR RELATIONSHIP.</span> The parties hereby acknowledge and agree that Subcontractor is an independent contractor of Contractor. Subcontractor is not an employee or agent of Contractor. This Agreement shall not be construed as one of employment. Subcontractor is solely responsible for, and accepts exclusive liability for, the payment of any taxes, including, without limitation, all federal, state and local income taxes, social security tax, unemployment tax, workers’ compensation, and any other required fees or taxes. Subcontractor will not receive any benefits from Contractor other than the compensation stated herein.</p>
+</div>
+
+<!-- ===================== SIGNATURE BLOCK (STATIC) - follows section 25 on page 4 ===================== -->
+<br/><br/><br/>
+<div class="legal">
+<p>The parties have caused this Agreement to be duly executed as of ___________________, 20____.</p>
+<table class="sig" style="margin-top:30px;">
+  <tr>
+    <td style="width:48%;" class="sig-head">CONTRACTOR</td><td style="width:4%;"></td>
+    <td style="width:48%;" class="sig-head">SUBCONTRACTOR</td>
+  </tr>
+  <tr>
+    <td>McClintock Electric Inc.</td><td></td>
+    <td>_________________________________</td>
+  </tr>
+  <tr><td style="padding-top:22px;">By: ______________________________</td><td></td><td style="padding-top:22px;">By: ______________________________</td></tr>
+  <tr><td>Name: ___________________________</td><td></td><td>Name: ___________________________</td></tr>
+  <tr><td>Title: ____________________________</td><td></td><td>Title: ____________________________</td></tr>
+</table>
+</div>
+
+<!-- ===================== PAGE 5: EXHIBIT A (STATIC) ===================== -->
+<pbr/>
+<div class="legal">
+<p class="legal-title" align="center" style="text-align:center; margin-bottom:2px;">Exhibit A</p>
+<p class="legal-sub" align="center" style="text-align:center;">Project Business Terms</p>
+
+<p class="sec">Scope of Work:</p>
+<div class="blank-area"></div>
+
+<p class="sec">Pricing Terms:</p>
+<div class="blank-area"></div>
+
+<p class="sec">Insurance Requirements:</p>
+<p>Upon execution of this Agreement, and prior to the Subcontractor’s commencing any work or services with regard to the Project, the Subcontractor shall carry:</p>
+
+<p class="ins-item"><b>A.</b> Commercial General Liability insurance with limits of not less than $1,000,000 each occurrence, with a $2,000,000 general aggregate on a per project basis. Such policy shall include all major aspects of coverage including but not limited to Bodily Injury and Property Damage, Premises/Operations, Products/Completed Operations, Personal and Advertising Injury, Independent Contractors and Contractual Liability. The policy shall include McClintock Electric Inc, and any of its subsidiary and affiliated entities, their respective directors, officers, employes and agents, as Additional Insureds via a CG 2010 11/85 form, a combination of CG 2010 (or CG 2033 or CG 2038) and CG 2037 forms with edition dates of 10/01, 07/04, or 04/13 to provide ongoing and completed operations, or manuscript form(s) providing equivalent coverage (i.e. coverage for the Additional Insureds must be Primary and Non-Contributory, must include completed operations coverage, and must not be limited to vicarious liability coverage only), which form(s) must be accepted and approved by Contractor or its insurance/risk manager. The policy shall also include a Waiver of Subrogation endorsement in favor of the Additional Insureds listed above.</p>
+
+<p class="ins-item"><b>B.</b> Business Automobile Liability insurance with limits of not less than $1,000,000 Combined Single Limit for bodily injury and property damage covering all vehicles used in connection with Subcontractor’s Work. The policy must provide coverage for the Additional Insureds, either by policy terms or by endorsement attached to the policy, for any liability incurred by any of them due to the actions of Subcontractor.</p>
+
+<p class="ins-item"><b>C.</b> Workers Compensation and Occupational Disease insurance in accordance with all applicable state and federal laws, with Employers Liability insurance limits of at least $500,000/$500,000/$500,000. The policy shall include a Waiver of Subrogation endorsement in favor of the Additional Insureds listed in A. above.</p>
+
+<p class="ins-item"><b>D.</b> Excess Umbrella Liability insurance with limits of at least $1,000,000 per occurrence and in the aggregate.</p>
+
+<p>The insurance coverage required shall be of sufficient type, scope, and duration to ensure coverage for the Contractor or customer for liability related to any manifestation date within the applicable statutes of limitation and/or repose which pertain to any work performed by or on behalf of the Contractor or customer in relation to the project. Subcontractor agrees to maintain the above insurance for the benefit of Contractor and customer for the period of ten years after the date of substantial completion of the Project.</p>
+
+<p>Each Certificate of Insurance shall provide that the insurer must give the Contractor at least 30 days prior written notice of cancellation and termination of the Contractor’s coverage there under.</p>
+
+<p class="sec">Miscellaneous Terms:</p>
+<div class="blank-area"></div>
+</div>
+
+</#if>
+</body>
+</pdf>
